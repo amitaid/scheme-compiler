@@ -72,6 +72,65 @@ symbol = ps. \
     pack(lambda m: Symbol(''.join(m))). \
     done()
 
+string_meta_char = ps. \
+    parser(pcChar('\\')). \
+    parser(pcOneOf('nrtf\\"l')). \
+    caten(). \
+    pack(lambda m: chr(0x03bb) if m[1] == 'l' else m[1]). \
+    done()
+
+string = ps. \
+    parser(pcChar('"')). \
+    parser(string_meta_char). \
+    const(). \
+    parser(pcChar('"')). \
+    butNot(). \
+    disj(). \
+    star(). \
+    parser(pcChar('"')). \
+    catens(3). \
+    pack(lambda m: String(m[1])). \
+    done()
+
+named_chars = {'newline': 10,
+               'return': 13,
+               'tab': 9,
+               'page': 12,
+               'lambda': 0x3bb}
+
+named_char = ps. \
+    parser(pcWord('newline')). \
+    parser(pcWord('return')). \
+    parser(pcWord('tab')). \
+    parser(pcWord('page')). \
+    parser(pcWord('lambda')). \
+    disjs(5). \
+    pack(lambda m: chr(named_chars[''.join(m)])). \
+    done()
+
+hex_char = ps. \
+    parser(pcChar('x')). \
+    parser(hex_digits). \
+    parser(hex_digits). \
+    caten(). \
+    parser(hex_digits). \
+    parser(hex_digits). \
+    caten(). \
+    maybe(). \
+    catens(3). \
+    pack(lambda m: chr(int(''.join((m[1] + m[2][1]) if m[2][0] else m[1]), 16))). \
+    done()
+
+visible_char = const(lambda m: m > ' ')
+
+char = ps. \
+    parser(named_char). \
+    parser(hex_char). \
+    parser(visible_char). \
+    disjs(3). \
+    pack(lambda m: Char(m)). \
+    done()
+
 pSexpr = None
 
 
@@ -96,11 +155,15 @@ class Boolean(AbstractSexpr):
 
 
 class Char(AbstractSexpr):
-    pass
+    def __init__(self, char):
+        self.char = char
+
+    def __str__(self):
+        return str(self.char)
 
 
 class AbstractNumber(AbstractSexpr):
-    def evaluate(self):
+    def eval(self):
         pass
 
 
@@ -114,25 +177,29 @@ class Integer(AbstractNumber):
     def __str__(self):
         return str(self.value)
 
-    def evaluate(self):
+    def eval(self):
         return self.value
 
 
 class Fraction(AbstractNumber):
     def __init__(self, numer, denum):
-        self.numer, self.denum = numer.evaluate(), denum.evaluate()
+        self.numer, self.denum = numer.eval(), denum.eval()
         if self.denum == 0:
             raise NoMatch('Divide by zero')
 
     def __str__(self):
         return str(self.numer) + '/' + str(self.denum)
 
-    def evaluate(self):
-        return self.numer.evaluate() / self.denum.evaluate()
+    def eval(self):
+        return self.numer.eval() / self.denum.eval()
 
 
 class String(AbstractSexpr):
-    pass
+    def __init__(self, chars):
+        self.chars = chars
+
+    def __str__(self):
+        return '"' + ''.join(self.chars) + '"'
 
 
 class Symbol(AbstractSexpr):
@@ -155,12 +222,19 @@ class Vector(AbstractSexpr):
 def main():
     print(signed_int.match('34')[0])
     print(signed_int.match('+0h34')[0])
+
     print(fraction.match('0X54/0Hf50')[0])
     print(fraction.match('-00000000000000034/0x0000000000000000000000000043')[0])
 
-    print(symbol.match('abc!!?bcd')[0].length)
+    print(symbol.match('abc!!?bcd')[0])
 
     print(boolean.match('#t')[0])
+
+    print(string.match('"123\lcdd""')[0])
+
+    print(char.match('lambda')[0])
+    print(char.match('x30')[0])
+    print(char.match('☺')[0])
 
 
 if __name__ == '__main__':
