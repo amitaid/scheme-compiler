@@ -58,7 +58,7 @@ integer = ps. \
 
 fraction = ps. \
     parser(integer). \
-    const(lambda m: m == '/'). \
+    parser(pcChar('/')). \
     parser(unsigned_int). \
     catens(3). \
     pack(lambda m: Fraction(m[0], m[2])). \
@@ -333,22 +333,22 @@ def main():
     print(AbstractSexpr.readFromString(',@#\\lambda')[0])
     print(AbstractSexpr.readFromString(',#\\lambda')[0])
 
-    #print(integer.match('+0h34')[0])
-    #
-    #print(fraction.match('0X54/0Hf50')[0])
-    #print(fraction.match('-00000000000000034/0x0000000000000000000000000043')[0])
-    #
-    #print(symbol.match('abc!!?bcd')[0])
-    #
-    #print(boolean.match('#t')[0])
-    #
-    #print(string.match('"123\lcdd""')[0])
-    #
-    #print(char.match('#\\lambda')[0])
-    #print(char.match('#\\x30')[0])
-    #print(char.match('#\\☺')[0])
-    #
-    #print(nil.match('(   )')[0])
+    print(integer.match('+0h34')[0])
+
+    print(fraction.match('0X54/0Hf50')[0])
+    print(fraction.match('-00000000000000034/0x0000000000000000000000000043')[0])
+
+    print(symbol.match('abc!!?bcd')[0])
+
+    print(boolean.match('#t')[0])
+
+    print(string.match('"123\lcdd""')[0])
+
+    print(char.match('#\\lambda')[0])
+    print(char.match('#\\x30')[0])
+    print(char.match('#\\☺')[0])
+
+    print(nil.match('(   )')[0])
 
 
 if __name__ == '__main__':
