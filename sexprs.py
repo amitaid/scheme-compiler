@@ -186,6 +186,20 @@ vector = ps. \
     pack(lambda m: Vector(m[1])). \
     done()
 
+quotes_dict = {'′': 'quote', '`': 'quasiquote', ',@': 'unquote-splicing', ',': "unquote"}
+
+quote = ps. \
+    parser(pcWord(',@')). \
+    pack(lambda m: ''.join(m)). \
+    parser(pcChar('′')). \
+    parser(pcChar(',')). \
+    parser(pcChar('`')). \
+    disjs(4). \
+    parser(pSexpr_d). \
+    caten(). \
+    pack(lambda m: Pair([Symbol(quotes_dict[m[0]]), Pair([m[1]])])). \
+    done()
+
 pSexpr = ps. \
     parser(pcWhiteStar). \
     parser(fraction). \
@@ -196,7 +210,8 @@ pSexpr = ps. \
     parser(pair). \
     parser(vector). \
     parser(nil). \
-    disjs(8). \
+    parser(quote). \
+    disjs(9). \
     parser(pcWhiteStar). \
     catens(3). \
     pack(lambda m: m[1]). \
@@ -217,9 +232,6 @@ class Void(AbstractSexpr):
 
 
 class Nil(AbstractSexpr):
-    def __init__(self):
-        pass
-
     def __str__(self):
         return '()'
 
@@ -297,7 +309,7 @@ class Pair(AbstractSexpr):
     def __init__(self, items):
         self.car = items[0]
         if len(items[1:]) == 0:
-            self.cdr = Nil
+            self.cdr = Nil()
         elif len(items[1:]) == 1:
             self.cdr = items[1]
         else:
@@ -316,7 +328,11 @@ class Vector(AbstractSexpr):
 
 
 def main():
-    print(AbstractSexpr.readFromString('#(#\\lambda)')[0])
+    print(AbstractSexpr.readFromString('′(#\\lambda x y z)')[0])
+    print(AbstractSexpr.readFromString('`#\\lambda')[0])
+    print(AbstractSexpr.readFromString(',@#\\lambda')[0])
+    print(AbstractSexpr.readFromString(',#\\lambda')[0])
+
     #print(integer.match('+0h34')[0])
     #
     #print(fraction.match('0X54/0Hf50')[0])
