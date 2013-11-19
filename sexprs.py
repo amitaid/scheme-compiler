@@ -91,6 +91,7 @@ class Symbol(AbstractSexpr):
 
 class Pair(AbstractSexpr):
     def __init__(self, items):
+        self.str_form = '(' + ' '.join(map(str, items)) + ')'
         self.car = items[0]
         if len(items[1:]) == 0:
             self.cdr = Nil()
@@ -100,7 +101,16 @@ class Pair(AbstractSexpr):
             self.cdr = Pair(items[1:])
 
     def __str__(self):
-        return '(' + str(self.car) + " " + str(self.cdr) + ')'
+        return self.str_form
+        #res = '('
+        #next = self.cdr
+        #while next:
+        #    if next.cdr == None:
+        #        res += ' . ' + next.car
+        #    elif isinstance(next.cdr, Nil):
+        #        res += ' ' + next.car +
+        #
+        #return '(' + str(self.car) + " " + str(self.cdr) + ')'
 
 
 class Vector(AbstractSexpr):
