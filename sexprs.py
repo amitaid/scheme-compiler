@@ -4,7 +4,9 @@ ps = ParserStack()
 
 new_line = pcChar('\n')
 
-d_line_comment = delayed(lambda: line_comment)
+line_comment_d = delayed(lambda: line_comment)
+pSexpr_d = delayed(lambda: pSexpr)
+
 line_comment = ps. \
     parser(pcWhiteStar). \
     parser(pcChar(';')). \
@@ -145,6 +147,45 @@ nil = ps. \
     pack(lambda m: Nil()). \
     done()
 
+improper_list = ps. \
+    parser(pcChar('(')). \
+    parser(pSexpr_d). \
+    plus(). \
+    parser(pcChar('.')). \
+    parser(pSexpr_d). \
+    parser(pcChar(')')). \
+    catens(5). \
+    pack(lambda m: Pair(m[1] + [m[3]])). \
+    done()
+
+proper_list = ps. \
+    parser(pcChar('(')). \
+    parser(pSexpr_d). \
+    star(). \
+    parser(pcChar(')')). \
+    catens(3). \
+    pack(lambda m: Pair(m[1])). \
+    done()
+
+pair = ps. \
+    parser(proper_list). \
+    parser(improper_list). \
+    disj(). \
+    done()
+
+vector = ps. \
+    parser(pcWord('#(')). \
+    parser(pcWhiteStar). \
+    parser(pSexpr_d). \
+    caten(). \
+    pack(lambda m: m[1]). \
+    star(). \
+    parser(pcWhiteStar). \
+    parser(pcChar(')')). \
+    catens(5). \
+    pack(lambda m: Vector(m[1])). \
+    done()
+
 pSexpr = ps. \
     parser(pcWhiteStar). \
     parser(fraction). \
@@ -152,14 +193,13 @@ pSexpr = ps. \
     parser(symbol). \
     parser(string). \
     parser(char). \
+    parser(pair). \
+    parser(vector). \
     parser(nil). \
-    disjs(6). \
-    caten(). \
-    pack(lambda m: m[1]). \
-    star(). \
+    disjs(8). \
     parser(pcWhiteStar). \
-    caten(). \
-    pack(lambda m: m[0]). \
+    catens(3). \
+    pack(lambda m: m[1]). \
     done()
 
 
@@ -168,8 +208,8 @@ class AbstractSexpr:
         pass
 
     @staticmethod
-    def readFromString(string):
-        return pSexpr.match(string)
+    def readFromString(sexpr_str):
+        return pSexpr.match(sexpr_str)
 
 
 class Void(AbstractSexpr):
@@ -193,11 +233,11 @@ class Boolean(AbstractSexpr):
 
 
 class Char(AbstractSexpr):
-    def __init__(self, char):
-        self.char = char
+    def __init__(self, ch):
+        self.ch = ch
 
     def __str__(self):
-        return str(self.char)
+        return str(self.ch)
 
 
 class AbstractNumber(AbstractSexpr):
@@ -254,15 +294,29 @@ class Symbol(AbstractSexpr):
 
 
 class Pair(AbstractSexpr):
-    pass
+    def __init__(self, items):
+        self.car = items[0]
+        if len(items[1:]) == 0:
+            self.cdr = Nil
+        elif len(items[1:]) == 1:
+            self.cdr = items[1]
+        else:
+            self.cdr = Pair(items[1:])
+
+    def __str__(self):
+        return '(' + str(self.car) + " . " + str(self.cdr) + ')'
 
 
 class Vector(AbstractSexpr):
-    pass
+    def __init__(self, items):
+        self.items = items
+
+    def __str__(self):
+        return '#(' + ' '.join(map(str, self.items)) + ')'
 
 
 def main():
-    print(AbstractSexpr.readFromString('34 5/0x3')[0])
+    print(AbstractSexpr.readFromString('#(#\\lambda)')[0])
     #print(integer.match('+0h34')[0])
     #
     #print(fraction.match('0X54/0Hf50')[0])
