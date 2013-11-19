@@ -5,16 +5,28 @@ ps = ParserStack()
 
 new_line = pcChar('\n')
 
-line_comment_d = delayed(lambda: line_comment)
 pSexpr_d = delayed(lambda: pSexpr)
 
 line_comment = ps. \
-    parser(pcWhiteStar). \
     parser(pcChar(';')). \
     const(lambda m: m > ' '). \
     star(). \
     parser(new_line). \
     catens(4). \
+    done()
+
+sexpr_comment = ps. \
+    parser(pcWord('#;')). \
+    parser(pSexpr_d). \
+    caten(). \
+    done()
+
+ignorable = ps. \
+    parser(line_comment). \
+    parser(sexpr_comment). \
+    parser(pcWhite1). \
+    disjs(3). \
+    star(). \
     done()
 
 zero = pcChar('0')
@@ -142,10 +154,9 @@ char = ps. \
     pack(lambda m: sexprs.Char(m[1])). \
     done()
 
-# TODO: add comment support inside nil
 nil = ps. \
     parser(pcChar('(')). \
-    parser(pcWhiteStar). \
+    parser(ignorable). \
     parser(pcChar(')')). \
     catens(3). \
     pack(lambda m: sexprs.Nil()). \
@@ -179,18 +190,17 @@ pair = ps. \
 
 vector = ps. \
     parser(pcWord('#(')). \
-    parser(pcWhiteStar). \
     parser(pSexpr_d). \
-    caten(). \
-    pack(lambda m: m[1]). \
     star(). \
-    parser(pcWhiteStar). \
     parser(pcChar(')')). \
-    catens(5). \
+    catens(3). \
     pack(lambda m: sexprs.Vector(m[1])). \
     done()
 
-quotes_dict = {'′': 'quote', '`': 'quasiquote', ',@': 'unquote-splicing', ',': "unquote"}
+quotes_dict = {'′': 'quote',
+               '`': 'quasiquote',
+               ',@': 'unquote-splicing',
+               ',': "unquote"}
 
 quote = ps. \
     parser(pcWord(',@')). \
@@ -205,7 +215,7 @@ quote = ps. \
     done()
 
 pSexpr = ps. \
-    parser(pcWhiteStar). \
+    parser(ignorable). \
     parser(fraction). \
     parser(integer). \
     parser(symbol). \
@@ -217,7 +227,7 @@ pSexpr = ps. \
     parser(nil). \
     parser(quote). \
     disjs(10). \
-    parser(pcWhiteStar). \
+    parser(ignorable). \
     catens(3). \
     pack(lambda m: m[1]). \
     done()
