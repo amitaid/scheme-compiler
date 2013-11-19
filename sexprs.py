@@ -146,7 +146,6 @@ nil = ps. \
     done()
 
 pSexpr = ps. \
-    parser(pcChar('(')). \
     parser(pcWhiteStar). \
     parser(fraction). \
     parser(integer). \
@@ -159,9 +158,8 @@ pSexpr = ps. \
     pack(lambda m: m[1]). \
     star(). \
     parser(pcWhiteStar). \
-    parser(pcChar(')')). \
-    catens(4). \
-    pack(lambda m: m[1]). \
+    caten(). \
+    pack(lambda m: m[0]). \
     done()
 
 
@@ -169,8 +167,9 @@ class AbstractSexpr:
     def __str__(self):
         pass
 
+    @staticmethod
     def readFromString(string):
-        return pSexpr(string)
+        return pSexpr.match(string)
 
 
 class Void(AbstractSexpr):
@@ -263,23 +262,23 @@ class Vector(AbstractSexpr):
 
 
 def main():
-    print(pSexpr.match('(34 5/0x3)')[0])
-    print(integer.match('+0h34')[0])
-
-    print(fraction.match('0X54/0Hf50')[0])
-    print(fraction.match('-00000000000000034/0x0000000000000000000000000043')[0])
-
-    print(symbol.match('abc!!?bcd')[0])
-
-    print(boolean.match('#t')[0])
-
-    print(string.match('"123\lcdd""')[0])
-
-    print(char.match('#\\lambda')[0])
-    print(char.match('#\\x30')[0])
-    print(char.match('#\\☺')[0])
-
-    print(nil.match('(   )')[0])
+    print(AbstractSexpr.readFromString('34 5/0x3')[0])
+    #print(integer.match('+0h34')[0])
+    #
+    #print(fraction.match('0X54/0Hf50')[0])
+    #print(fraction.match('-00000000000000034/0x0000000000000000000000000043')[0])
+    #
+    #print(symbol.match('abc!!?bcd')[0])
+    #
+    #print(boolean.match('#t')[0])
+    #
+    #print(string.match('"123\lcdd""')[0])
+    #
+    #print(char.match('#\\lambda')[0])
+    #print(char.match('#\\x30')[0])
+    #print(char.match('#\\☺')[0])
+    #
+    #print(nil.match('(   )')[0])
 
 
 if __name__ == '__main__':
