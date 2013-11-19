@@ -100,7 +100,7 @@ class Pair(AbstractSexpr):
             self.cdr = Pair(items[1:])
 
     def __str__(self):
-        return '(' + str(self.car) + " . " + str(self.cdr) + ')'
+        return '(' + str(self.car) + " " + str(self.cdr) + ')'
 
 
 class Vector(AbstractSexpr):

@@ -91,11 +91,19 @@ symbol = ps. \
     pack(lambda m: sexprs.Symbol(''.join(m))). \
     done()
 
+meta_char_values = {'n': 10,
+                    'r': 13,
+                    't': 9,
+                    'f': 12,
+                    '\\': 93,
+                    '"': 34,
+                    'l': 0x03bb}
+
 string_meta_char = ps. \
     parser(pcChar('\\')). \
     parser(pcOneOf('nrtf\\"l')). \
     caten(). \
-    pack(lambda m: chr(0x03bb) if m[1] == 'l' else m[1]). \
+    pack(lambda m: chr(meta_char_values[m[1]])). \
     done()
 
 string = ps. \
@@ -179,7 +187,7 @@ proper_list = ps. \
     star(). \
     parser(pcChar(')')). \
     catens(3). \
-    pack(lambda m: sexprs.Pair(m[1])). \
+    pack(lambda m: sexprs.Pair(m[1]) if m[1] else sexprs.Nil()). \
     done()
 
 pair = ps. \
