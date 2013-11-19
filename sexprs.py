@@ -5,7 +5,6 @@ ps = ParserStack()
 new_line = pcChar('\n')
 
 d_line_comment = delayed(lambda: line_comment)
-
 line_comment = ps. \
     parser(pcWhiteStar). \
     parser(pcChar(';')). \
@@ -44,15 +43,19 @@ signed_int = ps. \
     parser(pcChar('+')). \
     parser(pcChar('-')). \
     disj(). \
-    maybe(). \
-    pack(lambda m: m[1] if m[0] and m[1] == '-' else ''). \
     parser(unsigned_int). \
     caten(). \
-    pack(lambda m: Integer(m[0] + str(m[1]))). \
+    pack(lambda m: m[1].negate() if m[0] == '-' else m[1]). \
+    done()
+
+integer = ps. \
+    parser(signed_int). \
+    parser(unsigned_int). \
+    disj(). \
     done()
 
 fraction = ps. \
-    parser(signed_int). \
+    parser(integer). \
     const(lambda m: m == '/'). \
     parser(unsigned_int). \
     catens(3). \
@@ -124,18 +127,50 @@ hex_char = ps. \
 visible_char = const(lambda m: m > ' ')
 
 char = ps. \
+    parser(pcWord('#\\')). \
     parser(named_char). \
     parser(hex_char). \
     parser(visible_char). \
     disjs(3). \
-    pack(lambda m: Char(m)). \
+    caten(). \
+    pack(lambda m: Char(m[1])). \
     done()
 
-pSexpr = None
+# TODO: add comment support inside nil
+nil = ps. \
+    parser(pcChar('(')). \
+    parser(pcWhiteStar). \
+    parser(pcChar(')')). \
+    catens(3). \
+    pack(lambda m: Nil()). \
+    done()
+
+pSexpr = ps. \
+    parser(pcChar('(')). \
+    parser(pcWhiteStar). \
+    parser(fraction). \
+    parser(integer). \
+    parser(symbol). \
+    parser(string). \
+    parser(char). \
+    parser(nil). \
+    disjs(6). \
+    caten(). \
+    pack(lambda m: m[1]). \
+    star(). \
+    parser(pcWhiteStar). \
+    parser(pcChar(')')). \
+    catens(4). \
+    pack(lambda m: m[1]). \
+    done()
 
 
 class AbstractSexpr:
-    pass
+    def __str__(self):
+        pass
+
+    def readFromString(string):
+        return pSexpr(string)
 
 
 class Void(AbstractSexpr):
@@ -143,7 +178,11 @@ class Void(AbstractSexpr):
 
 
 class Nil(AbstractSexpr):
-    pass
+    def __init__(self):
+        pass
+
+    def __str__(self):
+        return '()'
 
 
 class Boolean(AbstractSexpr):
@@ -179,6 +218,10 @@ class Integer(AbstractNumber):
 
     def eval(self):
         return self.value
+
+    def negate(self):
+        self.value = -self.value
+        return self
 
 
 class Fraction(AbstractNumber):
@@ -220,8 +263,8 @@ class Vector(AbstractSexpr):
 
 
 def main():
-    print(signed_int.match('34')[0])
-    print(signed_int.match('+0h34')[0])
+    print(pSexpr.match('(34 5/0x3)')[0])
+    print(integer.match('+0h34')[0])
 
     print(fraction.match('0X54/0Hf50')[0])
     print(fraction.match('-00000000000000034/0x0000000000000000000000000043')[0])
@@ -232,9 +275,11 @@ def main():
 
     print(string.match('"123\lcdd""')[0])
 
-    print(char.match('lambda')[0])
-    print(char.match('x30')[0])
-    print(char.match('☺')[0])
+    print(char.match('#\\lambda')[0])
+    print(char.match('#\\x30')[0])
+    print(char.match('#\\☺')[0])
+
+    print(nil.match('(   )')[0])
 
 
 if __name__ == '__main__':
