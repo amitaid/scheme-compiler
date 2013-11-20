@@ -1,4 +1,3 @@
-import pc
 from reader import pSexpr
 
 
@@ -43,10 +42,7 @@ class AbstractNumber(AbstractSexpr):
 
 class Integer(AbstractNumber):
     def __init__(self, value):
-        try:
-            self.value = int(value, 0)
-        except ValueError:
-            raise pc.NoMatch
+        self.value = int(value, 0)
 
     def __str__(self):
         return str(self.value)
@@ -61,9 +57,7 @@ class Integer(AbstractNumber):
 
 class Fraction(AbstractNumber):
     def __init__(self, numer, denum):
-        self.numer, self.denum = numer.eval(), denum.eval()
-        if self.denum == 0:
-            raise pc.NoMatch('Divide by zero')
+        self.numer, self.denum = numer, denum
 
     def __str__(self):
         return str(self.numer) + '/' + str(self.denum)
@@ -90,27 +84,25 @@ class Symbol(AbstractSexpr):
 
 
 class Pair(AbstractSexpr):
-    def __init__(self, items):
-        self.str_form = '(' + ' '.join(map(str, items)) + ')'
-        self.car = items[0]
-        if len(items[1:]) == 0:
-            self.cdr = Nil()
-        elif len(items[1:]) == 1:
-            self.cdr = items[1]
+    def __init__(self, car, cdr):
+        self.car = car
+        if len(cdr) == 1:
+            self.cdr = cdr[0]
         else:
-            self.cdr = Pair(items[1:])
+            self.cdr = Pair(cdr[0], cdr[1:])
 
     def __str__(self):
-        return self.str_form
-        #res = '('
-        #next = self.cdr
-        #while next:
-        #    if next.cdr == None:
-        #        res += ' . ' + next.car
-        #    elif isinstance(next.cdr, Nil):
-        #        res += ' ' + next.car +
-        #
-        #return '(' + str(self.car) + " " + str(self.cdr) + ')'
+        return '(' + self.inner_str() + ')'
+
+    def inner_str(self):
+        res = str(self.car)
+        if isinstance(self.cdr, Nil):
+            pass
+        elif isinstance(self.cdr, Pair):
+            res += ' ' + self.cdr.inner_str()
+        else:
+            res += ' . ' + str(self.cdr)
+        return res
 
 
 class Vector(AbstractSexpr):

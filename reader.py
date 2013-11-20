@@ -3,15 +3,15 @@ import sexprs
 
 ps = ParserStack()
 
-new_line = pcChar('\n')
-
 pSexpr_d = delayed(lambda: pSexpr)
+
+######### Comment ###########
 
 line_comment = ps. \
     parser(pcChar(';')). \
     const(lambda m: m > ' '). \
     star(). \
-    parser(new_line). \
+    parser(pcChar('\n')). \
     catens(4). \
     done()
 
@@ -30,29 +30,70 @@ ignorable = ps. \
     done()
 
 zero = pcChar('0')
-hex_digits = pcOneOfCI('0123456789abcdef')
-true = pcWordCI('#T')
-false = pcWordCI('#F')
+dec_digit = pcRange('0', '9')
+hex_digit = pcOneOf('0123456789abcdefABCDEF')
+
+######### Symbol ##########
 
 symbol_chars = ps. \
     parser(pcRangeCI('a', 'z')). \
-    parser(pcRange('0', '9')). \
+    parser(dec_digit). \
     parser(pcOneOf('!$^*-_=+<>/?')). \
     disjs(3). \
     done()
 
-unsigned_int = ps. \
+symbol = ps. \
+    parser(symbol_chars). \
+    plus(). \
+    pack(lambda m: sexprs.Symbol(''.join(m).upper())). \
+    done()
+
+######### Number ##########
+
+hex_prefix = ps. \
     parser(pcWordCI('0x')). \
     parser(pcWordCI('0h')). \
     disj(). \
-    maybe(). \
-    pack(lambda m: '0x' if m[0] else ''). \
+    done()
+
+unsigned_int = ps. \
+    parser(hex_prefix). \
+    parser(hex_digit). \
+    plus(). \
+    caten(). \
+    pack(lambda m: '0x' + ''.join(m[1])). \
     parser(zero). \
     star(). \
-    parser(hex_digits). \
+    parser(dec_digit). \
     plus(). \
+    caten(). \
+    pack(lambda m: ''.join(m[1])). \
+    disj(). \
+    pack(lambda m: sexprs.Integer(m)). \
+    done()
+
+unsigned_int_nz = ps. \
+    parser(hex_prefix). \
+    parser(zero). \
+    star(). \
+    parser(hex_digit). \
+    parser(zero). \
+    butNot(). \
+    parser(hex_digit). \
+    star(). \
+    catens(4). \
+    pack(lambda m: '0x' + ''.join(m[1] + [m[2]] + m[3])). \
+    parser(zero). \
+    star(). \
+    parser(dec_digit). \
+    parser(zero). \
+    butNot(). \
+    parser(dec_digit). \
+    star(). \
     catens(3). \
-    pack(lambda m: sexprs.Integer(m[0] + ''.join(m[2]))). \
+    pack(lambda m: m[1] + ''.join(m[2])). \
+    disj(). \
+    pack(lambda m: sexprs.Integer(m)). \
     done()
 
 signed_int = ps. \
@@ -61,7 +102,7 @@ signed_int = ps. \
     disj(). \
     parser(unsigned_int). \
     caten(). \
-    pack(lambda m: m[1].negate() if m[0] == '-' else m[1]). \
+    pack(lambda m: sexprs.Integer(m[0] + str(m[1]))). \
     done()
 
 integer = ps. \
@@ -73,10 +114,15 @@ integer = ps. \
 fraction = ps. \
     parser(integer). \
     parser(pcChar('/')). \
-    parser(unsigned_int). \
+    parser(unsigned_int_nz). \
     catens(3). \
     pack(lambda m: sexprs.Fraction(m[0], m[2])). \
     done()
+
+########## Boolean ###########
+
+true = pcWordCI('#T')
+false = pcWordCI('#F')
 
 boolean = ps. \
     parser(true). \
@@ -85,11 +131,7 @@ boolean = ps. \
     pack(lambda m: sexprs.Boolean(m[1].lower())). \
     done()
 
-symbol = ps. \
-    parser(symbol_chars). \
-    plus(). \
-    pack(lambda m: sexprs.Symbol(''.join(m))). \
-    done()
+######### String #########
 
 meta_char_values = {'n': 10,
                     'r': 13,
@@ -119,6 +161,8 @@ string = ps. \
     pack(lambda m: sexprs.String(m[1])). \
     done()
 
+######### Char ##########
+
 named_chars = {'newline': 10,
                'return': 13,
                'tab': 9,
@@ -126,23 +170,23 @@ named_chars = {'newline': 10,
                'lambda': 0x03bb}
 
 named_char = ps. \
-    parser(pcWord('newline')). \
-    parser(pcWord('return')). \
-    parser(pcWord('tab')). \
-    parser(pcWord('page')). \
-    parser(pcWord('lambda')). \
+    parser(pcWordCI('newline')). \
+    parser(pcWordCI('return')). \
+    parser(pcWordCI('tab')). \
+    parser(pcWordCI('page')). \
+    parser(pcWordCI('lambda')). \
     disjs(5). \
-    pack(lambda m: chr(named_chars[''.join(m)])). \
+    pack(lambda m: chr(named_chars[''.join(m).lower()])). \
     done()
 
 hex_char = ps. \
     parser(pcChar('x')). \
-    parser(hex_digits). \
-    parser(hex_digits). \
+    parser(hex_digit). \
+    parser(hex_digit). \
     caten(). \
     pack(lambda m: ''.join(m)). \
-    parser(hex_digits). \
-    parser(hex_digits). \
+    parser(hex_digit). \
+    parser(hex_digit). \
     caten(). \
     maybe(). \
     pack(lambda m: ''.join(m[1]) if m[0] else ''). \
@@ -162,6 +206,8 @@ char = ps. \
     pack(lambda m: sexprs.Char(m[1])). \
     done()
 
+######### Nil ##########
+
 nil = ps. \
     parser(pcChar('(')). \
     parser(ignorable). \
@@ -170,31 +216,44 @@ nil = ps. \
     pack(lambda m: sexprs.Nil()). \
     done()
 
+######## Pair ##########
+
 improper_list = ps. \
     parser(pcChar('(')). \
     parser(pSexpr_d). \
+    parser(pcWhite1). \
+    caten(). \
+    pack(lambda m: m[0]). \
     plus(). \
-    parser(pcChar('.')). \
+    parser(pcWord('. ')). \
     parser(pSexpr_d). \
+    parser(ignorable). \
     parser(pcChar(')')). \
-    catens(5). \
-    pack(lambda m: sexprs.Pair(m[1] + [m[3]])). \
+    catens(6). \
+    pack(lambda m: sexprs.Pair(m[1][0], m[1][1:] + [m[3]])). \
     done()
 
 proper_list = ps. \
     parser(pcChar('(')). \
     parser(pSexpr_d). \
+    parser(pcWhite1). \
+    parser(pSexpr_d). \
+    caten(). \
+    pack(lambda m: m[1]). \
     star(). \
+    parser(ignorable). \
     parser(pcChar(')')). \
-    catens(3). \
-    pack(lambda m: sexprs.Pair(m[1]) if m[1] else sexprs.Nil()). \
+    catens(5). \
+    pack(lambda m: sexprs.Pair(m[1], m[2] + [sexprs.Nil()])). \
     done()
 
 pair = ps. \
-    parser(proper_list). \
     parser(improper_list). \
+    parser(proper_list). \
     disj(). \
     done()
+
+######### Vector #########
 
 vector = ps. \
     parser(pcWord('#(')). \
@@ -204,6 +263,8 @@ vector = ps. \
     catens(3). \
     pack(lambda m: sexprs.Vector(m[1])). \
     done()
+
+######### Quote ##########
 
 quotes_dict = {'′': 'quote',
                '`': 'quasiquote',
@@ -219,8 +280,10 @@ quote = ps. \
     disjs(4). \
     parser(pSexpr_d). \
     caten(). \
-    pack(lambda m: sexprs.Pair([sexprs.Symbol(quotes_dict[m[0]]), sexprs.Pair([m[1]])])). \
+    pack(lambda m: sexprs.Pair(sexprs.Symbol(quotes_dict[m[0]]), [sexprs.Pair([m[1]], [sexprs.Nil()])])). \
     done()
+
+###### S-Expression ########
 
 pSexpr = ps. \
     parser(ignorable). \
@@ -235,9 +298,6 @@ pSexpr = ps. \
     parser(nil). \
     parser(quote). \
     disjs(10). \
-    parser(ignorable). \
-    catens(3). \
+    caten(). \
     pack(lambda m: m[1]). \
     done()
-
-
