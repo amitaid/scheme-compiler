@@ -30,9 +30,9 @@ def main():
     #print(AbstractSexpr.readFromString('#\\x30')[0])
     #print(AbstractSexpr.readFromString('#\\☺')[0])
     #
-    parse('`(1 . (1 . 2))')
-    parse('8/0')
-    parse('(1 1 . 2)')
+    parse('5 #((1 . 1 . 2))) (3 4)')
+    parse(',8/3')
+    parse('(1 . ( 1 . 2))')
 
 
 if __name__ == '__main__':

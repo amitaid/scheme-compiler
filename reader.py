@@ -9,10 +9,11 @@ pSexpr_d = delayed(lambda: pSexpr)
 
 line_comment = ps. \
     parser(pcChar(';')). \
-    const(lambda m: m > ' '). \
-    star(). \
+    const(). \
     parser(pcChar('\n')). \
-    catens(4). \
+    butNot(). \
+    star(). \
+    caten(). \
     done()
 
 sexpr_comment = ps. \
@@ -24,7 +25,7 @@ sexpr_comment = ps. \
 ignorable = ps. \
     parser(line_comment). \
     parser(sexpr_comment). \
-    parser(pcWhite1). \
+    parser(pcWhitePlus). \
     disjs(3). \
     star(). \
     done()
@@ -298,6 +299,8 @@ pSexpr = ps. \
     parser(nil). \
     parser(quote). \
     disjs(10). \
+    maybe(). \
+    pack(lambda m: m[1] if m[0] else None). \
     caten(). \
     pack(lambda m: m[1]). \
     done()
