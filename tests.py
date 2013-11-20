@@ -1,10 +1,10 @@
 __author__ = 'amitaid'
 
-from sexprs import *
+import sexprs
 
 
 def parse(input):
-    print(input + ' => ' + str(AbstractSexpr.readFromString(input)[0]))
+    print(input + ' => ' + str(sexprs.AbstractSexpr.readFromString(input)[0]))
 
 
 def main():
