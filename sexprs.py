@@ -88,14 +88,14 @@ class Pair(AbstractSexpr):
             self.cdr = Pair(cdr[0], cdr[1:])
 
     def __str__(self):
-        return '(' + self.inner_str() + ')'
+        return '(' + self._inner_str() + ')'
 
-    def inner_str(self):
+    def _inner_str(self):
         res = str(self.car)
         if isinstance(self.cdr, Nil):
             pass
         elif isinstance(self.cdr, Pair):
-            res += ' ' + self.cdr.inner_str()
+            res += ' ' + self.cdr._inner_str()
         else:
             res += ' . ' + str(self.cdr)
         return res

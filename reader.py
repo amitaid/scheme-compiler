@@ -29,7 +29,6 @@ ignorable = ps. \
     parser(sexpr_comment). \
     parser(pcWhitePlus). \
     disjs(3). \
-    star(). \
     done()
 
 ######### Number ##########
@@ -217,6 +216,7 @@ char = ps. \
 nil = ps. \
     parser(pcChar('(')). \
     parser(ignorable). \
+    star(). \
     parser(pcChar(')')). \
     catens(3). \
     pack(lambda m: sexprs.Nil()). \
@@ -224,33 +224,34 @@ nil = ps. \
 
 ######## Pair ##########
 
-improper_list = ps. \
-    parser(pcChar('(')). \
-    parser(pSexpr_d). \
-    parser(pcWhite1). \
-    caten(). \
-    pack(lambda m: m[0]). \
-    plus(). \
-    parser(pcWord('. ')). \
+pSexpr_wrapped = ps. \
+    parser(ignorable). \
+    star(). \
     parser(pSexpr_d). \
     parser(ignorable). \
+    star(). \
+    catens(3). \
+    pack(lambda m: m[1]). \
+    done()
+
+improper_list = ps. \
+    parser(pcChar('(')). \
+    parser(pSexpr_wrapped). \
+    plus(). \
+    parser(pcWord('. ')). \
+    parser(pSexpr_wrapped). \
     parser(pcChar(')')). \
-    catens(6). \
+    catens(5). \
     pack(lambda m: sexprs.Pair(m[1][0], m[1][1:] + [m[3]])). \
     done()
 
 proper_list = ps. \
     parser(pcChar('(')). \
-    parser(pSexpr_d). \
-    parser(pcWhite1). \
-    parser(pSexpr_d). \
-    caten(). \
-    pack(lambda m: m[1]). \
-    star(). \
-    parser(ignorable). \
+    parser(pSexpr_wrapped). \
+    plus(). \
     parser(pcChar(')')). \
-    catens(5). \
-    pack(lambda m: sexprs.Pair(m[1], m[2] + [sexprs.Nil()])). \
+    catens(3). \
+    pack(lambda m: sexprs.Pair(m[1][0], m[1][1:] + [sexprs.Nil()])). \
     done()
 
 pair = ps. \
@@ -263,7 +264,7 @@ pair = ps. \
 
 vector = ps. \
     parser(pcWord('#(')). \
-    parser(pSexpr_d). \
+    parser(pSexpr_wrapped). \
     star(). \
     parser(pcChar(')')). \
     catens(3). \
@@ -292,7 +293,6 @@ quote = ps. \
 ###### S-Expression ########
 
 pSexpr = ps. \
-    parser(ignorable). \
     parser(fraction). \
     parser(integer). \
     parser(symbol). \
@@ -304,8 +304,4 @@ pSexpr = ps. \
     parser(nil). \
     parser(quote). \
     disjs(10). \
-    maybe(). \
-    pack(lambda m: m[1] if m[0] else None). \
-    caten(). \
-    pack(lambda m: m[1]). \
     done()
