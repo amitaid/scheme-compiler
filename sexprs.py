@@ -50,10 +50,6 @@ class Integer(AbstractNumber):
     def eval(self):
         return self.value
 
-    def negate(self):
-        self.value = -self.value
-        return self
-
 
 class Fraction(AbstractNumber):
     def __init__(self, numer, denum):
@@ -71,7 +67,7 @@ class String(AbstractSexpr):
         self.chars = chars
 
     def __str__(self):
-        return '"' + ''.join(self.chars) + '"'
+        return '"' + self.chars + '"'
 
 
 class Symbol(AbstractSexpr):

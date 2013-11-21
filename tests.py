@@ -4,7 +4,7 @@ import sexprs
 
 
 def parse(input):
-    print(input + ' => ' + str(sexprs.AbstractSexpr.readFromString(input)))
+    print(input + ' => ' + str(sexprs.AbstractSexpr.readFromString(input)[0]))
 
 
 def main():
@@ -30,8 +30,7 @@ def main():
     #print(AbstractSexpr.readFromString('#\\x30')[0])
     #print(AbstractSexpr.readFromString('#\\☺')[0])
     #
-    parse('0xa/3')
-    parse('(1 . ( 1 . 2))')
+    parse('()')
 
 
 if __name__ == '__main__':

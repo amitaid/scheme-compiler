@@ -163,16 +163,17 @@ string = ps. \
     star(). \
     parser(pcChar('"')). \
     catens(3). \
-    pack(lambda m: sexprs.String(m[1])). \
+    pack(lambda m: sexprs.String(''.join(m[1]))). \
     done()
 
 ######### Char ##########
 
-named_chars = {'newline': 10,
-               'return': 13,
-               'tab': 9,
-               'page': 12,
-               'lambda': 0x03bb}
+named_chars_dict = {
+    'newline': 10,
+    'return': 13,
+    'tab': 9,
+    'page': 12,
+    'lambda': 0x03bb}
 
 named_char = ps. \
     parser(pcWordCI('newline')). \
@@ -181,7 +182,7 @@ named_char = ps. \
     parser(pcWordCI('page')). \
     parser(pcWordCI('lambda')). \
     disjs(5). \
-    pack(lambda m: chr(named_chars[''.join(m).lower()])). \
+    pack(lambda m: chr(named_chars_dict[''.join(m).lower()])). \
     done()
 
 hex_char = ps. \
