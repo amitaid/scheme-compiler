@@ -7,13 +7,15 @@ pSexpr_d = delayed(lambda: pSexpr)
 
 ######### Comment ###########
 
+# TODO Fix line comments
 line_comment = ps. \
     parser(pcChar(';')). \
     const(). \
     parser(pcChar('\n')). \
     butNot(). \
     star(). \
-    caten(). \
+    parser(pcChar('\n')). \
+    catens(3). \
     done()
 
 sexpr_comment = ps. \
@@ -30,26 +32,11 @@ ignorable = ps. \
     star(). \
     done()
 
+######### Number ##########
+
 zero = pcChar('0')
 dec_digit = pcRange('0', '9')
 hex_digit = pcOneOf('0123456789abcdefABCDEF')
-
-######### Symbol ##########
-
-symbol_chars = ps. \
-    parser(pcRangeCI('a', 'z')). \
-    parser(dec_digit). \
-    parser(pcOneOf('!$^*-_=+<>/?')). \
-    disjs(3). \
-    done()
-
-symbol = ps. \
-    parser(symbol_chars). \
-    plus(). \
-    pack(lambda m: sexprs.Symbol(''.join(m).upper())). \
-    done()
-
-######### Number ##########
 
 hex_prefix = ps. \
     parser(pcWordCI('0x')). \
@@ -59,10 +46,12 @@ hex_prefix = ps. \
 
 unsigned_int = ps. \
     parser(hex_prefix). \
+    parser(zero). \
+    star(). \
     parser(hex_digit). \
     plus(). \
-    caten(). \
-    pack(lambda m: '0x' + ''.join(m[1])). \
+    catens(3). \
+    pack(lambda m: '0x' + ''.join(m[2])). \
     parser(zero). \
     star(). \
     parser(dec_digit). \
@@ -70,7 +59,6 @@ unsigned_int = ps. \
     caten(). \
     pack(lambda m: ''.join(m[1])). \
     disj(). \
-    pack(lambda m: sexprs.Integer(m)). \
     done()
 
 unsigned_int_nz = ps. \
@@ -94,7 +82,6 @@ unsigned_int_nz = ps. \
     catens(3). \
     pack(lambda m: m[1] + ''.join(m[2])). \
     disj(). \
-    pack(lambda m: sexprs.Integer(m)). \
     done()
 
 signed_int = ps. \
@@ -103,21 +90,38 @@ signed_int = ps. \
     disj(). \
     parser(unsigned_int). \
     caten(). \
-    pack(lambda m: sexprs.Integer(m[0] + str(m[1]))). \
+    pack(lambda m: m[0] + m[1]). \
     done()
 
 integer = ps. \
     parser(signed_int). \
     parser(unsigned_int). \
     disj(). \
+    pack(lambda m: sexprs.Integer(m)). \
     done()
 
 fraction = ps. \
     parser(integer). \
     parser(pcChar('/')). \
     parser(unsigned_int_nz). \
+    pack(lambda m: sexprs.Integer(m)). \
     catens(3). \
     pack(lambda m: sexprs.Fraction(m[0], m[2])). \
+    done()
+
+######### Symbol ##########
+
+symbol_chars = ps. \
+    parser(pcRangeCI('a', 'z')). \
+    parser(dec_digit). \
+    parser(pcOneOf('!$^*-_=+<>/?')). \
+    disjs(3). \
+    done()
+
+symbol = ps. \
+    parser(symbol_chars). \
+    plus(). \
+    pack(lambda m: sexprs.Symbol(''.join(m).upper())). \
     done()
 
 ########## Boolean ###########
