@@ -8,8 +8,8 @@ def parse(input):
 
 
 def main():
-    print(sexprs.AbstractSexpr.readFromString(
-        r'(-0H432 +0123/0x52 ab53$$ "bla bla \n \l bla" #\pAge #\tAb #\xFDFA #\M () #(1 2 3 #(1 2 3)) 72 . 5)')[0])
+    #print(sexprs.AbstractSexpr.readFromString(
+    #    r'(-0H432 +0123/0x52 ab53$$ "bla bla \n \l bla" #\pAge #\tAb #\xFDFA #\M () #(1 2 3 #(1 2 3)) 72 . 5)')[0])
 
     #print(AbstractSexpr.readFromString('′(#\\x03bb x y z)')[0])
     #print(AbstractSexpr.readFromString('`#\\lambda')[0])
@@ -30,7 +30,7 @@ def main():
     #print(AbstractSexpr.readFromString('#\\x30')[0])
     #print(AbstractSexpr.readFromString('#\\☺')[0])
     #
-    #parse('((abc) c s e t y x.  c)')
+    parse(r'0x')
 
 
 if __name__ == '__main__':

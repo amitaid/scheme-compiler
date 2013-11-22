@@ -2,9 +2,6 @@ from sexprs import *
 
 
 class AbstractSchemeExpr:
-    def __str__(self):
-        pass
-
     @staticmethod
     def parse(input):
         result, remaining = AbstractSexpr.readFromString(input)
