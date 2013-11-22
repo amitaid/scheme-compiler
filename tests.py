@@ -2,6 +2,7 @@ import sexprs
 import reader
 
 # Zelig, this is the message
+# Amitai, this is a message
 
 def parse(input):
     print(input + ' => ' + str(sexprs.AbstractSexpr.readFromString(input)[0]))
