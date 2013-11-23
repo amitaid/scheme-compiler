@@ -35,7 +35,12 @@ class Constant(AbstractSchemeExpr):
         self.expr = sexpr
 
     def __str__(self):
-        return 'Constant('+str(self.expr)+')'
+        if isinstance(self.expr,Pair):
+            quate,rest = self.expr.get_value()
+            arg,nil = rest.get_value()
+            return 'Constant('+str(quate)+' '+str(rest)+')'
+        else:
+            return 'Constant('+str(self.expr)+')'
 
     def is_quated(sexpr): # TODO implement later
         if isinstance(sexpr,Pair) and isinstance(Pair.get_car(sexpr),Symbol) and \
