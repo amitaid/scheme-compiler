@@ -1,5 +1,4 @@
 import sexprs
-import reader
 
 # Zelig, this is the message
 
@@ -11,9 +10,9 @@ def main():
     #print(sexprs.AbstractSexpr.readFromString(
     #    r'(-0H432 +0123/0x52 ab53$$ "bla bla \n \l bla" #\pAge #\tAb #\xFDFA #\M () #(1 2 3 #(1 2 3)) 72 . 5)')[0])
 
-    print(reader.ignorable.match('#;(a b c)'))
+    #print(reader.ignorable.match('#;(a b c)'))
 
-    #parse(r';     \n(a)')
+    parse('′something')
 
 
     #print(AbstractSexpr.readFromString('′(#\\x03bb x y z)')[0])

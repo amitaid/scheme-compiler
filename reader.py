@@ -287,7 +287,7 @@ quote = ps. \
     disjs(4). \
     parser(pSexpr_d). \
     caten(). \
-    pack(lambda m: sexprs.Pair(sexprs.Symbol(quotes_dict[m[0]]), [sexprs.Pair([m[1]], [sexprs.Nil()])])). \
+    pack(lambda m: sexprs.Pair(sexprs.Symbol(quotes_dict[m[0]]), [sexprs.Pair(m[1], [sexprs.Nil()])])). \
     done()
 
 ###### S-Expression ########

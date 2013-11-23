@@ -7,14 +7,11 @@
 class NoMatch(Exception):
     pass
 
-
 class AbstractParsingCombinator:
     def match(self, s):
         pass
 
-
 trivialTest = lambda x: True
-
 
 class const(AbstractParsingCombinator):
     def __init__(self, test=trivialTest):
@@ -28,7 +25,6 @@ class const(AbstractParsingCombinator):
         else:
             raise NoMatch
 
-
 class caten(AbstractParsingCombinator):
     def __init__(self, pc1, pc2):
         self.pc1 = pc1
@@ -38,7 +34,6 @@ class caten(AbstractParsingCombinator):
         (e1, s) = self.pc1.match(s)
         (e2, s) = self.pc2.match(s)
         return ((e1, e2), s)
-
 
 class disj(AbstractParsingCombinator):
     def __init__(self, pc1, pc2):
@@ -50,7 +45,6 @@ class disj(AbstractParsingCombinator):
             return self.pc1.match(s)
         except NoMatch as m:
             return self.pc2.match(s)
-
 
 class star(AbstractParsingCombinator):
     def __init__(self, pc):
@@ -65,16 +59,13 @@ class star(AbstractParsingCombinator):
         except NoMatch as m:
             return ([], s)
 
-
 def plusPacker(m):
     result = m[1]
     result.insert(0, m[0])
     return result
 
-
 def plus(pc):
     return pack(caten(pc, star(pc)), plusPacker)
-
 
 class pack(AbstractParsingCombinator):
     def __init__(self, pc, packer):
@@ -85,11 +76,9 @@ class pack(AbstractParsingCombinator):
         (e, s) = self.pc.match(s)
         return (self.packer(e), s)
 
-
 def maybe(pe):
     return disj(pack(pe, lambda m: (True, m)),
                 pack(epsilon(), lambda m: (False, False)))
-
 
 class butNot(AbstractParsingCombinator):
     def __init__(self, pc1, pc2):
@@ -104,13 +93,20 @@ class butNot(AbstractParsingCombinator):
             return result
         raise NoMatch
 
-
 class delayed(AbstractParsingCombinator):
     def __init__(self, thunk):
         self.thunk = thunk
 
     def match(self, s):
         return self.thunk().match(s)
+
+
+class end(AbstractParsingCombinator):
+    def match(self, s):
+        if s:
+            raise NoMatch
+        else:
+            return (True, s)
 
 
 class debugged(AbstractParsingCombinator):
@@ -123,22 +119,18 @@ class debugged(AbstractParsingCombinator):
               " to the <" + self.msg + "> parser")
         return self.pc.match(s)
 
-
 class epsilon(AbstractParsingCombinator):
     def match(self, s):
         return ([], s)
-
 
 class rejectAll(AbstractParsingCombinator):
     def match(self, s):
         raise NoMatch
 
-
 def catenPacker(p):
     (es, a) = p
     es.append(a)
     return es
-
 
 def catens(*pes):
     result = epsilon()
@@ -146,41 +138,32 @@ def catens(*pes):
         result = pack(caten(result, pe), catenPacker)
     return result
 
-
 def disjs(*pes):
     result = rejectAll()
     for pe in pes:
         result = disj(result, pe)
     return result
 
-
 def pcChar(ch):
     return const(lambda c: c == ch)
-
 
 def pcCharCI(ch):
     return const(lambda c: c.lower() == ch.lower())
 
-
 def pcWord(string):
     return catens(*list(map((lambda x: pcChar(x)), string)))
-
 
 def pcWordCI(string):
     return catens(*list(map((lambda x: pcCharCI(x)), string)))
 
-
 def pcOneOf(string):
     return disjs(*list(map((lambda x: pcChar(x)), string)))
-
 
 def pcOneOfCI(string):
     return disjs(*list(map((lambda x: pcCharCI(x)), string)))
 
-
 def pcRange(fromChar, toChar):
     return const(lambda ch: fromChar <= ch and ch <= toChar)
-
 
 def pcRangeCI(fromChar, toChar):
     fromChar = fromChar.lower()
@@ -233,15 +216,15 @@ class ParserStack:
         pc1 = self.pop()
         return self.push(caten(pc1, pc2))
 
-    def disj(self):
-        pc2 = self.pop()
-        pc1 = self.pop()
-        return self.push(disj(pc1, pc2))
-
     def butNot(self):
         pc2 = self.pop()
         pc1 = self.pop()
         return self.push(butNot(pc1, pc2))
+
+    def disj(self):
+        pc2 = self.pop()
+        pc1 = self.pop()
+        return self.push(disj(pc1, pc2))
 
     def star(self):
         pc = self.pop()
@@ -280,11 +263,9 @@ class ParserStack:
 
     def wordCI(self, aString):
         return self.push(pcWordCI(aString))
-
     def report(self):
         print('stack size = ' + str(len(self.stack)))
         return self
-
 
 pcWhite1 = const(lambda ch: ch <= ' ')
 pcWhiteStar = star(pcWhite1)
