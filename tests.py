@@ -49,6 +49,7 @@ def main():
 
     #print(sexprs.AbstractSexpr.readFromString('′a'))
     x = tag_parser.AbstractSchemeExpr.parse('′a')
+    #x = tag_parser.AbstractSchemeExpr.parse('a')
     print(x)
 
 if __name__ == '__main__':

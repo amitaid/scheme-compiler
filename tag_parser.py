@@ -36,9 +36,11 @@ class Constant(AbstractSchemeExpr):
 
     def __str__(self):
         if isinstance(self.expr,Pair):
+            print(isinstance(self.expr,Pair))
             quate,rest = self.expr.get_value()
-            arg,nil = rest.get_value()
-            return 'Constant('+str(quate)+' '+str(rest)+')'
+
+            arg,nil = Pair.get_value(rest)
+            return 'Constant('+str(quate)+' '+str(arg)+')'
         else:
             return 'Constant('+str(self.expr)+')'
 
@@ -64,7 +66,7 @@ class Constant(AbstractSchemeExpr):
 
 class Variable(AbstractSchemeExpr):
     def __init__(self,sexpr):
-        self.value = AbstractSexpr.get_value(sexpr)
+        self.value = Symbol.get_value(sexpr)
 
     def __str__(self):
         return 'Variable('+str(self.value)+')'
