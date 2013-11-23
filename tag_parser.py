@@ -1,14 +1,30 @@
-from email._header_value_parser import get_token
+from tkinter import constants
 from sexprs import *
 
 
 key_words = ['define', 'lambda','λ','if','else','then','and','or','cond']
 
 class AbstractSchemeExpr:
+
     @staticmethod
     def parse(input):
         result, remaining = AbstractSexpr.readFromString(input)
-        # dealing with core forms
+        Scheme_expr = AbstractSchemeExpr.process(result)
+
+
+
+    @staticmethod  # where the actual parsing occur
+    def process(result):
+        if Constant.is_const(result):
+            ast = Constant(result)
+        elif Variable.is_variable(result)
+        elif IfThenElse.is_if(result):
+            ast = IfThenElse(result)
+        else:
+            print('format not supported: ' + result)
+            ast = Constant(Void())
+
+        return ast
 
     # this function gets a token of string and a pair, and extracts the token if available
     def get_token(token,pair):  # token is a string/char
@@ -20,7 +36,6 @@ class AbstractSchemeExpr:
                 #print(pair.cdr)
                 pair2 = Pair.get_cdr(pair)
                 return AbstractSchemeExpr.get_token(token,pair2)
-
         if not isinstance(pair,Nil) and str(pair.get_car().get_value()) == token:
             return (pair.get_car(),Nil)
         return None
@@ -36,8 +51,11 @@ class Constant(AbstractSchemeExpr):
         return False
 
     def is_const(sexpr):
-        if isinstance(sexpr,Boolean) or  isinstance(sexpr,Char) \
-            or  isinstance(sexpr,AbstractNumber) or  isinstance(sexpr,String):
+        if isinstance(sexpr,Boolean) or \
+            isinstance(sexpr,Char) or \
+            isinstance(sexpr,AbstractNumber) or \
+            isinstance(sexpr,String) or \
+            isinstance(sexpr,Void):
             return True;
         elif Constant.is_quated(sexpr):
             return True
@@ -70,43 +88,46 @@ class LambdaSimple(AbstractLambda):
 class LambdaOpt(AbstractLambda):
     pass
 
-
 class LambdaVar(AbstractLambda):
     pass
 
 ### Core Forms ###
 
 class IfThenElse(AbstractSchemeExpr):
-    pass
+    def __init__(self,expr,ete): # expand to else
+        irt = expr.get_cdr() # if rest of tokens
+        pred_expr,irt = irt.get_value()
+        then_expr,irt = irt.get_value()
+        if isinstance(irt,Pair):
+            else_expr = irt.get_car();
+            self.else_expr = AbstractSchemeExpr.process(else_expr)
+        else:
+            self.else_expr = Constant(Void())
+        self.predicate = AbstractSchemeExpr.process(pred_expr)
+        self.then_expr = AbstractSchemeExpr.process(then_expr)
 
-    def is_if_then_else(expr):
+    # predicate for both IfThen & IfThenElse
+    def is_if(expr):
         # first check if it is a pair at all
         if isinstance(expr,Pair):
-            if_token = expr.get_car()
-            rest_expr = expr.get_cdr()
+            if_token,rest_expr = expr.get_value()
             # second check if first token is if and rest is pair
             if isinstance(if_token,Symbol) and \
                 str(if_token.get_value()) == 'IF' and \
                 isinstance(rest_expr,Pair):
 
-            #    predicate = rest_expr.get_car()  # extracts the pred - not needed
                 rest_expr2 = rest_expr.get_cdr()
-
-                # third check the then argument exists
+                #third check for checking there are enough args in the pairs
                 if isinstance(rest_expr2,Pair):
 
-                 #   then_expr = rest_expr2.get_car() # extracts the then - not needed
                     rest_expr3 = rest_expr2.get_cdr()
                     # fourth check if the else arg exists
-
-                    if isinstance(rest_expr3,Pair): # case proper list
-
-                 #       else_expr = rest_expr3.get_car() # extracts the else - not needed
-                        rest = rest_expr3.get_cdr()
-                        if isinstance(rest,Nil):  # checks if the list end is Nil
-                            return True
-        #            elif not isinstance(rest_expr3,Nil): # case not improper
-        #                return True
+                    # if so it checks if its tail is Nil (IfThenElse)
+                    # otherwise checks if checks if else is Nil (IfThen)
+                    if isinstance(rest_expr3,Pair) and  \
+                        isinstance(rest_expr3.get_cdr(),Nil) or \
+                        isinstance(rest_expr3,Nil):
+                        return True
         return False
 
 class Applic(AbstractSchemeExpr):
@@ -134,32 +155,7 @@ class Def(AbstractSchemeExpr):
 class syntacticSugar(AbstractSchemeExpr):
     pass
 
-    # predicate for recognizing ifthen expr
-    def is_if_then(expr):
-        # first check if it is a pair at all
-        if isinstance(expr,Pair):
-            if_token = expr.get_car()
-            rest_expr = expr.get_cdr()
-            # second check if first token is if and rest is pair
-            if isinstance(if_token,Symbol) and \
-                str(if_token.get_value()) == 'IF' and \
-                isinstance(rest_expr,Pair):
 
-            #    predicate = rest_expr.get_car()  # extracts the pred - not needed
-                rest_expr2 = rest_expr.get_cdr()
-
-                # third check the then argument exists
-                if isinstance(rest_expr2,Pair):
-
-                 #   then_expr = rest_expr2.get_car() # extracts the then - not needed
-                    rest = rest_expr2.get_cdr()
-                    # fourth check if the rest is nil
-                    if isinstance(rest,Nil):  # checks if the list end is Nil
-                            return True
-        #            elif not isinstance(rest_expr3,Nil): # case not improper
-        #                return True
-        return False
-        pass
 
     def is_quasiquated(expr):
         pass
@@ -179,12 +175,6 @@ class syntacticSugar(AbstractSchemeExpr):
     def is_and(expr):
         pass
 
-    def it2ite(expr): # if then -> if then else transformation
-        if_token = expr.get_car()
-        rest = expr.get_cdr()
-        pred_expr = rest.get_car()
-        rest2 = rest.get_cdr()
-        rest2.
     def ic_2_nextedifs(expr): # cond -> if transformation
         pass
 
