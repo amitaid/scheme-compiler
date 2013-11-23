@@ -18,7 +18,7 @@ class AbstractSchemeExpr:
         if Constant.is_const(result):
             ast = Constant(result)
         elif Variable.is_variable(result):
-            Variable(result)
+            ast =Variable(result)
         elif IfThenElse.is_if(result):
             ast = IfThenElse(result)
         else:
