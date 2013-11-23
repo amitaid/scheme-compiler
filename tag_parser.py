@@ -17,7 +17,8 @@ class AbstractSchemeExpr:
     def process(result):
         if Constant.is_const(result):
             ast = Constant(result)
-        elif Variable.is_variable(result)
+        elif Variable.is_variable(result):
+            Variable(result)
         elif IfThenElse.is_if(result):
             ast = IfThenElse(result)
         else:
