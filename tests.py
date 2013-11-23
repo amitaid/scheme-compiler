@@ -38,10 +38,14 @@ def main():
     #print(AbstractSexpr.readFromString('#\\x30')[0])
     #print(AbstractSexpr.readFromString('#\\☺')[0])
 
-#    parse('(if 5 > 0 then 1 else 2)')
+    #parse('(if 5 > 0 then 1 else 2)')
+    #print(sexprs.Pair.get_car(x))
+    #print(sexprs.Pair.get_cdr(x).get_car())
+    #parse("'a")
 
-  #  print(sexprs.Pair.get_car(x))
-  #  print(sexprs.Pair.get_cdr(x).get_car())
+    #x = tag_parser.AbstractSchemeExpr.parse('(if #t #\\y)')
+    #x = tag_parser.AbstractSchemeExpr.parse('"abc"')
+    #print(x)
 
 if __name__ == '__main__':
     main()

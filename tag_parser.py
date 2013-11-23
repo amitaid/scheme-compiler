@@ -1,17 +1,16 @@
 from tkinter import constants
 from sexprs import *
+import reader
 
-
-key_words = ['define', 'lambda','λ','if','else','then','and','or','cond']
+key_words = ['define', 'lambda','λ','IF','else','then','and','or','cond']
 
 class AbstractSchemeExpr:
 
     @staticmethod
     def parse(input):
         result, remaining = AbstractSexpr.readFromString(input)
-        Scheme_expr = AbstractSchemeExpr.process(result)
-
-
+        scheme_expr = AbstractSchemeExpr.process(result)
+        return scheme_expr
 
     @staticmethod  # where the actual parsing occur
     def process(result):
@@ -22,24 +21,11 @@ class AbstractSchemeExpr:
         elif IfThenElse.is_if(result):
             ast = IfThenElse(result)
         else:
-            print('format not supported: ' + result)
+            print('format not supported: ' + str(result))
             ast = Constant(Void())
 
         return ast
 
-    # this function gets a token of string and a pair, and extracts the token if available
-    def get_token(token,pair):  # token is a string/char
-        if isinstance(pair,Pair):
-            if str(pair.get_car().get_value()) == token: #  isinstance(pair.get_car(),Symbol) and
-                #print(pair)
-                return (pair.get_car(),pair.get_cdr())
-            else:
-                #print(pair.cdr)
-                pair2 = Pair.get_cdr(pair)
-                return AbstractSchemeExpr.get_token(token,pair2)
-        if not isinstance(pair,Nil) and str(pair.get_car().get_value()) == token:
-            return (pair.get_car(),Nil)
-        return None
 
 ### Constant ###
 
@@ -48,7 +34,13 @@ class Constant(AbstractSchemeExpr):
     def __init__(self,sexpr):
         self.expr = sexpr
 
+    def __str__(self):
+        return 'Constant('+str(self.expr)+')'
+
     def is_quated(sexpr): # TODO implement later
+        if isinstance(sexpr,Pair) and isinstance(Pair.get_car(sexpr),Symbol) and \
+            Pair.get_car(sexpr).get_value() in reader.quotes_dict.values():
+            return True
         return False
 
     def is_const(sexpr):
@@ -56,7 +48,7 @@ class Constant(AbstractSchemeExpr):
             isinstance(sexpr,Char) or \
             isinstance(sexpr,AbstractNumber) or \
             isinstance(sexpr,String) or \
-            isinstance(sexpr,Void):
+            isinstance(sexpr,Void): # maybe the last condition is useless
             return True;
         elif Constant.is_quated(sexpr):
             return True
@@ -69,43 +61,33 @@ class Variable(AbstractSchemeExpr):
     def __init__(self,sexpr):
         self.value = AbstractSexpr.get_value(sexpr)
 
-    def is_variable(sexpr):
+    def __str__(self):
+        return 'Variable('+str(self.value)+')'
+
     # predicate for recognizing if then else expr
-        if isinstance(sexpr,Symbol): #and not Symbol.get_value(sexpr) in key_words:
-            return True;
-        elif Symbol.get_value(sexpr) in key_words:
-            print("Error: is a key word" +  str(sexpr)) #TODO maybe throw exception
-        return True;
-
-
-### Lambda Forms ###
-
-class AbstractLambda(AbstractSchemeExpr):
-    pass
-
-class LambdaSimple(AbstractLambda):
-    pass
-
-class LambdaOpt(AbstractLambda):
-    pass
-
-class LambdaVar(AbstractLambda):
-    pass
+    def is_variable(sexpr):
+        if isinstance(sexpr,Symbol) and not Symbol.get_value(sexpr) in key_words:
+            return True
+        return False
 
 ### Core Forms ###
 
 class IfThenElse(AbstractSchemeExpr):
-    def __init__(self,expr,ete): # expand to else
-        irt = expr.get_cdr() # if rest of tokens
+    def __init__(self,expr):
+        irt = expr.get_cdr() # irt = if rest of tokens
         pred_expr,irt = irt.get_value()
         then_expr,irt = irt.get_value()
         if isinstance(irt,Pair):
-            else_expr = irt.get_car();
+            else_expr = irt.get_car()
             self.else_expr = AbstractSchemeExpr.process(else_expr)
         else:
             self.else_expr = Constant(Void())
         self.predicate = AbstractSchemeExpr.process(pred_expr)
         self.then_expr = AbstractSchemeExpr.process(then_expr)
+
+    def __str__(self):
+        return 'IfThenElse('+str(self.predicate)+ \
+        ','+str(self.then_expr)+','+str(self.else_expr)+')'
 
     # predicate for both IfThen & IfThenElse
     def is_if(expr):
@@ -152,6 +134,19 @@ class Def(AbstractSchemeExpr):
         # a predicate for recognizing definition expressions
         pass
 
+### Lambda Forms ###
+
+class AbstractLambda(AbstractSchemeExpr):
+    pass
+
+class LambdaSimple(AbstractLambda):
+    pass
+
+class LambdaOpt(AbstractLambda):
+    pass
+
+class LambdaVar(AbstractLambda):
+    pass
 
 class syntacticSugar(AbstractSchemeExpr):
     pass
