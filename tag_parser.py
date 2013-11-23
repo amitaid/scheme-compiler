@@ -32,7 +32,7 @@ class AbstractSchemeExpr:
 class Constant(AbstractSchemeExpr):
 
     def __init__(self,sexpr):
-        self.expr = sexpr
+        self.expr = sexpri
 
     def __str__(self):
         if isinstance(self.expr,Pair):
