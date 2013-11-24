@@ -48,9 +48,14 @@ def main():
     #print(x)
 
     #print(sexprs.AbstractSexpr.readFromString('′a'))
-    x = tag_parser.AbstractSchemeExpr.parse('′a')
     #x = tag_parser.AbstractSchemeExpr.parse('a')
+    x = tag_parser.AbstractSchemeExpr.parse('(define x 3)')
+    #x,y = sexprs.AbstractSexpr.readFromString('(define x 3)')
     print(x)
+    #x = tag_parser.Def(x)
+    print(str(x))
+    #print(b)
+
 
 if __name__ == '__main__':
     main()

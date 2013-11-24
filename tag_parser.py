@@ -2,7 +2,7 @@ from tkinter import constants
 from sexprs import *
 import reader
 
-key_words = ['define', 'lambda','λ','IF','else','then','and','or','cond']
+key_words = ['Define', 'Lambda','λ','IF','and','or','cond']
 
 class AbstractSchemeExpr:
 
@@ -15,24 +15,30 @@ class AbstractSchemeExpr:
     @staticmethod  # where the actual parsing occur
     def process(result):
         if Constant.is_const(result):
-            ast = Constant(result)
+            print('bla')
+            ast = Constant(result)  # abstract syntax tree
         elif Variable.is_variable(result):
+            print('bla2')
+
             ast =Variable(result)
         elif IfThenElse.is_if(result):
+            print('bla3')
             ast = IfThenElse(result)
+        elif Def.is_def(result):
+            print('bla4')
+            ast = Def(result)
         else:
             print('format not supported: ' + str(result))
             ast = Constant(Void())
 
         return ast
 
-
 ### Constant ###
 
 class Constant(AbstractSchemeExpr):
 
     def __init__(self,sexpr):
-        self.expr = sexpri
+        self.expr = sexpr
 
     def __str__(self):
         if isinstance(self.expr,Pair):
@@ -135,11 +141,31 @@ class Or(AbstractSchemeExpr):
         pass
 
 class Def(AbstractSchemeExpr):
-    pass
 
+    def __init__(self,expr):
+
+        self.def_word,rest = expr.get_value()
+        self.var,rest = rest.get_value()
+        self.val = AbstractSchemeExpr.process(rest.get_car())
+
+
+    def __str__(self):
+        return 'Define(' + str(self.var) + ',' + str(self.val) + ')'
+
+    # a predicate for recognizing definition expressions
     def is_def(expr):
-        # a predicate for recognizing definition expressions
-        pass
+        if isinstance(expr,Pair):
+            def_word,rest = expr.get_value()
+            if isinstance(def_word,Symbol) \
+                and  str(def_word.get_value()) == 'DEFINE' \
+                and isinstance(rest,Pair):
+                defined_var,rest = rest.get_value()   # can the defined var be a keyword?
+                if isinstance(defined_var,Symbol) \
+                and isinstance(rest,Pair):
+                    val_expr,rest = rest.get_value()
+                    if isinstance(rest,Nil):
+                        return True
+        return False
 
 ### Lambda Forms ###
 
