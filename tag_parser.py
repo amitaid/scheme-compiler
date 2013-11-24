@@ -3,6 +3,7 @@ from sexprs import *
 import reader
 
 key_words = ['Define', 'Lambda','λ','IF','and','or','cond']
+primitive_ops =['+','-']
 
 class AbstractSchemeExpr:
 
@@ -56,13 +57,13 @@ class Constant(AbstractSchemeExpr):
             return True
         return False
 
-    def is_const(sexpr):
+    def is_const(sexpr): #TODO maybe change abstract number to integer or something
         if isinstance(sexpr,Boolean) or \
             isinstance(sexpr,Char) or \
             isinstance(sexpr,AbstractNumber) or \
             isinstance(sexpr,String) or \
             isinstance(sexpr,Void): # maybe the last condition is useless
-            return True;
+            return True
         elif Constant.is_quated(sexpr):
             return True
         else: #TODO add unquated support
@@ -127,11 +128,24 @@ class IfThenElse(AbstractSchemeExpr):
         return False
 
 class Applic(AbstractSchemeExpr):
-    pass
+
+    def __init__(self,expr):
+        op,rest = expr.get_value()
+        self.operator = op
+        #TODO parse list of args
 
     def is_applic(expr):
-        # a predicate for recognizing applicative expressions
-        pass
+        if isinstance(expr,Pair):
+            or_word,rest = expr.get_value()
+            if isinstance(or_word,Symbol) and \
+                str(or_word.get_value())in primitive_ops and \
+                isinstance(rest,Pair):
+                    while not isinstance(rest.get_cdr(),Nil):
+                        a_number,rest = rest.get_value()
+                        if not isinstance(a_number,AbstractNumber):
+                            return False
+                    return True
+        return False
 
 class Or(AbstractSchemeExpr):
     pass
@@ -143,9 +157,9 @@ class Or(AbstractSchemeExpr):
 class Def(AbstractSchemeExpr):
 
     def __init__(self,expr):
-
-        self.def_word,rest = expr.get_value()
-        self.var,rest = rest.get_value()
+        def_word,rest = expr.get_value()
+        defined_var,rest = rest.get_value()
+        self.var = AbstractSchemeExpr.process(defined_var)
         self.val = AbstractSchemeExpr.process(rest.get_car())
 
 
@@ -184,7 +198,8 @@ class LambdaVar(AbstractLambda):
 class syntacticSugar(AbstractSchemeExpr):
     pass
 
-
+    def is_mit_def(expr):
+        pass
 
     def is_quasiquated(expr):
         pass
