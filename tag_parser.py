@@ -10,6 +10,7 @@ class AbstractSchemeExpr:
     @staticmethod
     def parse(input):
         result, remaining = AbstractSexpr.readFromString(input)
+        print(result)
         scheme_expr = AbstractSchemeExpr.process(result)
         return scheme_expr
 
@@ -18,9 +19,11 @@ class AbstractSchemeExpr:
         if Constant.is_const(result):
             print('bla')
             ast = Constant(result)  # abstract syntax tree
+        elif Applic.is_applic(result):
+            print('bla5')
+            ast = Applic(result)
         elif Variable.is_variable(result):
             print('bla2')
-
             ast =Variable(result)
         elif IfThenElse.is_if(result):
             print('bla3')
@@ -57,7 +60,7 @@ class Constant(AbstractSchemeExpr):
             return True
         return False
 
-    def is_const(sexpr): #TODO maybe change abstract number to integer or something
+    def is_const(sexpr):
         if isinstance(sexpr,Boolean) or \
             isinstance(sexpr,Char) or \
             isinstance(sexpr,AbstractNumber) or \
@@ -80,7 +83,9 @@ class Variable(AbstractSchemeExpr):
 
     # predicate for recognizing if then else expr
     def is_variable(sexpr):
-        if isinstance(sexpr,Symbol) and not Symbol.get_value(sexpr) in key_words:
+        if isinstance(sexpr,Symbol) and \
+        not Symbol.get_value(sexpr) in key_words: # and \
+        #not Symbol.get_value(sexpr) in primitive_ops:
             return True
         return False
 
@@ -131,20 +136,31 @@ class Applic(AbstractSchemeExpr):
 
     def __init__(self,expr):
         op,rest = expr.get_value()
-        self.operator = op
-        #TODO parse list of args
+        self.operator = AbstractSchemeExpr.process(op)
+        self.args = []
+        while not isinstance(rest,Nil):
+            arg,rest = rest.get_value()
+            self.args.append(AbstractSchemeExpr.process(arg))
+        b = False;
+
+    def __str__(self):
+        ans = 'Applic('+str(self.operator)
+        for arg in self.args:
+            ans +=  ','+str(arg)
+        return ans + ')'
 
     def is_applic(expr):
         if isinstance(expr,Pair):
-            or_word,rest = expr.get_value()
-            if isinstance(or_word,Symbol) and \
-                str(or_word.get_value())in primitive_ops and \
-                isinstance(rest,Pair):
-                    while not isinstance(rest.get_cdr(),Nil):
-                        a_number,rest = rest.get_value()
-                        if not isinstance(a_number,AbstractNumber):
-                            return False
-                    return True
+            op_word,rest = expr.get_value()
+            print(str(op_word.get_value()) in primitive_ops)
+            if isinstance(op_word,Symbol) and \
+                str(op_word.get_value())in primitive_ops :
+                while not isinstance(rest,Nil):
+                    nov,rest = rest.get_value() # nov = number or var
+                    if not isinstance(nov,AbstractNumber) \
+                    and not isinstance(nov,Symbol):
+                         return False
+                return True
         return False
 
 class Or(AbstractSchemeExpr):
