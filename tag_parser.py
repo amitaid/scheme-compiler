@@ -31,12 +31,19 @@ class AbstractSchemeExpr:
         elif Def.is_def(result):
             print('bla4')
             ast = Def(result)
+        elif Or.is_or(result):
+            print('bla6')
+            ast = Or(result)
         else:
             print('format not supported: ' + str(result))
             ast = Constant(Void())
 
         return ast
 
+#TODO how to check is or and applic args are valid
+#this function  checks if the expr is valid for inner parsing.
+    def isValid(expr):
+        return True
 ### Constant ###
 
 class Constant(AbstractSchemeExpr):
@@ -141,7 +148,6 @@ class Applic(AbstractSchemeExpr):
         while not isinstance(rest,Nil):
             arg,rest = rest.get_value()
             self.args.append(AbstractSchemeExpr.process(arg))
-        b = False;
 
     def __str__(self):
         ans = 'Applic('+str(self.operator)
@@ -152,23 +158,55 @@ class Applic(AbstractSchemeExpr):
     def is_applic(expr):
         if isinstance(expr,Pair):
             op_word,rest = expr.get_value()
-            print(str(op_word.get_value()) in primitive_ops)
-            if isinstance(op_word,Symbol) and \
-                str(op_word.get_value())in primitive_ops :
-                while not isinstance(rest,Nil):
+
+            if isinstance(op_word,Symbol):
+
+                while isinstance(rest,Pair):
                     nov,rest = rest.get_value() # nov = number or var
-                    if not isinstance(nov,AbstractNumber) \
-                    and not isinstance(nov,Symbol):
+                    if not AbstractSchemeExpr.isValid(nov):
                          return False
+
+                if not isinstance(rest,Nil):
+                    return False
+
                 return True
+
         return False
 
 class Or(AbstractSchemeExpr):
-    pass
+
+    def __init__(self,expr):
+        or_arg,rest = expr.get_value()
+        self.or_arg = AbstractSchemeExpr.process(or_arg)
+        self.args = []
+        while not isinstance(rest,Nil):
+            arg,rest = rest.get_value()
+            self.args.append(AbstractSchemeExpr.process(arg))
+
+    def __str__(self):
+        ans = 'Or('+str(self.or_arg)
+        for arg in self.args:
+            ans +=  ','+str(arg)
+        return ans + ')'
 
     def is_or(expr):
-        # a predicate for recognizing or expressions
-        pass
+        if isinstance(expr,Pair):
+            or_arg,rest = expr.get_value()
+            if isinstance(or_arg,Symbol) and \
+                str(or_arg.get_value()) == 'OR':
+
+                while isinstance(rest,Pair):
+                    arg,rest = rest.get_value()
+                    if not AbstractSchemeExpr.isValid(arg):
+                        return False
+
+                if not isinstance(rest,Nil):
+                    return False
+
+                return True
+
+        return False
+
 
 class Def(AbstractSchemeExpr):
 

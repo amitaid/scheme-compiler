@@ -49,11 +49,17 @@ def main():
 
     #print(sexprs.AbstractSexpr.readFromString('′a'))
     #x = tag_parser.AbstractSchemeExpr.parse('a')
-    x = tag_parser.AbstractSchemeExpr.parse('(define x 3)')
-    #x,y = sexprs.AbstractSexpr.readFromString('(define x 3)')
-    print(x)
+    #x = tag_parser.AbstractSchemeExpr.parse('(+ x 3 1 2 3 4 y z yahelush)')
+    #x,y = sexprs.AbstractSexpr.readFromString('(or 1 bla bla)')
+    #print(x)
+    #b = tag_parser.Applic.is_applic(x)
+    #print(b)
+    x = tag_parser.AbstractSchemeExpr.parse('(or 1 bla bla)')
+    #print(tag_parser.Or.is_or(x))
+    #x = tag_parser.Or(x)
+    #bla = tag_parser.Applic(x)
     #x = tag_parser.Def(x)
-    print(str(x))
+    print(x)
     #print(b)
 
 
