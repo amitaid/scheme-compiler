@@ -45,7 +45,7 @@ def main():
 
     #x,y = sexprs.AbstractSexpr.readFromString('3')
     # TODO test not working - x = tag_parser.AbstractSchemeExpr.parse('(Lambda ((+ 1) . x) 1)')
-    x = tag_parser.AbstractSchemeExpr.parse('(Lambda (x z . y) 1 2)')
+    x = tag_parser.AbstractSchemeExpr.parse('(letrec (4 3) 4)')
     print(x)
 if __name__ == '__main__':
     main()
