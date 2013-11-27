@@ -487,7 +487,11 @@ class SyntacticSugar(AbstractSchemeExpr):
             not isinstance(cur_def.get_cdr(),Nil):
                 return False
 
-            if op_name == 'LETREC' and not isinstance(cur_def.get_car(),AbstractLambda):
+            print (op_name == 'LETREC')
+            if op_name == 'LETREC' and not \
+            (LambdaSimple.is_lambda_simple(cur_def.get_car()) or \
+            LambdaVar.is_lambda_var(cur_def.get_car()) or \
+            LambdaOpt.is_lambda_opt(cur_def.get_car())):
                 return False
 
         if not isinstance(definitions,Nil) or not  isinstance(rest,Pair):
