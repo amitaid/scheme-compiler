@@ -280,7 +280,6 @@ class Def(AbstractSchemeExpr):
     def is_simple_def(expr):
         return Def.is_def_expr(expr)
 
-
 ### Lambda Forms ###
 
 class AbstractLambda(AbstractSchemeExpr):
@@ -374,7 +373,6 @@ class LambdaVar(AbstractLambda):
             return False
         return True
 
-
 class LambdaOpt(AbstractLambda):
 
     def __init__(self,expr):
@@ -424,7 +422,6 @@ class LambdaOpt(AbstractLambda):
         #    return False
         return True
 
-
 class SyntacticSugar(AbstractSchemeExpr):
     pass
 
@@ -438,14 +435,6 @@ class SyntacticSugar(AbstractSchemeExpr):
             return False
         return True
 
-
-
-
-
-
-
-
-
     def is_quasiquated(expr):
         pass
 
@@ -454,7 +443,7 @@ class SyntacticSugar(AbstractSchemeExpr):
             return False
 
         if not isinstance(expr.get_car(),Symbol) or \
-            str(expr.get_car().get_value()) == 'LET':
+            str(expr.get_car().get_value()) != 'LET':
             return False
 
         return SyntacticSugar.is_let_body(expr)
@@ -464,7 +453,7 @@ class SyntacticSugar(AbstractSchemeExpr):
             return False
 
         if not isinstance(expr.get_car(),Symbol) or \
-            str(expr.get_car().get_value()) == 'LET*':
+            str(expr.get_car().get_value()) != 'LET*':
             return False
 
         return SyntacticSugar.is_let_body(expr)
@@ -474,7 +463,7 @@ class SyntacticSugar(AbstractSchemeExpr):
             return False
 
         if not isinstance(expr.get_car(),Symbol) or \
-            str(expr.get_car().get_value()) == 'LET':
+            str(expr.get_car().get_value()) != 'LETREC':
             return False
 
         return SyntacticSugar.is_let_body(expr)
@@ -482,19 +471,49 @@ class SyntacticSugar(AbstractSchemeExpr):
     def is_let_body(expr):
         head,rest = expr.get_value()
         op_name = str(head.get_value())
+        definitions,rest = rest.get_value()
 
-        while isinstance(rest.get_car(),Pair):
-            lei_expr = rest.get_car().get_cdr() # lei = let expression i
+
+        while isinstance(definitions,Pair):
+            #print('inside loop')
+            cur_def,definitions = definitions.get_value()
+            #print(not isinstance(cur_def,Pair))
+            if not isinstance(cur_def,Pair):
+                return False
+            cur_def_var,cur_def = cur_def.get_value()
+
+            if not isinstance(cur_def,Pair) or \
+            not isinstance(cur_def_var,Symbol) or\
+            not isinstance(cur_def.get_cdr(),Nil):
+                return False
+
+            if op_name == 'LETREC' and not isinstance(cur_def.get_car(),AbstractLambda):
+                return False
+
+        if not isinstance(definitions,Nil) or not  isinstance(rest,Pair):
+            return False
+
+        while isinstance(rest,Pair):
+            cur_exp, rest = rest.get_value()
+            #where <LE1>, <LE2>, etc, are λ-expressions, and <expr> is some instance of AbstractSchemeExpr,
+            if op_name == 'LETREC' and \
+            not isinstance(AbstractSchemeExpr.process(cur_exp),AbstractSchemeExpr):
+                return False
+
+        return True
+
+        #while isinstance(rest.get_car(),Pair):
+        #    lei_expr = rest.get_car().get_cdr() # lei = let expression i
 
             # this if makes sure each inner define is in proper list with length 2
-            if not isinstance(lei_expr,Pair) or not isinstance(lei_expr.get_cdr(),Nil):
-                return False
+ #           if not isinstance(lei_expr,Pair) or not isinstance(lei_expr.get_cdr(),Nil):
+  #              return False
+#
+ #           if(op_name == 'LETREC') and not isinstance(lei_expr.get_car(),AbstractLambda):
+  #              return False
+   #         rest = rest.get_cdr()
 
-            if(op_name == 'LETREC') and not isinstance(lei_expr.get_car(),AbstractLambda):
-                return False
-            rest = rest.get_cdr()
-
-        return isinstance(rest.get_cdr,Nil)
+    #    return isinstance(rest.get_cdr,Nil)
 
     def is_cond(expr):
         if not AbstractSchemeExpr.is_proper_list(expr):
