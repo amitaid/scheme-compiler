@@ -42,15 +42,10 @@ def main():
     #print(sexprs.Pair.get_cdr(x).get_car())
     #parse("'a")
 
-    #x = tag_parser.AbstractSchemeExpr.parse('(if #t #\\y)')
-    #x = tag_parser.AbstractSchemeExpr.parse('"abc"')
-    #print(x)
-
-    #print(sexprs.AbstractSexpr.readFromString('′a'))
-    x = tag_parser.AbstractSchemeExpr.parse('′a')
-    #x = tag_parser.AbstractSchemeExpr.parse('a')
+    #x,y = sexprs.AbstractSexpr.readFromString('3')
+    # TODO test not working - x = tag_parser.AbstractSchemeExpr.parse('(Lambda ((+ 1) . x) 1)')
+    x = tag_parser.AbstractSchemeExpr.parse('(letRec ((x (lambda y x))) y)')
     print(x)
-
 if __name__ == '__main__':
     main()
 

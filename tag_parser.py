@@ -2,37 +2,103 @@ from tkinter import constants
 from sexprs import *
 import reader
 
-key_words = ['define', 'lambda','λ','IF','else','then','and','or','cond']
+key_words = ['Define', 'Lambda','λ','IF','and','or','cond']
+primitive_ops =['+','-']
 
 class AbstractSchemeExpr:
 
     @staticmethod
     def parse(input):
         result, remaining = AbstractSexpr.readFromString(input)
+        print(result)
         scheme_expr = AbstractSchemeExpr.process(result)
         return scheme_expr
 
     @staticmethod  # where the actual parsing occur
     def process(result):
+        # basic
         if Constant.is_const(result):
-            ast = Constant(result)
+            print('bla')
+            ast = Constant(result)  # abstract syntax tree
         elif Variable.is_variable(result):
+            print('bla2')
             ast =Variable(result)
+
+        # Lambda forms
+        elif LambdaSimple.is_lambda_simple(result):
+            print('this is fuckin awesome')
+            ast = LambdaSimple(result)
+        elif LambdaVar.is_lambda_var(result):
+            print('this is fuckin awesome2')
+            ast = LambdaVar(result)
+        elif LambdaOpt.is_lambda_opt(result):
+            print('this is fuckin awesome3')
+            ast = LambdaOpt(result)
+
+        #Syntactic Sugars
+        elif SyntacticSugar.is_let(result):
+            print('wow')
+            ast = True
+        elif SyntacticSugar.is_letStar(result):
+            print('WOW2')
+            ast = True
+        elif SyntacticSugar.is_letrec(result):
+            print('wow3')
+            ast = True
+        elif SyntacticSugar.is_mit_def(result):
+            print('amazing3')
+            ast = True
+        elif SyntacticSugar.is_cond(result):
+            print('amazing')
+            ast = True
+        elif SyntacticSugar.is_and(result):
+            print('amazing2')
+            ast = True
+        # core forms
         elif IfThenElse.is_if(result):
+            print('bla3')
             ast = IfThenElse(result)
+        elif Def.is_simple_def(result):
+            print('bla4')
+            ast = Def(result)
+        elif Or.is_or(result):
+            print('bla6')
+            ast = Or(result)
+        elif Applic.is_applic(result): # must always come last
+            print('bla5')
+            ast = Applic(result)
         else:
             print('format not supported: ' + str(result))
-            ast = Constant(Void())
+            ast = Constant(Void()) #TODO in my opinion we should raise an exception here
 
         return ast
 
 
+    def is_proper_list(expr):
+        if not isinstance(expr,Pair):
+            return False
+        rest = expr.get_cdr()
+
+        while isinstance(rest,Pair):
+            rest = rest.get_cdr()
+
+        if not isinstance(rest,Nil):
+            return False
+        return True
+
+
+
+#TODO how to check is or and applic args are valid
+#TODO maybe the checks of args in if and or are meaningless
+#this function  checks if the expr is valid for inner parsing.
+    def isValid(expr):
+        return True
 ### Constant ###
 
 class Constant(AbstractSchemeExpr):
 
     def __init__(self,sexpr):
-        self.expr = sexpri
+        self.expr = sexpr
 
     def __str__(self):
         if isinstance(self.expr,Pair):
@@ -56,7 +122,7 @@ class Constant(AbstractSchemeExpr):
             isinstance(sexpr,AbstractNumber) or \
             isinstance(sexpr,String) or \
             isinstance(sexpr,Void): # maybe the last condition is useless
-            return True;
+            return True
         elif Constant.is_quated(sexpr):
             return True
         else: #TODO add unquated support
@@ -73,7 +139,9 @@ class Variable(AbstractSchemeExpr):
 
     # predicate for recognizing if then else expr
     def is_variable(sexpr):
-        if isinstance(sexpr,Symbol) and not Symbol.get_value(sexpr) in key_words:
+        if isinstance(sexpr,Symbol) and \
+        not Symbol.get_value(sexpr) in key_words: # and \
+        #not Symbol.get_value(sexpr) in primitive_ops:
             return True
         return False
 
@@ -121,62 +189,356 @@ class IfThenElse(AbstractSchemeExpr):
         return False
 
 class Applic(AbstractSchemeExpr):
-    pass
+
+    def __init__(self,expr):
+        op,rest = expr.get_value()
+        self.operator = AbstractSchemeExpr.process(op)
+        self.args = []
+        while not isinstance(rest,Nil):
+            arg,rest = rest.get_value()
+            self.args.append(AbstractSchemeExpr.process(arg))
+
+    def __str__(self):
+        ans = 'Applic('+str(self.operator)
+        for arg in self.args:
+            ans +=  ','+str(arg)
+        return ans + ')'
 
     def is_applic(expr):
-        # a predicate for recognizing applicative expressions
-        pass
+        return AbstractSchemeExpr.is_proper_list(expr)
+        # TODO need to make sure which option is correct
+        #if isinstance(expr,Pair):
+        #    op_word,rest = expr.get_value()
+        #
+        #
+        #
+        #    if isinstance(op_word,Symbol):
+        #        return AbstractSchemeExpr.is_proper_list(rest)
+        #return False
 
 class Or(AbstractSchemeExpr):
-    pass
+
+    def __init__(self,expr):
+        or_arg,rest = expr.get_value()
+        #self.or_arg = AbstractSchemeExpr.process(or_arg)
+        self.args = []
+        while not isinstance(rest,Nil):
+            arg,rest = rest.get_value()
+            self.args.append(AbstractSchemeExpr.process(arg))
+
+    def __str__(self):
+        ans = 'Or('
+        for arg in self.args:
+            if(arg == self.args[-1]):
+                ans += str(arg)
+            else:
+                ans +=  str(arg)+','
+        return ans + ')'
 
     def is_or(expr):
-        # a predicate for recognizing or expressions
-        pass
+        if isinstance(expr,Pair):
+            or_arg,rest = expr.get_value()
+            if isinstance(or_arg,Symbol) and \
+                str(or_arg.get_value()) == 'OR':
+
+                return AbstractSchemeExpr.is_proper_list(rest)
+
+        return False
 
 class Def(AbstractSchemeExpr):
-    pass
 
-    def is_def(expr):
-        # a predicate for recognizing definition expressions
-        pass
+    def __init__(self,expr):
+        def_word,rest = expr.get_value()
+        defined_var,rest = rest.get_value()
+        self.var = AbstractSchemeExpr.process(defined_var)
+        self.val = AbstractSchemeExpr.process(rest.get_car())
+
+
+    def __str__(self):
+        return 'Define(' + str(self.var) + ',' + str(self.val) + ')'
+
+    def is_def_expr(expr):
+        if not AbstractSchemeExpr.is_proper_list(expr):
+            return False
+
+        def_word,rest = expr.get_value()
+        if not isinstance(def_word,Symbol) or \
+            str(def_word.get_value()) != 'DEFINE':
+            return False
+
+        if not isinstance(rest,Pair):
+            return False
+
+        first_part,rest = rest.get_value()
+        if not isinstance(rest,Pair):
+            return False
+
+        second_part,rest = rest.get_value()
+        return isinstance(rest,Nil)
+
+    # a predicate for recognizing definition expressions
+    def is_simple_def(expr):
+        return Def.is_def_expr(expr)
 
 ### Lambda Forms ###
 
 class AbstractLambda(AbstractSchemeExpr):
     pass
 
-class LambdaSimple(AbstractLambda):
-    pass
+    def is_lambdaInstance(expr):
+        b = AbstractSchemeExpr.is_proper_list(expr) and \
+            isinstance(expr.get_car(),Symbol) and \
+            (str(expr.get_car().get_value()) == 'LAMBDA')
+        return b
 
-class LambdaOpt(AbstractLambda):
-    pass
+class LambdaSimple(AbstractLambda):
+
+    def __init__(self,expr):
+        rest = expr.get_cdr()
+        self.var_list = []
+        self.expr_list = []
+        vars,rest = rest.get_value()
+
+        while isinstance(vars,Pair):
+            var,vars = vars.get_value()
+            self.var_list.append(AbstractSchemeExpr.process(var))
+
+        while isinstance(rest,Pair):
+            cur_expr,rest = rest.get_value()
+            self.expr_list.append(AbstractSchemeExpr.process(cur_expr))
+
+    def __str__(self):
+        ans = 'LambdaSimple( ('
+        for var in self.var_list:
+            if(var == self.var_list[-1]):
+                ans += str(var)+')'
+            else:
+                ans += str(var) + ','
+        ans += '\n\t\t\t('
+        for expr in self.expr_list:
+            if(expr == self.expr_list[-1]):
+                ans += str(expr)+') )'
+            else:
+                ans += str(expr) + ','
+        return ans
+
+
+    def is_lambda_simple(expr):
+        if not AbstractLambda.is_lambdaInstance(expr):
+            return False
+
+        rest = expr.get_cdr()
+        args_list,rest = rest.get_value()
+
+        #TODO maybe to add a test that all the variables in the args are different
+        if not AbstractSchemeExpr.is_proper_list(args_list):
+            return False
+
+        #while isinstance(args_list,Pair):
+        #    arg,args_list = args_list.get_value()
+        #    if not isinstance(arg,Symbol):
+        #        return False
+        return True
 
 class LambdaVar(AbstractLambda):
+
+    def __init__(self,expr):
+        rest = expr.get_cdr()
+
+        self.expr_list = []
+        vars,rest = rest.get_value()
+        self.vars = AbstractSchemeExpr.process(vars)
+
+        while isinstance(rest,Pair):
+            cur_expr,rest = rest.get_value()
+            self.expr_list.append(AbstractSchemeExpr.process(cur_expr))
+
+    def __str__(self):
+        ans = 'LambdaVar( (' + str(self.vars) +')\n\t\t\t('
+
+        for expr in self.expr_list:
+            if(expr == self.expr_list[-1]):
+                ans += str(expr)+') )'
+            else:
+                ans += str(expr) + ','
+        return ans
+
+    def is_lambda_var(expr):
+        if not AbstractLambda.is_lambdaInstance(expr):
+            return False
+
+        rest = expr.get_cdr()
+        lambda_var_arg = rest.get_car()
+        if not isinstance(lambda_var_arg,Symbol):
+            return False
+        return True
+
+class LambdaOpt(AbstractLambda):
+
+    def __init__(self,expr):
+        rest = expr.get_cdr()
+        self.var_list = []
+        self.expr_list = []
+        vars,rest = rest.get_value()
+
+        while isinstance(vars,Pair):
+            var,vars = vars.get_value()
+            self.var_list.append(AbstractSchemeExpr.process(var))
+
+        self.last_var = AbstractSchemeExpr.process(vars)
+
+        while isinstance(rest,Pair):
+            cur_expr,rest = rest.get_value()
+            self.expr_list.append(AbstractSchemeExpr.process(cur_expr))
+
+    def __str__(self):
+        ans = 'LambdaOpt( ('
+        for var in self.var_list:
+            ans += str(var) + ','
+        ans += str(self.last_var) + ')\n\t\t\t('
+        for expr in self.expr_list:
+            if(expr == self.expr_list[-1]):
+                ans += str(expr)+') )'
+            else:
+                ans += str(expr) + ','
+        return ans
+
+    def is_lambda_opt(expr):
+        if not AbstractLambda.is_lambdaInstance(expr):
+            return False
+
+        rest = expr.get_cdr()
+        args = rest.get_car()
+        if not isinstance(args,Pair) or AbstractSchemeExpr.is_proper_list(args):
+            return False
+
+        #TODO maybe to add a test that all the variables in the args are different
+        #while isinstance(args,Pair):
+        #    arg,args = args.get_value()
+        #    if not isinstance(arg,Symbol):
+        #        return False
+
+        #if not isinstance(args,Symbol):
+        #    return False
+        return True
+
+class SyntacticSugar(AbstractSchemeExpr):
     pass
 
-class syntacticSugar(AbstractSchemeExpr):
-    pass
+    def is_mit_def(expr):
+        if not Def.is_def_expr(expr):
+            return False
 
-
+        nna = expr.get_cdr().get_car()
+        if not isinstance(nna,Pair) or isinstance(nna.get_cdr(),Nil) \
+            or isinstance(nna.get_cdr(),Pair):
+            return False
+        return True
 
     def is_quasiquated(expr):
         pass
 
     def is_let(expr):
-        pass
+        if not AbstractSchemeExpr.is_proper_list(expr):
+            return False
+
+        if not isinstance(expr.get_car(),Symbol) or \
+            str(expr.get_car().get_value()) != 'LET':
+            return False
+
+        return SyntacticSugar.is_let_body(expr)
 
     def is_letStar(expr):
-        pass
+        if not AbstractSchemeExpr.is_proper_list(expr):
+            return False
+
+        if not isinstance(expr.get_car(),Symbol) or \
+            str(expr.get_car().get_value()) != 'LET*':
+            return False
+
+        return SyntacticSugar.is_let_body(expr)
 
     def is_letrec(expr):
-        pass
+        if not AbstractSchemeExpr.is_proper_list(expr):
+            return False
+
+        if not isinstance(expr.get_car(),Symbol) or \
+            str(expr.get_car().get_value()) != 'LETREC':
+            return False
+
+        return SyntacticSugar.is_let_body(expr)
+
+    def is_let_body(expr):
+        head,rest = expr.get_value()
+        op_name = str(head.get_value())
+        definitions,rest = rest.get_value()
+
+
+        while isinstance(definitions,Pair):
+            #print('inside loop')
+            cur_def,definitions = definitions.get_value()
+            #print(not isinstance(cur_def,Pair))
+            if not isinstance(cur_def,Pair):
+                return False
+            cur_def_var,cur_def = cur_def.get_value()
+
+            if not isinstance(cur_def,Pair) or \
+            not isinstance(cur_def_var,Symbol) or\
+            not isinstance(cur_def.get_cdr(),Nil):
+                return False
+
+            print (op_name == 'LETREC')
+            if op_name == 'LETREC' and not \
+            (LambdaSimple.is_lambda_simple(cur_def.get_car()) or \
+            LambdaVar.is_lambda_var(cur_def.get_car()) or \
+            LambdaOpt.is_lambda_opt(cur_def.get_car())):
+                return False
+
+        if not isinstance(definitions,Nil) or not  isinstance(rest,Pair):
+            return False
+
+        while isinstance(rest,Pair):
+            cur_exp, rest = rest.get_value()
+            #where <LE1>, <LE2>, etc, are λ-expressions, and <expr> is some instance of AbstractSchemeExpr,
+            if op_name == 'LETREC' and \
+            not isinstance(AbstractSchemeExpr.process(cur_exp),AbstractSchemeExpr):
+                return False
+
+        return True
+
+        #while isinstance(rest.get_car(),Pair):
+        #    lei_expr = rest.get_car().get_cdr() # lei = let expression i
+
+            # this if makes sure each inner define is in proper list with length 2
+ #           if not isinstance(lei_expr,Pair) or not isinstance(lei_expr.get_cdr(),Nil):
+  #              return False
+#
+ #           if(op_name == 'LETREC') and not isinstance(lei_expr.get_car(),AbstractLambda):
+  #              return False
+   #         rest = rest.get_cdr()
+
+    #    return isinstance(rest.get_cdr,Nil)
 
     def is_cond(expr):
-        pass
+        if not AbstractSchemeExpr.is_proper_list(expr):
+            return False
+
+        cond_arg,rest = expr.get_value()
+        if not isinstance(cond_arg,Symbol) or str(cond_arg) != 'COND':
+            return False
+
+        while isinstance(rest,Pair):
+            inner_cond_expr,rest = rest.get_value()
+            if not AbstractSchemeExpr.is_proper_list(inner_cond_expr) or \
+                not isinstance(inner_cond_expr.get_cdr().get_cdr(),Nil):
+                return False
+
+        return True
 
     def is_and(expr):
-        pass
+        return AbstractSchemeExpr.is_proper_list(expr) and \
+            isinstance(expr.get_car(),Symbol) and \
+            str(expr.get_car()) == 'AND'
 
     def ic_2_nextedifs(expr): # cond -> if transformation
         pass
