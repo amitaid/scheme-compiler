@@ -15,7 +15,7 @@ def main():
 
     #print(reader.ignorable.match('#;(a b c)'))
 
-    parse('′something')
+    #parse('(let ((x 1) (y 2)) (+ x y))')
 
 
     #print(AbstractSexpr.readFromString('′(#\\x03bb x y z)')[0])
@@ -44,8 +44,10 @@ def main():
 
     #x,y = sexprs.AbstractSexpr.readFromString('3')
     # TODO test not working - x = tag_parser.AbstractSchemeExpr.parse('(Lambda ((+ 1) . x) 1)')
-    x = tag_parser.AbstractSchemeExpr.parse('(letRec ((x (lambda y x))) y)')
-    print(x)
+    print(tag_parser.AbstractSchemeExpr.parse('(let () (+ 1 1))'))
+    #print(x)
+
+
 if __name__ == '__main__':
     main()
 
