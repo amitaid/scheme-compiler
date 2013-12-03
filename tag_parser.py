@@ -283,16 +283,24 @@ class AbstractSchemeExpr:
         args = list(map(AbstractSchemeExpr.process, pair_to_list(sexpr.get_cdr())))
         return Applic(func, args)
 
+
     @staticmethod
     def build_lambda(sexpr):
+        body = AbstractSchemeExpr.process(sexpr.get_cdr().get_cdr().get_car())
+
         if is_lambda_simple(sexpr):
             variables = list(map(AbstractSchemeExpr.process, pair_to_list(sexpr.get_cdr().get_car())))
-            body = AbstractSchemeExpr.process(sexpr.get_cdr().get_cdr().get_car())
             return LambdaSimple(variables, body)
+
         elif is_lambda_var(sexpr):
-            return LambdaVar(sexpr)
+            var_list = AbstractSchemeExpr.process(sexpr.get_cdr().get_car())
+            return LambdaVar(var_list, body)
+
         elif is_lambda_opt(sexpr):
-            return LambdaOpt(sexpr)
+            l = pair_to_list(sexpr.get_cdr().get_car())
+            variables = l[:-1]
+            var_remaining = l[-1]
+            return LambdaOpt(variables, var_remaining, body)
 
     @staticmethod  # where the actual parsing occur
     def process(sexpr):
@@ -425,62 +433,28 @@ class LambdaSimple(AbstractLambda):
         self.variables = variables
         self.body = body
 
-
     def __str__(self):
         return 'LambdaSimple( (' + ' '.join([str(x) for x in self.variables]) + ')\n\t\t\t' + str(self.body) + ')'
 
 
 class LambdaVar(AbstractLambda):
-    def __init__(self, expr):
-        rest = expr.get_cdr()
-
-        self.expr_list = []
-        vars, rest = rest.get_value()
-        self.vars = AbstractSchemeExpr.process(vars)
-
-        while is_pair(rest):
-            cur_expr, rest = rest.get_value()
-            self.expr_list.append(AbstractSchemeExpr.process(cur_expr))
+    def __init__(self, var_list, body):
+        self.var_list = var_list
+        self.body = body
 
     def __str__(self):
-        ans = 'LambdaVar( (' + str(self.vars) + ')\n\t\t\t('
-
-        for expr in self.expr_list:
-            if (expr == self.expr_list[-1]):
-                ans += str(expr) + ') )'
-            else:
-                ans += str(expr) + ','
-        return ans
+        return 'LambdaVar( ' + str(self.var_list) + '\n\t\t\t' + str(self.body) + ')'
 
 
 class LambdaOpt(AbstractLambda):
-    def __init__(self, expr):
-        rest = expr.get_cdr()
-        self.var_list = []
-        self.expr_list = []
-        vars, rest = rest.get_value()
-
-        while is_pair(vars):
-            var, vars = vars.get_value()
-            self.var_list.append(AbstractSchemeExpr.process(var))
-
-        self.last_var = AbstractSchemeExpr.process(vars)
-
-        while is_pair(rest):
-            cur_expr, rest = rest.get_value()
-            self.expr_list.append(AbstractSchemeExpr.process(cur_expr))
+    def __init__(self, variables, var_list, body):
+        self.variables = variables
+        self.var_list = var_list
+        self.body = body
 
     def __str__(self):
-        ans = 'LambdaOpt( ('
-        for var in self.var_list:
-            ans += str(var) + ','
-        ans += str(self.last_var) + ')\n\t\t\t('
-        for expr in self.expr_list:
-            if (expr == self.expr_list[-1]):
-                ans += str(expr) + ') )'
-            else:
-                ans += str(expr) + ','
-        return ans
+        return 'LambdaOpt( (' + ' '.join([str(x) for x in self.variables]) + \
+               ' . ' + str(self.var_list) + ')\n\t\t\t' + str(self.body) + ')'
 
 
 class SyntacticSugar(AbstractSchemeExpr):
