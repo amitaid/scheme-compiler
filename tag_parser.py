@@ -1,9 +1,9 @@
 from sexprs import *
-import reader
 
 key_words = ['DEFINE', 'LAMBDA', 'λ', 'IF', 'AND', 'OR', 'COND']
 primitive_ops = ['+', '-']
 
+### sexprs predicates ###
 
 def is_void(sexpr):
     return isinstance(sexpr, Void)
@@ -46,11 +46,12 @@ def is_proper_list(sexpr):
 
     return is_nil(sexpr)
 
+### AbstractSchemeExpr Predicates ###
 
 def is_quoted(sexpr): # TODO implement later
     if is_pair(sexpr) and \
             is_symbol(sexpr.get_car()) and \
-                    sexpr.get_car().get_value() in reader.quotes_dict.values():
+                    sexpr.get_car().get_value() == 'quote':
         return True
     return False
 
@@ -130,7 +131,15 @@ def is_lambda_opt(sexpr):
 
 
 def is_quasiquoted(expr):
-    pass
+    return is_proper_list(expr) and expr.get_car().get_value() == 'quasiquote'
+
+
+def is_unquote(expr):
+    return is_proper_list(expr) and expr.get_car().get_value() == 'unquote'
+
+
+def is_unquote_splicing(expr):
+    return is_proper_list(expr) and expr.get_car().get_value() == 'unquote-splicing'
 
 
 def is_let(expr):
@@ -294,6 +303,21 @@ class AbstractSchemeExpr:
         elif is_lambda_opt(sexpr):
             return LambdaOpt(sexpr)
 
+    @staticmethod
+    def build_if(sexpr):
+        parsed_sexpr = list(map(AbstractSchemeExpr.process, pair_to_list(sexpr)))
+        if len(parsed_sexpr) < 2 or len(parsed_sexpr) > 3:
+            print('error: exception is supposed to be here - not valid number of args')
+            return True
+
+        predicate = parsed_sexpr[0]
+        then_body = parsed_sexpr[1]
+
+        if len(parsed_sexpr) == 2:
+            return IfThenElse(predicate, then_body, Constant(Void()))
+        return IfThenElse(predicate, then_body, parsed_sexpr[2])
+
+
     @staticmethod  # where the actual parsing occur
     def process(sexpr):
         # basic
@@ -319,10 +343,17 @@ class AbstractSchemeExpr:
             return True
         elif is_and(sexpr):
             return True
+        elif is_quasiquoted(sexpr):
+            return True
+        elif is_unquote(sexpr):
+            return True
+        elif is_unquote_splicing(sexpr):
+            return True
 
         # core forms
         elif is_if(sexpr):
-            return IfThenElse(sexpr)
+            print('blishblish 1')
+            return AbstractLambda.build_if(sexpr.get_cdr())
         elif is_simple_def(sexpr):
             return Def(sexpr)
         elif is_or(sexpr):
