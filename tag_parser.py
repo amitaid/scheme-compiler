@@ -38,16 +38,13 @@ def is_pair(sexpr):
 
 
 def is_proper_list(sexpr):
-    if not is_pair(sexpr):
+    if is_nil(sexpr):
         return False
-    rest = sexpr.get_cdr()
 
     while is_pair(sexpr):
-        rest = rest.get_cdr()
+        sexpr = sexpr.get_cdr()
 
-    if not is_pair(sexpr):
-        return False
-    return True
+    return is_nil(sexpr)
 
 
 def is_quoted(sexpr): # TODO implement later
@@ -71,7 +68,7 @@ def is_const(sexpr):
     else: #TODO add unquoted support
         return False
 
-# predicate for recognizing if then else expr
+
 def is_variable(sexpr):
     if is_symbol(sexpr) and \
             not sexpr.get_value() in key_words: # and \
@@ -81,27 +78,9 @@ def is_variable(sexpr):
 
 # predicate for both IfThen & IfThenElse
 def is_if(sexpr):
-    # first check if it is a pair at all
-    if is_pair(sexpr):
-        if_token, rest_expr = sexpr.get_value()
-        # second check if first token is if and rest is pair
-        if is_symbol(if_token) and \
-                str(if_token.get_value()) == 'IF' and \
-                is_pair(rest_expr):
-
-            rest_expr2 = rest_expr.get_cdr()
-            #third check for checking there are enough args in the pairs
-            if is_pair(rest_expr2):
-
-                rest_expr3 = rest_expr2.get_cdr()
-                # fourth check if the else arg exists
-                # if so it checks if its tail is Nil (IfThenElse)
-                # otherwise checks if checks if else is Nil (IfThen)
-                if is_pair(rest_expr3) and \
-                        is_nil(rest_expr3.get_cdr()) or \
-                        is_nil(rest_expr3):
-                    return True
-    return False
+    return is_proper_list(sexpr) and \
+           is_symbol(sexpr.get_car()) and \
+           sexpr.get_car().get_value() == 'IF'
 
 
 def is_def_expr(expr):
@@ -141,10 +120,10 @@ def is_applic(expr):
     #return False
 
 
-def is_lambda(expr):
-    return is_proper_list(expr) and \
-           is_symbol(expr.get_car()) and \
-           (str(expr.get_car().get_value()) == 'LAMBDA')
+def is_lambda(sexpr):
+    return is_proper_list(sexpr) and \
+           is_symbol(sexpr.get_car()) and \
+           sexpr.get_car().get_value() == 'LAMBDA'
 
 
 def is_lambda_simple(expr):
@@ -203,36 +182,15 @@ def is_quasiquoted(expr):
 
 
 def is_let(expr):
-    if not is_proper_list(expr):
-        return False
-
-    if not is_symbol(expr) or \
-            str(expr.get_car().get_value()) != 'LET':
-        return False
-
-    return is_let_body(expr)
+    return is_proper_list(expr) and expr.get_car().get_value() == 'LET'
 
 
 def is_let_star(expr):
-    if not is_proper_list(expr):
-        return False
-
-    if not is_symbol(expr.get_car()) or \
-            str(expr.get_car().get_value()) != 'LET*':
-        return False
-
-    return is_let_body(expr)
+    return is_proper_list(expr) and expr.get_car().get_value() == 'LET*'
 
 
 def is_letrec(expr):
-    if not is_proper_list(expr):
-        return False
-
-    if not is_symbol(expr.get_car()) or \
-            str(expr.get_car().get_value()) != 'LETREC':
-        return False
-
-    return is_let_body(expr)
+    return is_proper_list(expr) and expr.get_car().get_value() == 'LETREC'
 
 
 def is_let_body(expr):
@@ -322,13 +280,9 @@ def is_and(expr):
 
 
 def is_or(expr):
-    if is_pair(expr):
-        or_arg, rest = expr.get_value()
-        if is_symbol(or_arg) and \
-                str(or_arg.get_value()) == 'OR':
-            return is_proper_list(rest)
-
-    return False
+    return is_proper_list(expr) and \
+           is_symbol(expr.get_car()) and \
+           str(expr.get_car()) == 'OR'
 
 #------------------------------------
 
@@ -340,6 +294,31 @@ class AbstractSchemeExpr:
         scheme_expr = AbstractSchemeExpr.process(result)
         return scheme_expr
 
+    @staticmethod
+    def build_let(sexpr):
+        varvals = sexpr.cdr.car
+        body = sexpr.cdr.cdr.car
+        if is_nil(varvals):
+            return AbstractSchemeExpr.process(Pair(Pair(Symbol('LAMBDA'), [Nil(), body, Nil()]), [Nil()]))
+        else:
+            variables = []
+            values = []
+            while not is_nil(varvals):
+                variables.append(varvals.get_car().get_car())
+                values.append(varvals.get_car().get_cdr().get_car())
+                varvals = varvals.get_cdr()
+            variables = Pair(variables[0], variables[1:] + [Nil()])
+            values = Pair(values[0], values[1:] + [Nil()])
+            print(variables, values)
+            return AbstractSchemeExpr.process(Pair(Pair(Symbol('LAMBDA'), [variables, body, Nil()]), [values]))
+
+    # TODO Check
+    @staticmethod
+    def build_applic(sexpr):
+        func = AbstractSchemeExpr.process(sexpr.get_car())
+        args = AbstractSchemeExpr.process(sexpr.get_cdr())
+        return Applic(func, args)
+
     @staticmethod  # where the actual parsing occur
     def process(sexpr):
         # basic
@@ -349,32 +328,17 @@ class AbstractSchemeExpr:
             return Variable(sexpr)
 
         # Lambda forms
-        elif is_lambda_simple(sexpr):
-            return LambdaSimple(sexpr)
-        elif is_lambda_var(sexpr):
-            return LambdaVar(sexpr)
-        elif is_lambda_opt(sexpr):
-            return LambdaOpt(sexpr)
+        elif is_lambda(sexpr):
+            if is_lambda_simple(sexpr):
+                return LambdaSimple(sexpr)
+            elif is_lambda_var(sexpr):
+                return LambdaVar(sexpr)
+            elif is_lambda_opt(sexpr):
+                return LambdaOpt(sexpr)
 
         #Syntactic Sugars
         elif is_let(sexpr):
-            varvals = sexpr.cdr.car
-            body = sexpr.cdr.cdr.car
-            if is_nil(varvals):
-                AbstractSchemeExpr.process(Pair(Pair(Symbol('LAMBDA'), [Nil(), body, Nil()]), [Nil()]))
-            else:
-                variables = []
-                values = []
-                while not is_nil(varvals):
-                    variables.append(varvals.car.car)
-                    values.append(varvals.car.cdr.car)
-                    varvals = varvals.cdr
-                variables = Pair(variables[0], variables[1:] + [Nil()])
-                values = Pair(values[0], values[1:] + [Nil()])
-                print(variables, values)
-                return AbstractSchemeExpr.process(Pair(Pair(Symbol('LAMBDA'), [variables, body, Nil()]), [values]))
-
-
+            return AbstractSchemeExpr.build_let(sexpr)
         elif is_let_star(sexpr):
             return True
         elif is_letrec(sexpr):
@@ -394,7 +358,7 @@ class AbstractSchemeExpr:
         elif is_or(sexpr):
             return Or(sexpr)
         elif is_applic(sexpr): # must always come last
-            return Applic(sexpr)
+            return AbstractSchemeExpr.build_applic(sexpr)
         else:
             print('format not supported: ' + str(sexpr))
             return Constant(Void()) #TODO in my opinion we should raise an exception here
@@ -410,64 +374,43 @@ class AbstractSchemeExpr:
 
 
 class Constant(AbstractSchemeExpr):
-    def __init__(self, sexpr):
-        self.expr = sexpr
+    def __init__(self, value):
+        self.value = value
 
     def __str__(self):
-        if is_pair(self.expr):
-            print(is_pair(self.expr))
-            quote, rest = self.expr.get_value()
-
-            arg, nil = Pair.get_value(rest)
-            return 'Constant(' + str(quote) + ' ' + str(arg) + ')'
-        else:
-            return 'Constant(' + str(self.expr) + ')'
+        return 'Constant(' + str(self.value) + ')'
 
 
 ### Variable ###
 
 class Variable(AbstractSchemeExpr):
-    def __init__(self, sexpr):
-        self.value = Symbol.get_value(sexpr)
+    def __init__(self, symbol, value=Void()):
+        self.symbol = symbol
+        self.value = value
 
     def __str__(self):
-        return 'Variable(' + str(self.value) + ')'
+        return 'Variable(' + str(self.symbol) + ')'
 
 
 ### Core Forms ###
 
 class IfThenElse(AbstractSchemeExpr):
-    def __init__(self, expr):
-        irt = expr.get_cdr() # irt = if rest of tokens
-        pred_expr, irt = irt.get_value()
-        then_expr, irt = irt.get_value()
-        if is_pair(irt):
-            else_expr = irt.get_car()
-            self.else_expr = AbstractSchemeExpr.process(else_expr)
-        else:
-            self.else_expr = Constant(Void())
-        self.predicate = AbstractSchemeExpr.process(pred_expr)
-        self.then_expr = AbstractSchemeExpr.process(then_expr)
+    def __init__(self, predicate, then_body, else_body):
+        self.predicate = predicate
+        self.then_body = then_body
+        self.else_body = else_body
 
     def __str__(self):
-        return 'IfThenElse(' + str(self.predicate) + \
-               ',' + str(self.then_expr) + ',' + str(self.else_expr) + ')'
+        return 'IfThenElse(' + str(self.predicate) + ',' + str(self.then_body) + ',' + str(self.else_body) + ')'
 
 
 class Applic(AbstractSchemeExpr):
-    def __init__(self, expr):
-        op, rest = expr.get_value()
-        self.operator = AbstractSchemeExpr.process(op)
-        self.args = []
-        while not is_nil(rest):
-            arg, rest = rest.get_value()
-            self.args.append(AbstractSchemeExpr.process(arg))
+    def __init__(self, func, args):
+        self.func = func
+        self.args = args
 
     def __str__(self):
-        ans = 'Applic(' + str(self.operator)
-        for arg in self.args:
-            ans += ',' + str(arg)
-        return ans + ')'
+        return 'Applic(' + str(self.func) + ', ' + str(self.args) + ')'
 
 
 class Or(AbstractSchemeExpr):
