@@ -109,15 +109,6 @@ def is_simple_def(expr):
 
 def is_applic(expr):
     return is_proper_list(expr)
-    # TODO need to make sure which option is correct
-    #if isinstance(expr,Pair):
-    #    op_word,rest = expr.get_value()
-    #
-    #
-    #
-    #    if is_symbol(op_word):
-    #        return AbstractSchemeExpr.is_proper_list(rest)
-    #return False
 
 
 def is_lambda(sexpr):
@@ -126,55 +117,16 @@ def is_lambda(sexpr):
            sexpr.get_car().get_value() == 'LAMBDA'
 
 
-def is_lambda_simple(expr):
-    if not is_lambda(expr):
-        return False
-
-    rest = expr.get_cdr()
-    args_list, rest = rest.get_value()
-
-    if is_nil(args_list):
-        return False
-    #TODO maybe to add a test that all the variables in the args are different
-    elif not is_proper_list(args_list):
-        return False
-
-    #while isinstance(args_list,Pair):
-    #    arg,args_list = args_list.get_value()
-    #    if not isinstance(arg,Symbol):
-    #        return False
-    return True
+def is_lambda_simple(sexpr):
+    return is_proper_list(sexpr.get_cdr().get_car())
 
 
-def is_lambda_var(expr):
-    if not is_lambda(expr):
-        return False
-
-    rest = expr.get_cdr()
-    lambda_var_arg = rest.get_car()
-    if not is_symbol(lambda_var_arg):
-        return False
-    return True
+def is_lambda_var(sexpr):
+    return is_symbol(sexpr.get_cdr().get_car())
 
 
-def is_lambda_opt(expr):
-    if not is_lambda(expr):
-        return False
-
-    rest = expr.get_cdr()
-    args = rest.get_car()
-    if not is_pair(args) or is_proper_list(args):
-        return False
-
-    #TODO maybe to add a test that all the variables in the args are different
-    #while isinstance(args,Pair):
-    #    arg,args = args.get_value()
-    #    if not isinstance(arg,Symbol):
-    #        return False
-
-    #if not isinstance(args,Symbol):
-    #    return False
-    return True
+def is_lambda_opt(sexpr):
+    return is_pair(sexpr.get_cdr().get_car()) and not is_proper_list(sexpr.get_cdr().get_car())
 
 
 def is_quasiquoted(expr):
@@ -286,6 +238,18 @@ def is_or(expr):
 
 #------------------------------------
 
+def pair_to_list(sexpr):
+    res = []
+    while is_pair(sexpr):
+        res.append(sexpr.get_car())
+        sexpr = sexpr.get_cdr()
+
+    if not is_nil(sexpr):
+        res.append(sexpr)
+
+    return res
+
+
 class AbstractSchemeExpr:
     @staticmethod
     def parse(input_string):
@@ -307,17 +271,28 @@ class AbstractSchemeExpr:
                 variables.append(varvals.get_car().get_car())
                 values.append(varvals.get_car().get_cdr().get_car())
                 varvals = varvals.get_cdr()
+
             variables = Pair(variables[0], variables[1:] + [Nil()])
             values = Pair(values[0], values[1:] + [Nil()])
-            print(variables, values)
             return AbstractSchemeExpr.process(Pair(Pair(Symbol('LAMBDA'), [variables, body, Nil()]), [values]))
 
     # TODO Check
     @staticmethod
     def build_applic(sexpr):
         func = AbstractSchemeExpr.process(sexpr.get_car())
-        args = AbstractSchemeExpr.process(sexpr.get_cdr())
+        args = list(map(AbstractSchemeExpr.process, pair_to_list(sexpr.get_cdr())))
         return Applic(func, args)
+
+    @staticmethod
+    def build_lambda(sexpr):
+        if is_lambda_simple(sexpr):
+            variables = list(map(AbstractSchemeExpr.process, pair_to_list(sexpr.get_cdr().get_car())))
+            body = AbstractSchemeExpr.process(sexpr.get_cdr().get_cdr().get_car())
+            return LambdaSimple(variables, body)
+        elif is_lambda_var(sexpr):
+            return LambdaVar(sexpr)
+        elif is_lambda_opt(sexpr):
+            return LambdaOpt(sexpr)
 
     @staticmethod  # where the actual parsing occur
     def process(sexpr):
@@ -329,12 +304,7 @@ class AbstractSchemeExpr:
 
         # Lambda forms
         elif is_lambda(sexpr):
-            if is_lambda_simple(sexpr):
-                return LambdaSimple(sexpr)
-            elif is_lambda_var(sexpr):
-                return LambdaVar(sexpr)
-            elif is_lambda_opt(sexpr):
-                return LambdaOpt(sexpr)
+            return AbstractSchemeExpr.build_lambda(sexpr)
 
         #Syntactic Sugars
         elif is_let(sexpr):
@@ -410,7 +380,7 @@ class Applic(AbstractSchemeExpr):
         self.args = args
 
     def __str__(self):
-        return 'Applic(' + str(self.func) + ', ' + str(self.args) + ')'
+        return 'Applic(' + str(self.func) + ' ' + ' '.join([str(x) for x in self.args]) + ')'
 
 
 class Or(AbstractSchemeExpr):
@@ -451,34 +421,13 @@ class AbstractLambda(AbstractSchemeExpr):
 
 
 class LambdaSimple(AbstractLambda):
-    def __init__(self, expr):
-        rest = expr.get_cdr()
-        self.var_list = []
-        self.expr_list = []
-        vars, rest = rest.get_value()
+    def __init__(self, variables, body):
+        self.variables = variables
+        self.body = body
 
-        while is_pair(vars):
-            var, vars = vars.get_value()
-            self.var_list.append(AbstractSchemeExpr.process(var))
-
-        while is_pair(rest):
-            cur_expr, rest = rest.get_value()
-            self.expr_list.append(AbstractSchemeExpr.process(cur_expr))
 
     def __str__(self):
-        ans = 'LambdaSimple( ('
-        for var in self.var_list:
-            if (var == self.var_list[-1]):
-                ans += str(var) + ')'
-            else:
-                ans += str(var) + ','
-        ans += '\n\t\t\t('
-        for expr in self.expr_list:
-            if (expr == self.expr_list[-1]):
-                ans += str(expr) + ') )'
-            else:
-                ans += str(expr) + ','
-        return ans
+        return 'LambdaSimple( (' + ' '.join([str(x) for x in self.variables]) + ')\n\t\t\t' + str(self.body) + ')'
 
 
 class LambdaVar(AbstractLambda):

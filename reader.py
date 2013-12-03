@@ -276,7 +276,7 @@ vector = ps. \
 quotes_dict = {'′': 'quote',
                '`': 'quasiquote',
                ',@': 'unquote-splicing',
-               ',': "unquote"}
+               ',': 'unquote'}
 
 quote = ps. \
     parser(pcWord(',@')). \
