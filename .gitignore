@@ -1,5 +1,4 @@
 *.xml
 *.idl
 .idea/*
-__pycache__/*
 .git/*
