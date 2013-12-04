@@ -21,7 +21,7 @@ def main():
     #print(tag_parser.AbstractSchemeExpr.parse('(lambda (x . y) (+ 1 1))'))
     #print(tag_parser.AbstractSchemeExpr.parse('(if 1 3 4)'))
     #print(tag_parser.AbstractSchemeExpr.parse('(cond (a 4) (v 5) (else 7))'))
-    print(tag_parser.AbstractSchemeExpr.parse('(and 1 2 3)'))
+    print(tag_parser.AbstractSchemeExpr.parse('(let* ((x 3) (y 2)) (+ x y))'))
 
 
 if __name__ == '__main__':

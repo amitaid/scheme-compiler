@@ -123,11 +123,6 @@ class Pair(AbstractSexpr):
     def get_value(self):
         return (self.car, self.cdr)
 
-    def get_car(self):
-        return self.car
-
-    def get_cdr(self):
-        return self.cdr
 
 class Vector(AbstractSexpr):
     def __init__(self, items):
