@@ -10,7 +10,6 @@ def parse(input):
 
 
 def main():
-    parse('`(,a)')
     #print(sexprs.AbstractSexpr.readFromString(
     #    r'(-0H432 +0123/0x52 ab53$$ "bla bla \n \l bla" #\pAge #\tAb #\xFDFA #\M () #(1 2 3 #(1 2 3)) 72 . 5)')[0])
 
@@ -46,6 +45,7 @@ def main():
     #x,y = sexprs.AbstractSexpr.readFromString('3')
     # TODO test not working - x = tag_parser.AbstractSchemeExpr.parse('(Lambda ((+ 1) . x) 1)')
     print(tag_parser.AbstractSchemeExpr.parse('(lambda (x . y) (+ 1 1))'))
+    print(tag_parser.AbstractSchemeExpr.parse('(if 1 )'))
     #print(x)
 
 
