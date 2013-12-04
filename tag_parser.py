@@ -41,6 +41,10 @@ def is_pair(sexpr):
     return isinstance(sexpr, Pair)
 
 
+def is_vector(sexpr):
+    return isinstance(sexpr, Vector)
+
+
 def is_proper_list(sexpr):
     if is_nil(sexpr):
         return False
@@ -61,17 +65,13 @@ def is_quoted(sexpr): # TODO implement later
 
 
 def is_const(sexpr):
-    if is_boolean(sexpr) or \
-            is_char(sexpr) or \
+    return is_boolean(sexpr) or \
+           is_char(sexpr) or \
             is_number(sexpr) or \
             is_string(sexpr) or \
             is_nil(sexpr) or \
-            is_void(sexpr): # maybe the last condition is useless
-        return True
-    elif is_quoted(sexpr):
-        return True
-    else: #TODO add unquoted support
-        return False
+           is_void(sexpr) or \
+           is_quoted(sexpr)
 
 
 def is_variable(sexpr):
@@ -146,10 +146,8 @@ def is_cond(sexpr):
            sexpr.car.get_value() == 'COND'
 
 
-#def is_mit_def(sexpr):
-#    return is_pair(sexpr) and \
-#           is_pair(sexpr.cdr.car) and \
-#           not is_proper_list(sexpr.cdr.car)
+def is_mit_def(sexpr):
+    return is_proper_list(sexpr.cdr.car)
 
 
 def is_and(expr):
@@ -208,7 +206,10 @@ class AbstractSchemeExpr:
     def expand_let_star(sexpr):
         varvals = sexpr.cdr.car
         if is_nil(varvals):
-            return sexpr.cdr.cdr
+            if is_nil(sexpr.cdr.cdr.cdr):
+                return sexpr.cdr.cdr.car
+            else:
+                return sexpr.cdr.cdr
         else:
             first = varvals.car
             sexpr.cdr.car = varvals.cdr
@@ -243,6 +244,15 @@ class AbstractSchemeExpr:
         else:
             return Pair(Symbol('IF'), [first, first, Boolean('#f'), Nil()])
 
+    @staticmethod
+    def expand_mit_define(sexpr):
+        name = sexpr.cdr.car.car
+        args = sexpr.cdr.car.cdr
+        body = sexpr.cdr.cdr.car
+        sexpr.cdr.car = name
+        sexpr.cdr.cdr = Pair(Pair(Symbol('LAMBDA'), [args, body, Nil()]), [Nil()])
+        return sexpr
+
 
     @staticmethod
     def build_applic(sexpr):
@@ -273,8 +283,7 @@ class AbstractSchemeExpr:
     def build_if(sexpr):
         parsed_sexpr = list(map(AbstractSchemeExpr.process, pair_to_list(sexpr.cdr)))
         if len(parsed_sexpr) < 2 or len(parsed_sexpr) > 3:
-            print('error: exception is supposed to be here - not valid number of args')
-            return True
+            raise SyntaxError('Incorrect number of arguments for IF')
 
         predicate = parsed_sexpr[0]
         then_body = parsed_sexpr[1]
@@ -289,14 +298,18 @@ class AbstractSchemeExpr:
 
     @staticmethod
     def build_define(sexpr):
-        pass
+        var = AbstractSchemeExpr.process(sexpr.cdr.car)
+        expr = AbstractSchemeExpr.process(sexpr.cdr.cdr.car)
+        return Define(var, expr)
 
 
     @staticmethod  # where the actual parsing occur
     def process(sexpr):
         # basic
         if is_const(sexpr):
-            return Constant(sexpr)  # abstract syntax tree
+            return Constant(sexpr)
+        elif is_vector(sexpr):
+            return Constant(list(map(AbstractSchemeExpr.process, sexpr.get_value())))
         elif is_variable(sexpr):
             return Variable(sexpr)
 
@@ -326,6 +339,8 @@ class AbstractSchemeExpr:
         elif is_if(sexpr):
             return AbstractLambda.build_if(sexpr)
         elif is_define(sexpr):
+            if is_mit_def(sexpr):
+                return AbstractSchemeExpr.process(AbstractSchemeExpr.expand_mit_define(sexpr))
             return AbstractSchemeExpr.build_define(sexpr)
         elif is_or(sexpr):
             return AbstractSchemeExpr.build_or(sexpr)
@@ -335,12 +350,6 @@ class AbstractSchemeExpr:
             print('format not supported: ' + str(sexpr))
             return Constant(Void()) #TODO in my opinion we should raise an exception here
 
-
-    #TODO how to check is or and applic args are valid
-    #TODO maybe the checks of args in if and or are meaningless
-    #this function  checks if the expr is valid for inner parsing.
-    def is_valid(expr):
-        return True
 
 ### Constant ###
 class Constant(AbstractSchemeExpr):
@@ -411,7 +420,7 @@ class LambdaSimple(AbstractLambda):
         self.body = body
 
     def __str__(self):
-        return '(λ (' + ' '.join([str(x) for x in self.variables]) + ')\n\t\t\t' + str(self.body) + ')'
+        return '(λ (' + ' '.join([str(x) for x in self.variables]) + ') ' + str(self.body) + ')'
 
 
 class LambdaVar(AbstractLambda):
@@ -420,7 +429,7 @@ class LambdaVar(AbstractLambda):
         self.body = body
 
     def __str__(self):
-        return '(λ ' + str(self.var_list) + '\n\t\t\t' + str(self.body) + ')'
+        return '(λ ' + str(self.var_list) + ' ' + str(self.body) + ')'
 
 
 class LambdaOpt(AbstractLambda):
@@ -431,7 +440,7 @@ class LambdaOpt(AbstractLambda):
 
     def __str__(self):
         return '(λ (' + ' '.join([str(x) for x in self.variables]) + \
-               ' . ' + str(self.var_list) + ')\n\t\t\t' + str(self.body) + ')'
+               ' . ' + str(self.var_list) + ')' + str(self.body) + ')'
 
 
 class SyntacticSugar(AbstractSchemeExpr):
