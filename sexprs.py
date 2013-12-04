@@ -23,13 +23,13 @@ class Nil(AbstractSexpr):
 
 class Boolean(AbstractSexpr):
     def __init__(self, value):
-        self.value = value == 't'
+        self.value = value
 
     def __str__(self):
-        return str(self.value)
+        return self.value
 
     def get_value(self):
-        return self.value
+        return self.value == '#t'
 
 
 class Char(AbstractSexpr):

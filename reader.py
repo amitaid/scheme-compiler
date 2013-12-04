@@ -132,7 +132,7 @@ boolean = ps. \
     parser(true). \
     parser(false). \
     disj(). \
-    pack(lambda m: sexprs.Boolean(m[1].lower())). \
+    pack(lambda m: sexprs.Boolean(m.lower())). \
     done()
 
 ######### String #########

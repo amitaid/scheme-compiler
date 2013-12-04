@@ -5,6 +5,10 @@ primitive_ops = ['+', '-']
 
 ### sexprs predicates ###
 
+class SyntaxError(Exception):
+    pass
+
+
 def is_void(sexpr):
     return isinstance(sexpr, Void)
 
@@ -84,28 +88,10 @@ def is_if(sexpr):
            sexpr.get_car().get_value() == 'IF'
 
 
-def is_def_expr(expr):
-    if not is_proper_list(expr):
-        return False
-
-    def_word, rest = expr.get_value()
-    if not is_symbol(def_word) or \
-            str(def_word.get_value()) != 'DEFINE':
-        return False
-
-    if not is_pair(rest):
-        return False
-
-    first_part, rest = rest.get_value()
-    if not is_pair(rest):
-        return False
-
-    second_part, rest = rest.get_value()
-    return is_nil(rest)
-
-# a predicate for recognizing definition expressions
-def is_simple_def(expr):
-    return is_def_expr(expr)
+def is_define(sexpr):
+    return is_proper_list(sexpr) and \
+           is_symbol(sexpr.get_car()) and \
+           sexpr.get_car().get_value() == 'DEFINE'
 
 
 def is_applic(expr):
@@ -117,7 +103,7 @@ def is_lambda(sexpr):
            is_symbol(sexpr.get_car()) and \
            sexpr.get_car().get_value() == 'LAMBDA'
 
-
+# These will only be called if is_lambda succeeded
 def is_lambda_simple(sexpr):
     return is_proper_list(sexpr.get_cdr().get_car())
 
@@ -206,32 +192,16 @@ def is_let_body(expr):
 
 #    return isinstance(rest.get_cdr,Nil)
 
-def is_cond(expr):
-    if not is_proper_list(expr):
-        return False
-
-    cond_arg, rest = expr.get_value()
-    if not is_symbol(cond_arg) or str(cond_arg) != 'COND':
-        return False
-
-    while is_pair(rest):
-        inner_cond_expr, rest = rest.get_value()
-        if not is_proper_list(inner_cond_expr) or \
-                not is_nil(inner_cond_expr.get_cdr().get_cdr()):
-            return False
-
-    return True
+def is_cond(sexpr):
+    return is_proper_list(sexpr) and \
+           is_symbol(sexpr.get_car()) and \
+           sexpr.get_car().get_value() == 'COND'
 
 
-def is_mit_def(expr):
-    if not is_def_expr(expr):
-        return False
-
-    nna = expr.get_cdr().get_car()
-    if not is_pair(nna) or is_nil(nna.get_cdr()) \
-        or is_pair(nna.get_cdr()):
-        return False
-    return True
+def is_mit_def(sexpr):
+    return is_pair(sexpr) and \
+           is_pair(sexpr.get_cdr().get_car()) and \
+           not is_proper_list(sexpr.get_cdr().get_car())
 
 
 def is_and(expr):
@@ -247,6 +217,7 @@ def is_or(expr):
 
 #------------------------------------
 
+# Helper function to expand a pair list to a python list
 def pair_to_list(sexpr):
     res = []
     while is_pair(sexpr):
@@ -268,11 +239,11 @@ class AbstractSchemeExpr:
         return scheme_expr
 
     @staticmethod
-    def build_let(sexpr):
+    def expand_let(sexpr):
         varvals = sexpr.cdr.car
         body = sexpr.cdr.cdr.car
         if is_nil(varvals):
-            return AbstractSchemeExpr.process(Pair(Pair(Symbol('LAMBDA'), [Nil(), body, Nil()]), [Nil()]))
+            return Pair(Pair(Symbol('LAMBDA'), [Nil(), body, Nil()]), [Nil()])
         else:
             variables = []
             values = []
@@ -283,9 +254,37 @@ class AbstractSchemeExpr:
 
             variables = Pair(variables[0], variables[1:] + [Nil()])
             values = Pair(values[0], values[1:] + [Nil()])
-            return AbstractSchemeExpr.process(Pair(Pair(Symbol('LAMBDA'), [variables, body, Nil()]), [values]))
+            return Pair(Pair(Symbol('LAMBDA'), [variables, body, Nil()]), [values])
 
-    # TODO Check
+    @staticmethod
+    def expand_cond(sexpr):
+        body_list = pair_to_list(sexpr.get_cdr())[::-1]
+        res = Nil()
+        if len(body_list) == 0 or not is_pair(body_list[0]):
+            raise SyntaxError
+        if body_list[0].get_car().get_value() == 'ELSE':
+            res = body_list[0].get_cdr().get_car()
+            body_list = body_list[1:]
+
+        while body_list:
+            res = Pair(Symbol('IF'),
+                       [body_list[0].get_car(),
+                        body_list[0].get_cdr().get_car(),
+                        res, Nil()])
+            body_list = body_list[1:]
+
+        return res
+
+    @staticmethod
+    def expand_and(sexpr):
+        first = sexpr.get_cdr().get_car()
+        if is_pair(sexpr.get_cdr().get_cdr()):
+            sexpr.cdr = sexpr.get_cdr().get_cdr()
+            return Pair(Symbol('IF'), [first, sexpr, Boolean('#f'), Nil()])
+        else:
+            return Pair(Symbol('IF'), [first, first, Boolean('#f'), Nil()])
+
+
     @staticmethod
     def build_applic(sexpr):
         func = AbstractSchemeExpr.process(sexpr.get_car())
@@ -313,7 +312,7 @@ class AbstractSchemeExpr:
 
     @staticmethod
     def build_if(sexpr):
-        parsed_sexpr = list(map(AbstractSchemeExpr.process, pair_to_list(sexpr)))
+        parsed_sexpr = list(map(AbstractSchemeExpr.process, pair_to_list(sexpr.get_cdr())))
         if len(parsed_sexpr) < 2 or len(parsed_sexpr) > 3:
             print('error: exception is supposed to be here - not valid number of args')
             return True
@@ -324,6 +323,14 @@ class AbstractSchemeExpr:
         if len(parsed_sexpr) == 2:
             return IfThenElse(predicate, then_body, Constant(Void()))
         return IfThenElse(predicate, then_body, parsed_sexpr[2])
+
+    @staticmethod
+    def build_or(sexpr):
+        return Or(list(map(AbstractSchemeExpr.process, pair_to_list(sexpr.get_cdr()))))
+
+    @staticmethod
+    def build_define(sexpr):
+        pass
 
 
     @staticmethod  # where the actual parsing occur
@@ -340,17 +347,15 @@ class AbstractSchemeExpr:
 
         #Syntactic Sugars
         elif is_let(sexpr):
-            return AbstractSchemeExpr.build_let(sexpr)
+            return AbstractSchemeExpr.process(AbstractSchemeExpr.expand_let(sexpr))
         elif is_let_star(sexpr):
             return True
         elif is_letrec(sexpr):
             return True
-        elif is_mit_def(sexpr):
-            return True
         elif is_cond(sexpr):
-            return True
+            return AbstractSchemeExpr.process(AbstractSchemeExpr.expand_cond(sexpr))
         elif is_and(sexpr):
-            return True
+            return AbstractSchemeExpr.process(AbstractSchemeExpr.expand_and(sexpr))
         elif is_quasiquoted(sexpr):
             return True
         elif is_unquote(sexpr):
@@ -360,12 +365,11 @@ class AbstractSchemeExpr:
 
         # core forms
         elif is_if(sexpr):
-            print('blishblish 1')
-            return AbstractLambda.build_if(sexpr.get_cdr())
-        elif is_simple_def(sexpr):
-            return Def(sexpr)
+            return AbstractLambda.build_if(sexpr)
+        elif is_define(sexpr):
+            return AbstractSchemeExpr.build_define(sexpr)
         elif is_or(sexpr):
-            return Or(sexpr)
+            return AbstractSchemeExpr.build_or(sexpr)
         elif is_applic(sexpr): # must always come last
             return AbstractSchemeExpr.build_applic(sexpr)
         else:
@@ -379,26 +383,23 @@ class AbstractSchemeExpr:
     def is_valid(expr):
         return True
 
-        ### Constant ###
-
-
+### Constant ###
 class Constant(AbstractSchemeExpr):
     def __init__(self, value):
         self.value = value
 
     def __str__(self):
-        return 'Constant(' + str(self.value) + ')'
+        return str(self.value)
 
 
 ### Variable ###
 
 class Variable(AbstractSchemeExpr):
-    def __init__(self, symbol, value=Void()):
-        self.symbol = symbol
-        self.value = value
+    def __init__(self, symbol):
+        self.name = symbol.get_value()
 
     def __str__(self):
-        return 'Variable(' + str(self.symbol) + ')'
+        return self.name
 
 
 ### Core Forms ###
@@ -410,7 +411,7 @@ class IfThenElse(AbstractSchemeExpr):
         self.else_body = else_body
 
     def __str__(self):
-        return 'IfThenElse(' + str(self.predicate) + ',' + str(self.then_body) + ',' + str(self.else_body) + ')'
+        return '(if ' + str(self.predicate) + ' ' + str(self.then_body) + ' ' + str(self.else_body) + ')'
 
 
 class Applic(AbstractSchemeExpr):
@@ -423,34 +424,20 @@ class Applic(AbstractSchemeExpr):
 
 
 class Or(AbstractSchemeExpr):
-    def __init__(self, expr):
-        or_arg, rest = expr.get_value()
-        #self.or_arg = AbstractSchemeExpr.process(or_arg)
-        self.args = []
-        while not is_nil(rest):
-            arg, rest = rest.get_value()
-            self.args.append(AbstractSchemeExpr.process(arg))
+    def __init__(self, elements):
+        self.elements = elements
 
     def __str__(self):
-        ans = 'Or('
-        for arg in self.args:
-            if (arg == self.args[-1]):
-                ans += str(arg)
-            else:
-                ans += str(arg) + ','
-        return ans + ')'
+        return 'Or(' + ', '.join(list(map(str, self.elements))) + ')'
 
 
-class Def(AbstractSchemeExpr):
-    def __init__(self, expr):
-        def_word, rest = expr.get_value()
-        defined_var, rest = rest.get_value()
-        self.var = AbstractSchemeExpr.process(defined_var)
-        self.val = AbstractSchemeExpr.process(rest.get_car())
-
+class Define(AbstractSchemeExpr):
+    def __init__(self, name, value):
+        self.name = name
+        self.value = value
 
     def __str__(self):
-        return 'Define(' + str(self.var) + ',' + str(self.val) + ')'
+        return 'Define(' + str(self.name) + ',' + str(self.value) + ')'
 
 
 ### Lambda Forms ###
