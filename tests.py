@@ -20,8 +20,10 @@ def main():
     # TODO test not working - x = tag_parser.AbstractSchemeExpr.parse('(Lambda ((+ 1) . x) 1)')
     #print(tag_parser.AbstractSchemeExpr.parse('(lambda (x . y) (+ 1 1))'))
     #print(tag_parser.AbstractSchemeExpr.parse('(if 1 3 4)'))
-    print(tag_parser.AbstractSchemeExpr.parse('#(1 a z)'))
-    print(tag_parser.AbstractSchemeExpr.parse('(let* ((x 3) (y 5) (z 7)) (+ x y z 7))'))
+    #print(tag_parser.AbstractSchemeExpr.parse('#(1 a z)'))
+    print(tag_parser.AbstractSchemeExpr.parse("`a"))
+
+    #parse("`(a b c)")
 
 
 if __name__ == '__main__':

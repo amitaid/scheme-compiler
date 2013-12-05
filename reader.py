@@ -224,6 +224,14 @@ nil = ps. \
 
 ######## Pair ##########
 
+def list_to_pair(l):
+    print(l)
+    if len(l) == 1:
+        return l[0]
+    else:
+        return sexprs.Pair(l[0], list_to_pair(l[1:]))
+
+
 pSexpr_wrapped = ps. \
     parser(ignorable). \
     star(). \
@@ -242,7 +250,7 @@ improper_list = ps. \
     parser(pSexpr_wrapped). \
     parser(pcChar(')')). \
     catens(5). \
-    pack(lambda m: sexprs.Pair(m[1][0], m[1][1:] + [m[3]])). \
+    pack(lambda m: list_to_pair(m[1] + m[3])). \
     done()
 
 proper_list = ps. \
@@ -251,7 +259,7 @@ proper_list = ps. \
     plus(). \
     parser(pcChar(')')). \
     catens(3). \
-    pack(lambda m: sexprs.Pair(m[1][0], m[1][1:] + [sexprs.Nil()])). \
+    pack(lambda m: list_to_pair(m[1].append(sexprs.Nil()))). \
     done()
 
 pair = ps. \
@@ -274,6 +282,7 @@ vector = ps. \
 ######### Quote ##########
 
 quotes_dict = {'′': 'quote',
+               "'": 'quote',
                '`': 'quasiquote',
                ',@': 'unquote-splicing',
                ',': 'unquote'}
@@ -282,12 +291,13 @@ quote = ps. \
     parser(pcWord(',@')). \
     pack(lambda m: ''.join(m)). \
     parser(pcChar('′')). \
+    parser(pcChar("'")). \
     parser(pcChar(',')). \
     parser(pcChar('`')). \
     disjs(4). \
     parser(pSexpr_d). \
     caten(). \
-    pack(lambda m: sexprs.Pair(sexprs.Symbol(quotes_dict[m[0]]), [sexprs.Pair(m[1], [sexprs.Nil()])])). \
+    pack(lambda m: sexprs.Pair(sexprs.Symbol(quotes_dict[m[0]]), sexprs.Pair(m[1], sexprs.Nil()))). \
     done()
 
 ###### S-Expression ########

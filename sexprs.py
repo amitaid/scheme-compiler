@@ -23,13 +23,16 @@ class Nil(AbstractSexpr):
 
 class Boolean(AbstractSexpr):
     def __init__(self, value):
-        self.value = value
+        self.value = value != '#f' and value != '#F'
 
     def __str__(self):
-        return self.value
+        if self.value:
+            return '#t'
+        else:
+            return '#f'
 
     def get_value(self):
-        return self.value == '#t'
+        return self.value
 
 
 class Char(AbstractSexpr):
@@ -102,10 +105,7 @@ class Symbol(AbstractSexpr):
 class Pair(AbstractSexpr):
     def __init__(self, car, cdr):
         self.car = car
-        if len(cdr) == 1:
-            self.cdr = cdr[0]
-        else:
-            self.cdr = Pair(cdr[0], cdr[1:])
+        self.cdr = cdr
 
     def __str__(self):
         return '(' + self._inner_str() + ')'
