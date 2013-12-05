@@ -225,7 +225,6 @@ nil = ps. \
 ######## Pair ##########
 
 def list_to_pair(l):
-    print(l)
     if len(l) == 1:
         return l[0]
     else:
@@ -250,7 +249,7 @@ improper_list = ps. \
     parser(pSexpr_wrapped). \
     parser(pcChar(')')). \
     catens(5). \
-    pack(lambda m: list_to_pair(m[1] + m[3])). \
+    pack(lambda m: list_to_pair(m[1] + [m[3]])). \
     done()
 
 proper_list = ps. \
@@ -259,7 +258,7 @@ proper_list = ps. \
     plus(). \
     parser(pcChar(')')). \
     catens(3). \
-    pack(lambda m: list_to_pair(m[1].append(sexprs.Nil()))). \
+    pack(lambda m: list_to_pair(m[1] + [sexprs.Nil()])). \
     done()
 
 pair = ps. \

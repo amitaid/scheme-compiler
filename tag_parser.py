@@ -6,7 +6,8 @@ primitive_ops = ['+', '-']
 
 ### sexprs predicates ###
 
-class SyntaxError(Exception):
+
+class InvalidSyntax(Exception):
     pass
 
 
@@ -73,11 +74,9 @@ def is_const(sexpr):
 
 
 def is_variable(sexpr):
-    if is_symbol(sexpr) and \
-            not sexpr.get_value() in key_words: # and \
+    return is_symbol(sexpr) and \
+           not sexpr.get_value() in key_words # and \
     #not Symbol.get_value(sexpr) in primitive_ops:
-        return True
-    return False
 
 # predicate for both IfThen & IfThenElse
 def is_if(sexpr):
@@ -103,7 +102,7 @@ def is_lambda(sexpr):
 
 # These will only be called if is_lambda succeeded
 def is_lambda_simple(sexpr):
-    return is_proper_list(sexpr.cdr.car)
+    return is_nil(sexpr.cdr.car) or is_proper_list(sexpr.cdr.car)
 
 
 def is_lambda_var(sexpr):
@@ -111,7 +110,8 @@ def is_lambda_var(sexpr):
 
 
 def is_lambda_opt(sexpr):
-    return is_pair(sexpr.cdr.car) and not is_proper_list(sexpr.cdr.car)
+    return is_pair(sexpr.cdr.car) and \
+           not is_proper_list(sexpr.cdr.car)
 
 
 def is_quasiquoted(sexpr):
@@ -133,15 +133,21 @@ def is_unquote_splicing(sexpr):
 
 
 def is_let(sexpr):
-    return is_proper_list(sexpr) and sexpr.car.get_value() == 'LET'
+    return is_proper_list(sexpr) and \
+           is_symbol(sexpr.car) and \
+           sexpr.car.get_value() == 'LET'
 
 
 def is_let_star(sexpr):
-    return is_proper_list(sexpr) and sexpr.car.get_value() == 'LET*'
+    return is_proper_list(sexpr) and \
+           is_symbol(sexpr.car) and \
+           sexpr.car.get_value() == 'LET*'
 
 
 def is_letrec(sexpr):
-    return is_proper_list(sexpr) and sexpr.car.get_value() == 'LETREC'
+    return is_proper_list(sexpr) and \
+           is_symbol(sexpr.car) and \
+           sexpr.car.get_value() == 'LETREC'
 
 
 def is_cond(sexpr):
@@ -182,21 +188,26 @@ def pair_to_list(sexpr):
 ######## Builders and expanders #########
 
 def expand_let(sexpr):
-    varvals = sexpr.cdr.car
+    varvals = pair_to_list(sexpr.cdr.car)
     body = sexpr.cdr.cdr.car
-    if is_nil(varvals):
-        return Pair(Pair(Symbol('LAMBDA'), [Nil(), body, Nil()]), [Nil()])
-    else:
+    if varvals:
         variables = []
         values = []
-        while not is_nil(varvals):
-            variables.append(varvals.car.car)
-            values.append(varvals.car.cdr.car)
-            varvals = varvals.cdr
+        for varval in varvals:
+            variables.append(varval.car)
+            values.append(varval.cdr.car)
 
-        variables = Pair(variables[0], variables[1:] + [Nil()])
-        values = Pair(values[0], values[1:] + [Nil()])
-        return Pair(Pair(Symbol('LAMBDA'), [variables, body, Nil()]), [values])
+        variables = list_to_pair(variables + [Nil()])
+        values = list_to_pair(values + [Nil()])
+        return Pair(Pair(Symbol('LAMBDA'),
+                         Pair(variables,
+                              Pair(body, Nil()))),
+                    values)
+    else:
+        return Pair(Pair(Symbol('LAMBDA'),
+                         Pair(Nil(),
+                              Pair(Pair(body, Nil()),
+                                   Nil()))))
 
 
 def expand_let_star(sexpr):
@@ -209,14 +220,16 @@ def expand_let_star(sexpr):
     else:
         first = varvals.car
         sexpr.cdr.car = varvals.cdr
-        return Pair(Symbol('LET'), [Pair((first), [Nil()]), sexpr, Nil()])
+        return Pair(Symbol('LET'),
+                    Pair(Pair(first, Nil()),
+                         Pair(sexpr, Nil())))
 
 
 def expand_cond(sexpr):
     body_list = pair_to_list(sexpr.cdr)[::-1]
     res = Nil()
     if len(body_list) == 0 or not is_pair(body_list[0]):
-        raise SyntaxError
+        raise InvalidSyntax
     if body_list[0].car.get_value() == 'ELSE':
         res = body_list[0].cdr.car
         body_list = body_list[1:]
@@ -235,9 +248,15 @@ def expand_and(sexpr):
     first = sexpr.cdr.car
     if is_pair(sexpr.cdr.cdr):
         sexpr.cdr = sexpr.cdr.cdr
-        return Pair(Symbol('IF'), [first, sexpr, Boolean('#f'), Nil()])
+        return Pair(Symbol('IF'),
+                    Pair(first,
+                         Pair(sexpr,
+                              Pair(Boolean('#f'), Nil()))))
     else:
-        return Pair(Symbol('IF'), [first, first, Boolean('#f'), Nil()])
+        return Pair(Symbol('IF'),
+                    Pair(first,
+                         Pair(first,
+                              Pair(Boolean('#f'), Nil()))))
 
 
 def expand_mit_define(sexpr):
@@ -245,15 +264,21 @@ def expand_mit_define(sexpr):
     args = sexpr.cdr.car.cdr
     body = sexpr.cdr.cdr.car
     sexpr.cdr.car = name
-    sexpr.cdr.cdr = Pair(Pair(Symbol('LAMBDA'), [args, body, Nil()]), [Nil()])
+    sexpr.cdr.cdr = Pair(Symbol('LAMBDA'),
+                         Pair(args,
+                              Pair(body,
+                                   Nil())))
+
     return sexpr
 
 
 def expand_quasiquote(sexpr):
+    if is_quasiquoted(sexpr):
+        sexpr = sexpr.cdr.car
     if is_unquote(sexpr):
         return sexpr.cdr.car
     elif is_unquote_splicing(sexpr):
-        raise SyntaxError('unquote-splicing here makes no sense!')
+        raise InvalidSyntax('unquote-splicing here makes no sense!')
     elif is_pair(sexpr):
         a = sexpr.car
         b = sexpr.cdr
@@ -274,11 +299,11 @@ def expand_quasiquote(sexpr):
                                   Nil())))
     elif is_vector(sexpr):
         pairs = list_to_pair(sexpr.get_value())
-        v = pair_to_list(expand_quasiquote(sexpr.get_value()).cdr.car)
+        v = pair_to_list(expand_quasiquote(pairs))
         return Pair(Symbol('quasiquote'),
                     Pair(Vector(v),
                          Nil()))
-    elif is_nil(sexpr) or is_symbol(sexpr):
+    elif is_nil(sexpr) or is_symbol(sexpr) and not is_quasiquoted(sexpr):
         return Pair(Symbol('quasiquote'),
                     Pair(Symbol('quote'),
                          Pair(Symbol('unquote'),
@@ -314,14 +339,15 @@ def build_lambda(sexpr):
 def build_if(sexpr):
     parsed_sexpr = list(map(AbstractSchemeExpr.process, pair_to_list(sexpr.cdr)))
     if len(parsed_sexpr) < 2 or len(parsed_sexpr) > 3:
-        raise SyntaxError('Incorrect number of arguments for IF')
+        raise InvalidSyntax('Incorrect number of arguments for IF')
 
     predicate = parsed_sexpr[0]
     then_body = parsed_sexpr[1]
 
     if len(parsed_sexpr) == 2:
         return IfThenElse(predicate, then_body, Constant(Void()))
-    return IfThenElse(predicate, then_body, parsed_sexpr[2])
+    else:
+        return IfThenElse(predicate, then_body, parsed_sexpr[2])
 
 
 def build_or(sexpr):
@@ -348,7 +374,7 @@ class AbstractSchemeExpr:
         if is_const(sexpr):
             return Constant(sexpr)
         elif is_vector(sexpr):
-            return Constant(list(map(AbstractSchemeExpr.process, sexpr.get_value())))
+            return Constant(Vector(list(map(AbstractSchemeExpr.process, sexpr.get_value()))))
         elif is_variable(sexpr):
             return Variable(sexpr)
         elif is_quote(sexpr):
@@ -481,11 +507,3 @@ class LambdaOpt(AbstractLambda):
     def __str__(self):
         return '(λ (' + ' '.join([str(x) for x in self.variables]) + \
                ' . ' + str(self.var_list) + ')' + str(self.body) + ')'
-
-
-class SyntacticSugar(AbstractSchemeExpr):
-    pass
-
-    def ic_2_nextedifs(sexpr): # cond -> if transformation
-        pass
-
