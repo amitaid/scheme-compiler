@@ -206,8 +206,8 @@ def expand_let(sexpr):
     else:
         return Pair(Pair(Symbol('LAMBDA'),
                          Pair(Nil(),
-                              Pair(Pair(body, Nil()),
-                                   Nil()))))
+                              Pair(body, Nil()))),
+                    Nil())
 
 
 def expand_let_star(sexpr):
@@ -454,7 +454,7 @@ class Applic(AbstractSchemeExpr):
         self.args = args
 
     def __str__(self):
-        return '(' + str(self.func) + ' ' + ' '.join([str(x) for x in self.args]) + ')'
+        return '(' + ' '.join([str(self.func)] + [str(x) for x in self.args]) + ')'
 
 
 class Or(AbstractSchemeExpr):
@@ -462,7 +462,7 @@ class Or(AbstractSchemeExpr):
         self.elements = elements
 
     def __str__(self):
-        return '(or ' + ' '.join(list(map(str, self.elements))) + ')'
+        return '(' + ' '.join(['or'] + [str(x) for x in self.elements]) + ')'
 
 
 class Def(AbstractSchemeExpr):
@@ -486,7 +486,7 @@ class LambdaSimple(AbstractLambda):
         self.body = body
 
     def __str__(self):
-        return '(λ (' + ' '.join([str(x) for x in self.variables]) + ') ' + str(self.body) + ')'
+        return '(lambda (' + ' '.join([str(x) for x in self.variables]) + ') ' + str(self.body) + ')'
 
 
 class LambdaVar(AbstractLambda):
@@ -495,7 +495,7 @@ class LambdaVar(AbstractLambda):
         self.body = body
 
     def __str__(self):
-        return '(λ ' + str(self.var_list) + ' ' + str(self.body) + ')'
+        return '(lambda ' + str(self.var_list) + ' ' + str(self.body) + ')'
 
 
 class LambdaOpt(AbstractLambda):
@@ -505,5 +505,5 @@ class LambdaOpt(AbstractLambda):
         self.body = body
 
     def __str__(self):
-        return '(λ (' + ' '.join([str(x) for x in self.variables]) + \
+        return '(lambda (' + ' '.join([str(x) for x in self.variables]) + \
                ' . ' + str(self.var_list) + ')' + str(self.body) + ')'
