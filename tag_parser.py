@@ -255,11 +255,10 @@ def expand_letrec(sexpr):
         lambdas = list_to_pair(lambdas + [Nil()])
         return Pair(Symbol('Yag'), Pair(lambdas, Nil()))
     else:
-        raise InvalidSyntax # whats the empty case?
-        #return Pair(Pair(Symbol('LAMBDA'),
-        #                 Pair(Nil(),
-        #                      Pair(Pair(body, Nil()),
-        #                           Nil()))))
+        return Pair(Pair(Symbol('LAMBDA'),
+                         Pair(Nil(),
+                              Pair(body, Nil()))),
+                    Nil())
 
 
 def expand_cond(sexpr):
