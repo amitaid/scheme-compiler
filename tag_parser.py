@@ -220,18 +220,28 @@ def expand_let(sexpr):
 
 
 def expand_let_star(sexpr):
-    varvals = sexpr.cdr.car
-    if is_nil(varvals):
-        if is_nil(sexpr.cdr.cdr.cdr):
-            return sexpr.cdr.cdr.car
-        else:
-            return sexpr.cdr.cdr
+    varvals = pair_to_list(sexpr.cdr.car)[::-1]
+    body = sexpr.cdr.cdr.car
+    if varvals:
+        for varval in varvals:
+            var = Pair(varval.car, Nil())
+            val = Pair(varval.cdr.car, Nil())
+            body = Pair(Pair(Symbol('LAMBDA'),
+                             Pair(var,
+                                  Pair(body, Nil()))),
+                        val)
+        return body
+        #
+        #first = varvals.car
+        #sexpr.cdr.car = varvals.cdr
+        #return Pair(Symbol('LET'),
+        #            Pair(Pair(first, Nil()),
+        #                 Pair(sexpr, Nil())))
     else:
-        first = varvals.car
-        sexpr.cdr.car = varvals.cdr
-        return Pair(Symbol('LET'),
-                    Pair(Pair(first, Nil()),
-                         Pair(sexpr, Nil())))
+        Pair(Pair(Symbol('LAMBDA'),
+                  Pair(Nil(),
+                       Pair(body, Nil()))),
+             Nil())
 
 
 def expand_letrec(sexpr):
@@ -310,8 +320,7 @@ def expand_mit_define(sexpr):
 
 
 def expand_quasiquote(sexpr):
-    if is_quasiquoted(sexpr):
-        sexpr = sexpr.cdr.car
+    #print(str(sexpr))
     if is_unquote(sexpr):
         return sexpr.cdr.car
     elif is_unquote_splicing(sexpr):
@@ -321,30 +330,62 @@ def expand_quasiquote(sexpr):
         b = sexpr.cdr
         if is_unquote_splicing(a):
             return Pair(Symbol('quasiquote'),
-                        Pair(Pair(Symbol('unquote'), a.cdr.car),
-                             Pair(Pair(Symbol('unquote'), expand_quasiquote(b)),
-                                  Nil())))
+                        Pair(Symbol('append'),
+                             Pair(Pair(Symbol('unquote'),
+                                       Pair(Pair(a.cdr.car,
+                                                 Nil()),
+                                            Nil())),
+                                  Pair(Pair(Symbol('unquote'),
+                                            Pair(Pair(Symbol('expand-qq'),
+                                                      Pair(b,
+                                                           Nil())),
+                                                 Nil())),
+                                       Nil()))))
         elif is_unquote_splicing(b):
             return Pair(Symbol('quasiquote'),
-                        Pair(Pair(Symbol('unquote'), expand_quasiquote(a)),
-                             Pair(Pair(Symbol('unquote'), b.cdr.car),
-                                  Nil())))
+                        Pair(Symbol('cons'),
+                             Pair(Pair(Symbol('unquote'),
+                                       Pair(Pair(Symbol('expand-qq'),
+                                                 Pair(a,
+                                                      Nil())),
+                                            Nil())),
+                                  Pair(Pair(Symbol('unquote'),
+                                            Pair(Pair(b.cdr.car,
+                                                      Nil()),
+                                                 Nil())),
+                                       Nil()))))
         else:
             return Pair(Symbol('quasiquote'),
-                        Pair(Pair(Symbol('unquote'), expand_quasiquote(a)),
-                             Pair(Pair(Symbol('unquote'), expand_quasiquote(b)),
-                                  Nil())))
+                        Pair(Symbol('cons'),
+                             Pair(Pair(Symbol('unquote'),
+                                       Pair(Pair(Symbol('expand-qq'),
+                                                 Pair(a,
+                                                      Nil())),
+                                            Nil())),
+                                  Pair(Pair(Symbol('unquote'),
+                                            Pair(Pair(Symbol('expand-qq'),
+                                                      b),
+                                                 Nil())),
+                                       Nil()))))
     elif is_vector(sexpr):
-        pairs = list_to_pair(sexpr.get_value())
-        v = pair_to_list(expand_quasiquote(pairs))
         return Pair(Symbol('quasiquote'),
-                    Pair(Vector(v),
+                    Pair(Symbol('list->vector'),
+                         Pair(Pair(Symbol('unquote'),
+                                   Pair(Pair(Symbol('expand-qq'),
+                                             Pair(Pair(Symbol('vector->list'),
+                                                       Pair(sexpr,
+                                                            Nil())),
+                                                  Nil())),
+                                        Nil())),
+                              Nil())))
+    elif is_nil(sexpr) or is_symbol(sexpr):
+        return Pair(Symbol('quasiquote'),
+                    Pair(Pair(Symbol('quote'),
+                              Pair(Pair(Symbol('unquote'),
+                                        Pair(sexpr,
+                                             Nil())),
+                                   Nil())),
                          Nil()))
-    elif is_nil(sexpr) or is_symbol(sexpr) and not is_quasiquoted(sexpr):
-        return Pair(Symbol('quasiquote'),
-                    Pair(Symbol('quote'),
-                         Pair(Symbol('unquote'),
-                              Pair(sexpr, Nil()))))
     else:
         return sexpr
 
@@ -400,10 +441,28 @@ def build_define(sexpr):
 class AbstractSchemeExpr:
     @staticmethod
     def parse(input_string):
-        result, remaining = AbstractSexpr.readFromString(input_string)
-        print(result)
-        scheme_expr = AbstractSchemeExpr.process(result)
+        sexpr, remaining = AbstractSexpr.readFromString(input_string)
+        print(sexpr)
+        expanded = AbstractSchemeExpr.expand(sexpr)
+        scheme_expr = AbstractSchemeExpr.process(expanded)
         return scheme_expr
+
+    @staticmethod
+    def expand(sexpr):
+        if is_let(sexpr):
+            return expand_let(sexpr)
+        elif is_let_star(sexpr):
+            return expand_let_star(sexpr)
+        elif is_letrec(sexpr):
+            return expand_letrec(sexpr)
+        elif is_cond(sexpr):
+            return expand_cond(sexpr)
+        elif is_and(sexpr):
+            return expand_and(sexpr)
+        elif is_quasiquoted(sexpr):
+            return expand_quasiquote(sexpr.cdr.car)
+        else:
+            return sexpr
 
     @staticmethod  # where the actual parsing occur
     def process(sexpr):
@@ -415,26 +474,13 @@ class AbstractSchemeExpr:
         elif is_variable(sexpr):
             return Variable(sexpr)
         elif is_quote(sexpr):
-            return Constant(Constant(sexpr.cdr.car))
+            return Constant(AbstractSchemeExpr.process(sexpr.cdr.car))
+        elif is_quasiquoted(sexpr):
+            return Constant(AbstractSchemeExpr.process(sexpr.cdr.car))
 
         # Lambda forms
         elif is_lambda(sexpr):
             return build_lambda(sexpr)
-
-        #Syntactic Sugars
-        elif is_let(sexpr):
-            return AbstractSchemeExpr.process(expand_let(sexpr))
-        elif is_let_star(sexpr):
-            return AbstractSchemeExpr.process(expand_let_star(sexpr))
-        elif is_letrec(sexpr):
-            return AbstractSchemeExpr.process(expand_letrec(sexpr))
-        elif is_cond(sexpr):
-            return AbstractSchemeExpr.process(expand_cond(sexpr))
-        elif is_and(sexpr):
-            return AbstractSchemeExpr.process(expand_and(sexpr))
-        elif is_quasiquoted(sexpr):
-            return AbstractSchemeExpr.process(expand_quasiquote(sexpr))
-
 
         # core forms
         elif is_if(sexpr):
@@ -459,7 +505,7 @@ class Constant(AbstractSchemeExpr):
 
     def __str__(self):
         if isinstance(self.value, Constant):
-            return "′" + str(self.value)
+            return "'" + str(self.value)
         else:
             return str(self.value)
 
