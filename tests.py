@@ -10,32 +10,6 @@ def parse(input):
 
 
 def main():
-    #print(sexprs.AbstractSexpr.readFromString(
-    #    r'(-0H432 +0123/0x52 ab53$$ "bla bla \n \l bla" #\pAge #\tAb #\xFDFA #\M () #(1 2 3 #(1 2 3)) 72 . 5)')[0])
-
-    #print(reader.ignorable.match('#;(a b c)'))
-
-    #parse('(let ((x 1) (y 2)) (+ x y))')
-
-
-    #print(AbstractSexpr.readFromString('′(#\\x03bb x y z)')[0])
-    #print(AbstractSexpr.readFromString('`#\\lambda')[0])
-    #print(AbstractSexpr.readFromString(',@#\\lambda')[0])
-    #print(AbstractSexpr.readFromString(',#\\lambda')[0])
-
-    #print(AbstractSexpr.readFromString('#\pAge')[0])
-
-    #print(proper_list.match('(a v)')[0])
-    #
-    #print(fraction.match('5/0xa')[0])
-    #
-    #print(AbstractSexpr.readFromString('#t')[0])
-    #
-    #print(AbstractSexpr.readFromString('"123\lcdd""')[0])
-    #
-    #print(AbstractSexpr.readFromString('#\\lambda')[0])
-    #print(AbstractSexpr.readFromString('#\\x30')[0])
-    #print(AbstractSexpr.readFromString('#\\☺')[0])
 
     #parse('(if 5 > 0 then 1 else 2)')
     #print(sexprs.Pair.get_car(x))
@@ -44,8 +18,11 @@ def main():
 
     #x,y = sexprs.AbstractSexpr.readFromString('3')
     # TODO test not working - x = tag_parser.AbstractSchemeExpr.parse('(Lambda ((+ 1) . x) 1)')
-    print(tag_parser.AbstractSchemeExpr.parse('(if 1 )'))
-    #print(x)
+    #print(tag_parser.AbstractSchemeExpr.parse('(lambda (x . y) (+ 1 1))'))
+    #print(tag_parser.AbstractSchemeExpr.parse('(if 1 3 4)'))
+    print(tag_parser.AbstractSchemeExpr.parse('(5)'))
+    print(tag_parser.AbstractSchemeExpr.parse("(let () (+ 1 2))"))
+    #print(tag_parser.AbstractSchemeExpr.parse("`a"))
 
 
 if __name__ == '__main__':
