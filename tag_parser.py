@@ -6,9 +6,18 @@ primitive_ops = ['+', '-']
 
 ### sexprs predicates ###
 
+gen_sym_counter = 0
+
 
 class InvalidSyntax(Exception):
     pass
+
+
+def gen_sym():
+    global gen_sym_counter
+    new_gen_sym = '@' + str(gen_sym_counter)
+    gen_sym_counter += 1
+    return Symbol(new_gen_sym)
 
 
 def is_void(sexpr):
@@ -225,6 +234,34 @@ def expand_let_star(sexpr):
                          Pair(sexpr, Nil())))
 
 
+def expand_letrec(sexpr):
+    varvals = pair_to_list(sexpr.cdr.car)
+    body = sexpr.cdr.cdr.car
+    if varvals:
+        variables = []
+        body_and_les = [body]
+        for varval in varvals:
+            variables.append(varval.car)
+            body_and_les.append(varval.cdr.car)
+
+        variables = list_to_pair([gen_sym()] + variables + [Nil()])
+
+        lambdas = []
+        for i in range(len(body_and_les)):
+            lambdas.append(Pair(Symbol('LAMBDA'),
+                                Pair(variables,
+                                     Pair(body_and_les[i], Nil()))))
+
+        lambdas = list_to_pair(lambdas + [Nil()])
+        return Pair(Symbol('Yag'), Pair(lambdas, Nil()))
+    else:
+        raise InvalidSyntax # whats the empty case?
+        #return Pair(Pair(Symbol('LAMBDA'),
+        #                 Pair(Nil(),
+        #                      Pair(Pair(body, Nil()),
+        #                           Nil()))))
+
+
 def expand_cond(sexpr):
     body_list = pair_to_list(sexpr.cdr)[::-1]
     res = Nil()
@@ -390,7 +427,7 @@ class AbstractSchemeExpr:
         elif is_let_star(sexpr):
             return AbstractSchemeExpr.process(expand_let_star(sexpr))
         elif is_letrec(sexpr):
-            return True
+            return AbstractSchemeExpr.process(expand_letrec(sexpr))
         elif is_cond(sexpr):
             return AbstractSchemeExpr.process(expand_cond(sexpr))
         elif is_and(sexpr):

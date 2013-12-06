@@ -20,9 +20,14 @@ def main():
     # TODO test not working - x = tag_parser.AbstractSchemeExpr.parse('(Lambda ((+ 1) . x) 1)')
     #print(tag_parser.AbstractSchemeExpr.parse('(lambda (x . y) (+ 1 1))'))
     #print(tag_parser.AbstractSchemeExpr.parse('(if 1 3 4)'))
-    print(tag_parser.AbstractSchemeExpr.parse('(5)'))
-    print(tag_parser.AbstractSchemeExpr.parse("(let () (+ 1 2))"))
-    #print(tag_parser.AbstractSchemeExpr.parse("`a"))
+    #print(tag_parser.AbstractSchemeExpr.parse('#(1 a z)'))
+    #print(tag_parser.AbstractSchemeExpr.parse("(let* ((x 1) (y 2)) (+ 1 2))"))
+    print(tag_parser.AbstractSchemeExpr.parse("(letrec ( (x (+ y z)) (y (+ x z)) (z (+ x y))) (+ 1 1))"))
+    #print(str(reader.list_to_pair([sexprs.Symbol('A'), sexprs.Symbol('B'),sexprs.Symbol('B'),sexprs.Symbol('B'), sexprs.Nil()])))
+    print(tag_parser.AbstractSchemeExpr.parse("(letrec ( (x (+ y z)) (y (+ x z)) (z (+ x y))) (+ 1 1))"))
+    print(tag_parser.AbstractSchemeExpr.parse("(letrec ( (x (+ y z)) (y (+ x z)) (z (+ x y))) (+ 1 1))"))
+    print(tag_parser.AbstractSchemeExpr.parse("(letrec ( (x (+ y z)) (y (+ x z)) (z (+ x y))) (+ 1 1))"))
+    print(tag_parser.AbstractSchemeExpr.parse("(letrec ( (x (+ y z)) (y (+ x z)) (z (+ x y))) (+ 1 1))"))
 
 
 if __name__ == '__main__':
