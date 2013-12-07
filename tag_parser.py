@@ -111,7 +111,8 @@ def is_lambda(sexpr):
 
 # These will only be called if is_lambda succeeded
 def is_lambda_simple(sexpr):
-    return is_nil(sexpr.cdr.car) or is_proper_list(sexpr.cdr.car)
+    return is_nil(sexpr.cdr.car) or \
+           is_proper_list(sexpr.cdr.car)
 
 
 def is_lambda_var(sexpr):
@@ -166,7 +167,7 @@ def is_cond(sexpr):
 
 
 def is_mit_def(sexpr):
-    return is_proper_list(sexpr.cdr.car)
+    return is_pair(sexpr.cdr.car)
 
 
 def is_and(sexpr):
@@ -297,10 +298,9 @@ def expand_and(sexpr):
 
 
 def expand_mit_define(sexpr):
-    name = AbstractSchemeExpr.expand(sexpr.cdr.car.car)
-    args = list_to_pair([AbstractSchemeExpr.expand(x) for x in pair_to_list(sexpr.cdr.car.cdr)] + [Nil()])
-    if is_nil(args.cdr):
-        args = args.car
+    sexpr.cdr = AbstractSchemeExpr.expand(sexpr.cdr)
+    name = sexpr.cdr.car.car
+    args = sexpr.cdr.car.cdr
     body = sexpr.cdr.cdr.car
     sexpr.cdr.car = name
     sexpr.cdr.cdr = Pair(Pair(Symbol('LAMBDA'),
@@ -501,7 +501,7 @@ class Constant(AbstractSchemeExpr):
         self.value = value
 
     def __str__(self):
-        if isinstance(self.value, Constant):
+        if not is_const(self.value):
             return "'" + str(self.value)
         else:
             return str(self.value)
@@ -590,4 +590,4 @@ class LambdaOpt(AbstractLambda):
 
     def __str__(self):
         return '(lambda (' + ' '.join([str(x) for x in self.variables]) + \
-               ' . ' + str(self.var_list) + ')' + str(self.body) + ')'
+               ' . ' + str(self.var_list) + ') ' + str(self.body) + ')'
