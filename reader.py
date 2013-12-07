@@ -131,7 +131,7 @@ boolean = ps. \
     parser(true). \
     parser(false). \
     disj(). \
-    pack(lambda m: sexprs.Boolean(m.lower())). \
+    pack(lambda m: sexprs.Boolean(''.join(m).lower())). \
     done()
 
 ######### String #########
@@ -180,7 +180,7 @@ named_char = ps. \
     parser(pcWordCI('page')). \
     parser(pcWordCI('lambda')). \
     disjs(5). \
-    pack(lambda m: chr(named_chars_dict[''.join(m).lower()])). \
+    pack(lambda m: ''.join(m).lower()). \
     done()
 
 hex_char = ps. \
@@ -207,7 +207,7 @@ char = ps. \
     parser(visible_char). \
     disjs(3). \
     caten(). \
-    pack(lambda m: sexprs.Char(m[1])). \
+    pack(lambda m: sexprs.Char('#\\' + m[1])). \
     done()
 
 ######### Nil ##########
@@ -292,7 +292,7 @@ quote = ps. \
     parser(pcChar("'")). \
     parser(pcChar(',')). \
     parser(pcChar('`')). \
-    disjs(4). \
+    disjs(5). \
     parser(pSexpr_d). \
     caten(). \
     pack(lambda m: sexprs.Pair(sexprs.Symbol(quotes_dict[m[0]]), sexprs.Pair(m[1], sexprs.Nil()))). \

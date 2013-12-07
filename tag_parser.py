@@ -287,7 +287,7 @@ def expand_and(sexpr):
         sexpr.cdr = sexpr.cdr.cdr
         return Pair(Symbol('IF'),
                     Pair(first,
-                         Pair(sexpr,
+                         Pair(AbstractSchemeExpr.expand(sexpr),
                               Pair(Boolean('#f'), Nil()))))
     else:
         return Pair(Symbol('IF'),
@@ -299,6 +299,8 @@ def expand_and(sexpr):
 def expand_mit_define(sexpr):
     name = AbstractSchemeExpr.expand(sexpr.cdr.car.car)
     args = list_to_pair([AbstractSchemeExpr.expand(x) for x in pair_to_list(sexpr.cdr.car.cdr)] + [Nil()])
+    if is_nil(args.cdr):
+        args = args.car
     body = sexpr.cdr.cdr.car
     sexpr.cdr.car = name
     sexpr.cdr.cdr = Pair(Pair(Symbol('LAMBDA'),
@@ -320,8 +322,8 @@ def expand_quasiquote(sexpr):
         b = sexpr.cdr
         if is_unquote_splicing(a):
             return Pair(Symbol('quasiquote'),
-                        Pair(Symbol('append'),
-                             Pair(Pair(Symbol('unquote'),
+                        Pair(Pair(Symbol('append'),
+                                  Pair(Pair(Symbol('unquote'),
                                        Pair(Pair(a.cdr.car,
                                                  Nil()),
                                             Nil())),
@@ -330,11 +332,11 @@ def expand_quasiquote(sexpr):
                                                       Pair(b,
                                                            Nil())),
                                                  Nil())),
-                                       Nil()))))
+                                       Nil()))), Nil()))
         elif is_unquote_splicing(b):
             return Pair(Symbol('quasiquote'),
-                        Pair(Symbol('cons'),
-                             Pair(Pair(Symbol('unquote'),
+                        Pair(Pair(Symbol('cons'),
+                                  Pair(Pair(Symbol('unquote'),
                                        Pair(Pair(Symbol('expand-qq'),
                                                  Pair(a,
                                                       Nil())),
@@ -343,11 +345,11 @@ def expand_quasiquote(sexpr):
                                             Pair(Pair(b.cdr.car,
                                                       Nil()),
                                                  Nil())),
-                                       Nil()))))
+                                       Nil()))), Nil()))
         else:
             return Pair(Symbol('quasiquote'),
-                        Pair(Symbol('cons'),
-                             Pair(Pair(Symbol('unquote'),
+                        Pair(Pair(Symbol('cons'),
+                                  Pair(Pair(Symbol('unquote'),
                                        Pair(Pair(Symbol('expand-qq'),
                                                  Pair(a,
                                                       Nil())),
@@ -356,7 +358,7 @@ def expand_quasiquote(sexpr):
                                             Pair(Pair(Symbol('expand-qq'),
                                                       b),
                                                  Nil())),
-                                       Nil()))))
+                                       Nil()))), Nil()))
     elif is_vector(sexpr):
         return Pair(Symbol('quasiquote'),
                     Pair(Symbol('list->vector'),
@@ -413,7 +415,7 @@ def build_if(sexpr):
     then_body = parsed_sexpr[1]
 
     if len(parsed_sexpr) == 2:
-        return IfThenElse(predicate, then_body, Constant(Void()))
+        return IfThenElse(predicate, then_body, Void())
     else:
         return IfThenElse(predicate, then_body, parsed_sexpr[2])
 
@@ -435,7 +437,7 @@ class AbstractSchemeExpr:
         print(sexpr)
         expanded = AbstractSchemeExpr.expand(sexpr)
         scheme_expr = AbstractSchemeExpr.process(expanded)
-        return scheme_expr
+        return scheme_expr, remaining
 
     @staticmethod
     def expand(sexpr):
@@ -520,7 +522,11 @@ class IfThenElse(AbstractSchemeExpr):
         self.else_body = else_body
 
     def __str__(self):
-        return '(if ' + str(self.predicate) + ' ' + str(self.then_body) + ' ' + str(self.else_body) + ')'
+        res = '(if ' + str(self.predicate) + ' ' + str(self.then_body)
+        if not is_void(self.else_body):
+            res += ' ' + str(self.else_body)
+        res += ')'
+        return res
 
 
 class Applic(AbstractSchemeExpr):
