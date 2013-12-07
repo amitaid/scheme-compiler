@@ -332,7 +332,8 @@ def expand_quasiquote(sexpr):
                                                       Pair(b,
                                                            Nil())),
                                                  Nil())),
-                                       Nil()))), Nil()))
+                                       Nil()))),
+                             Nil()))
         elif is_unquote_splicing(b):
             return Pair(Symbol('quasiquote'),
                         Pair(Pair(Symbol('cons'),
@@ -345,7 +346,8 @@ def expand_quasiquote(sexpr):
                                             Pair(Pair(b.cdr.car,
                                                       Nil()),
                                                  Nil())),
-                                       Nil()))), Nil()))
+                                       Nil()))),
+                             Nil()))
         else:
             return Pair(Symbol('quasiquote'),
                         Pair(Pair(Symbol('cons'),
@@ -358,7 +360,8 @@ def expand_quasiquote(sexpr):
                                             Pair(Pair(Symbol('expand-qq'),
                                                       b),
                                                  Nil())),
-                                       Nil()))), Nil()))
+                                       Nil()))),
+                             Nil()))
     elif is_vector(sexpr):
         return Pair(Symbol('quasiquote'),
                     Pair(Symbol('list->vector'),
