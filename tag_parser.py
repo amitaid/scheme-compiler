@@ -197,8 +197,8 @@ def pair_to_list(sexpr):
 ######## Builders and expanders #########
 
 def expand_let(sexpr):
-    varvals = pair_to_list(sexpr.cdr.car)
-    body = sexpr.cdr.cdr.car
+    varvals = [AbstractSchemeExpr.expand(x) for x in pair_to_list(sexpr.cdr.car)]
+    body = AbstractSchemeExpr.expand(sexpr.cdr.cdr.car)
     if varvals:
         variables = []
         values = []
@@ -220,33 +220,24 @@ def expand_let(sexpr):
 
 
 def expand_let_star(sexpr):
-    varvals = pair_to_list(sexpr.cdr.car)[::-1]
+    varvals = [AbstractSchemeExpr.expand(x) for x in pair_to_list(sexpr.cdr.car)][::-1]
     body = sexpr.cdr.cdr.car
     if varvals:
         for varval in varvals:
-            var = Pair(varval.car, Nil())
-            val = Pair(varval.cdr.car, Nil())
-            body = Pair(Pair(Symbol('LAMBDA'),
-                             Pair(var,
-                                  Pair(body, Nil()))),
-                        val)
-        return body
-        #
-        #first = varvals.car
-        #sexpr.cdr.car = varvals.cdr
-        #return Pair(Symbol('LET'),
-        #            Pair(Pair(first, Nil()),
-        #                 Pair(sexpr, Nil())))
+            body = Pair(Symbol('LET'),
+                        Pair(Pair(varval, Nil()),
+                             Pair(body, Nil())))
     else:
-        Pair(Pair(Symbol('LAMBDA'),
-                  Pair(Nil(),
-                       Pair(body, Nil()))),
+        body = Pair(Pair(Symbol('LET'),
+                         Pair(Nil(),
+                              Pair(body, Nil()))),
              Nil())
+    return AbstractSchemeExpr.expand(body)
 
 
 def expand_letrec(sexpr):
-    varvals = pair_to_list(sexpr.cdr.car)
-    body = sexpr.cdr.cdr.car
+    varvals = [AbstractSchemeExpr.expand(x) for x in pair_to_list(sexpr.cdr.car)]
+    body = AbstractSchemeExpr.expand(sexpr.cdr.cdr.car)
     if varvals:
         variables = []
         body_and_les = [body]
@@ -273,7 +264,7 @@ def expand_letrec(sexpr):
 
 
 def expand_cond(sexpr):
-    body_list = pair_to_list(sexpr.cdr)[::-1]
+    body_list = [AbstractSchemeExpr.expand(x) for x in pair_to_list(sexpr.cdr)][::-1]
     res = Nil()
     if len(body_list) == 0 or not is_pair(body_list[0]):
         raise InvalidSyntax
@@ -281,18 +272,17 @@ def expand_cond(sexpr):
         res = body_list[0].cdr.car
         body_list = body_list[1:]
 
-    while body_list:
+    for item in body_list:
         res = Pair(Symbol('IF'),
-                   [body_list[0].car,
-                    body_list[0].cdr.car,
-                    res, Nil()])
-        body_list = body_list[1:]
-
+                   Pair(item.car,
+                        Pair(item.cdr.car,
+                             Pair(res,
+                                  Nil()))))
     return res
 
 
 def expand_and(sexpr):
-    first = sexpr.cdr.car
+    first = AbstractSchemeExpr.expand(sexpr.cdr.car)
     if is_pair(sexpr.cdr.cdr):
         sexpr.cdr = sexpr.cdr.cdr
         return Pair(Symbol('IF'),
@@ -307,15 +297,15 @@ def expand_and(sexpr):
 
 
 def expand_mit_define(sexpr):
-    name = sexpr.cdr.car.car
-    args = sexpr.cdr.car.cdr
+    name = AbstractSchemeExpr.expand(sexpr.cdr.car.car)
+    args = list_to_pair([AbstractSchemeExpr.expand(x) for x in pair_to_list(sexpr.cdr.car.cdr)] + [Nil()])
     body = sexpr.cdr.cdr.car
     sexpr.cdr.car = name
-    sexpr.cdr.cdr = Pair(Symbol('LAMBDA'),
-                         Pair(args,
-                              Pair(body,
-                                   Nil())))
-
+    sexpr.cdr.cdr = Pair(Pair(Symbol('LAMBDA'),
+                              Pair(args,
+                                   Pair(body,
+                                        Nil()))),
+                         Nil())
     return sexpr
 
 
@@ -461,6 +451,8 @@ class AbstractSchemeExpr:
             return expand_and(sexpr)
         elif is_quasiquoted(sexpr):
             return expand_quasiquote(sexpr.cdr.car)
+        elif is_pair(sexpr):
+            return Pair(AbstractSchemeExpr.expand(sexpr.car), AbstractSchemeExpr.expand(sexpr.cdr))
         else:
             return sexpr
 

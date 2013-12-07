@@ -7,7 +7,6 @@ pSexpr_d = delayed(lambda: pSexpr)
 
 ######### Comment ###########
 
-# TODO Fix line comments
 line_comment = ps. \
     parser(pcChar(';')). \
     const(). \

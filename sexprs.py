@@ -9,9 +9,11 @@ class AbstractSexpr:
     def readFromString(sexpr_str):
         return pSexpr.match(sexpr_str)
 
+
 class Void(AbstractSexpr):
-        def __str__(self):
-            return 'Void()'
+    def __str__(self):
+        return 'Void()'
+
 
 class Nil(AbstractSexpr):
     def __str__(self):
