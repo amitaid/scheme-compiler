@@ -256,11 +256,11 @@ def expand_letrec(sexpr):
         lambdas = list_to_pair(lambdas + [Nil()])
         return Pair(Symbol('Yag'), Pair(lambdas, Nil()))
     else:
-        raise InvalidSyntax # whats the empty case?
-        #return Pair(Pair(Symbol('LAMBDA'),
-        #                 Pair(Nil(),
-        #                      Pair(Pair(body, Nil()),
-        #                           Nil()))))
+        return Pair(Pair(Symbol('LAMBDA'),
+                         Pair(Nil(),
+                              Pair(body,
+                                   Nil()))),
+                    Nil())
 
 
 def expand_cond(sexpr):
@@ -314,12 +314,12 @@ def expand_mit_define(sexpr):
 def expand_quasiquote(sexpr):
     #print(str(sexpr))
     if is_unquote(sexpr):
-        return sexpr.cdr.car
+        return AbstractSchemeExpr.expand(sexpr.cdr.car)
     elif is_unquote_splicing(sexpr):
         raise InvalidSyntax('unquote-splicing here makes no sense!')
     elif is_pair(sexpr):
-        a = sexpr.car
-        b = sexpr.cdr
+        a = AbstractSchemeExpr.expand(sexpr.car)
+        b = AbstractSchemeExpr.expand(sexpr.cdr)
         if is_unquote_splicing(a):
             return Pair(Symbol('quasiquote'),
                         Pair(Pair(Symbol('append'),
@@ -368,7 +368,7 @@ def expand_quasiquote(sexpr):
                          Pair(Pair(Symbol('unquote'),
                                    Pair(Pair(Symbol('expand-qq'),
                                              Pair(Pair(Symbol('vector->list'),
-                                                       Pair(sexpr,
+                                                       Pair(AbstractSchemeExpr.expand(sexpr),
                                                             Nil())),
                                                   Nil())),
                                         Nil())),
@@ -377,12 +377,12 @@ def expand_quasiquote(sexpr):
         return Pair(Symbol('quasiquote'),
                     Pair(Pair(Symbol('quote'),
                               Pair(Pair(Symbol('unquote'),
-                                        Pair(sexpr,
+                                        Pair(AbstractSchemeExpr.expand(sexpr),
                                              Nil())),
                                    Nil())),
                          Nil()))
     else:
-        return sexpr
+        return AbstractSchemeExpr.expand(sexpr)
 
 
 def build_applic(sexpr):

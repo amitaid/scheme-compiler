@@ -20,7 +20,7 @@ def main():
     #print(tag_parser.AbstractSchemeExpr.parse('(lambda (x . y) (+ 1 1))'))
     #print(tag_parser.AbstractSchemeExpr.parse('(if 1 3 4)'))
     #print(tag_parser.AbstractSchemeExpr.parse('#(1 a z)'))
-    print(tag_parser.AbstractSchemeExpr.parse("`(a b c ,d e f ,@(foo x y) ,g h i j)")[0])
+    print(tag_parser.AbstractSchemeExpr.parse("`(a b ,(cond (#t a) (else 2)) c)")[0])
     #print(str(reader.list_to_pair([sexprs.Symbol('A'), sexprs.Symbol('B'),sexprs.Symbol('B'),sexprs.Symbol('B'), sexprs.Nil()])))
     #print(tag_parser.AbstractSchemeExpr.parse("(if #f 1 2)")[0])
     #parse(',@3')
