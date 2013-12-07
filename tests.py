@@ -26,7 +26,7 @@ def main():
 #    print(tag_parser.AbstractSchemeExpr.parse("(letrec ( (x (+ y z)) (y (+ x z)) (z (+ x y))) (+ 1 1))"))
 #    print(tag_parser.AbstractSchemeExpr.parse("(letrec ( (x (+ y z)) (y (+ x z)) (z (+ x y))) (+ 1 1))"))
 #    print(tag_parser.AbstractSchemeExpr.parse("(letrec ( (x (+ y z)) (y (+ x z)) (z (+ x y))) (+ 1 1))"))
-    print(tag_parser.AbstractSchemeExpr.parse("(lambda (x) (+ x 1))"))
+    print(tag_parser.AbstractSchemeExpr.parse("`(a b ,(if #t 1 2))"))
 
 
 if __name__ == '__main__':
