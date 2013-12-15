@@ -232,7 +232,7 @@ def expand_let_star(sexpr):
         body = Pair(Pair(Symbol('LET'),
                          Pair(Nil(),
                               Pair(body, Nil()))),
-             Nil())
+                    Nil())
     return AbstractSchemeExpr.expand(body)
 
 
@@ -312,7 +312,6 @@ def expand_mit_define(sexpr):
 
 
 def expand_quasiquote(sexpr):
-    #print(str(sexpr))
     if is_unquote(sexpr):
         return AbstractSchemeExpr.expand(sexpr.cdr.car)
     elif is_unquote_splicing(sexpr):
@@ -321,65 +320,27 @@ def expand_quasiquote(sexpr):
         a = AbstractSchemeExpr.expand(sexpr.car)
         b = AbstractSchemeExpr.expand(sexpr.cdr)
         if is_unquote_splicing(a):
-            return Pair(Symbol('quasiquote'),
-                        Pair(Pair(Symbol('append'),
-                                  Pair(Pair(Symbol('unquote'),
-                                       Pair(Pair(a.cdr.car,
-                                                 Nil()),
-                                            Nil())),
-                                  Pair(Pair(Symbol('unquote'),
-                                            Pair(Pair(Symbol('expand-qq'),
-                                                      Pair(b,
-                                                           Nil())),
-                                                 Nil())),
-                                       Nil()))),
-                             Nil()))
+            return Pair(Symbol('append'),
+                        Pair(a.cdr.car,
+                             Pair(expand_quasiquote(b),
+                                  Nil())))
         elif is_unquote_splicing(b):
-            return Pair(Symbol('quasiquote'),
-                        Pair(Pair(Symbol('cons'),
-                                  Pair(Pair(Symbol('unquote'),
-                                       Pair(Pair(Symbol('expand-qq'),
-                                                 Pair(a,
-                                                      Nil())),
-                                            Nil())),
-                                  Pair(Pair(Symbol('unquote'),
-                                            Pair(Pair(b.cdr.car,
-                                                      Nil()),
-                                                 Nil())),
-                                       Nil()))),
-                             Nil()))
+            return Pair(Symbol('cons'),
+                        Pair(expand_quasiquote(a),
+                             Pair(b.cdr.car,
+                                  Nil())))
         else:
-            return Pair(Symbol('quasiquote'),
-                        Pair(Pair(Symbol('cons'),
-                                  Pair(Pair(Symbol('unquote'),
-                                       Pair(Pair(Symbol('expand-qq'),
-                                                 Pair(a,
-                                                      Nil())),
-                                            Nil())),
-                                  Pair(Pair(Symbol('unquote'),
-                                            Pair(Pair(Symbol('expand-qq'),
-                                                      b),
-                                                 Nil())),
-                                       Nil()))),
-                             Nil()))
+            return Pair(Symbol('cons'),
+                        Pair(expand_quasiquote(a),
+                             Pair(expand_quasiquote(b),
+                                  Nil())))
     elif is_vector(sexpr):
-        return Pair(Symbol('quasiquote'),
-                    Pair(Symbol('list->vector'),
-                         Pair(Pair(Symbol('unquote'),
-                                   Pair(Pair(Symbol('expand-qq'),
-                                             Pair(Pair(Symbol('vector->list'),
-                                                       Pair(AbstractSchemeExpr.expand(sexpr),
-                                                            Nil())),
-                                                  Nil())),
-                                        Nil())),
-                              Nil())))
+        return Pair(Symbol('list->vector'),
+                    Pair(expand_quasiquote(list_to_pair(sexpr.get_value())),
+                         Nil()))
     elif is_nil(sexpr) or is_symbol(sexpr):
-        return Pair(Symbol('quasiquote'),
-                    Pair(Pair(Symbol('quote'),
-                              Pair(Pair(Symbol('unquote'),
-                                        Pair(AbstractSchemeExpr.expand(sexpr),
-                                             Nil())),
-                                   Nil())),
+        return Pair(Symbol('quote'),
+                    Pair(AbstractSchemeExpr.expand(sexpr),
                          Nil()))
     else:
         return AbstractSchemeExpr.expand(sexpr)

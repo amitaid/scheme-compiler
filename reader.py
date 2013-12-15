@@ -195,7 +195,7 @@ hex_char = ps. \
     maybe(). \
     pack(lambda m: ''.join(m[1]) if m[0] else ''). \
     catens(3). \
-    pack(lambda m: chr(int(''.join(m[1:]), 16))). \
+    pack(lambda m: ''.join(m[1:])). \
     done()
 
 visible_char = const(lambda m: m > ' ')
