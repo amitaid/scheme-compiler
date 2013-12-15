@@ -455,6 +455,14 @@ class AbstractSchemeExpr:
             print('format not supported: ' + str(sexpr))
             return Constant(Void()) #TODO in my opinion we should raise an exception here
 
+    def debruijn(self):
+        pass
+
+    def recursive_debrujin(self, bounded_var_list):
+        pass
+
+    def update_bounded_vars_list(Old_list, fresh_variables):
+        pass
 
 ### Constant ###
 class Constant(AbstractSchemeExpr):
@@ -476,6 +484,23 @@ class Variable(AbstractSchemeExpr):
     def __str__(self):
         return self.name
 
+
+class VarFree(Variable):
+    def __init__(self, symbol):
+        super(VarFree, self).__init__(symbol)
+
+
+class VarParam(Variable):
+    def __init__(self, symbol, minor):
+        super(VarParam, self).__init__(symbol)
+        self.minor = minor
+
+
+class VarBound(Variable):
+    def __init__(self, symbol, major, minor):
+        super(VarBound, self).__init__(symbol)
+        self.major = major
+        self.minor = minor
 
 ### Core Forms ###
 

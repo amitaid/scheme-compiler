@@ -10,7 +10,6 @@ def parse(input):
 
 
 def main():
-
     #parse('(if 5 > 0 then 1 else 2)')
     #print(sexprs.Pair.get_car(x))
     #print(sexprs.Pair.get_cdr(x).get_car())
