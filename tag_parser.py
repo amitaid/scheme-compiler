@@ -84,8 +84,7 @@ def is_const(sexpr):
 
 def is_variable(sexpr):
     return is_symbol(sexpr) and \
-           not sexpr.get_value() in key_words # and \
-    #not Symbol.get_value(sexpr) in primitive_ops:
+           not sexpr.get_value() in key_words
 
 # predicate for both IfThen & IfThenElse
 def is_if(sexpr):
@@ -455,14 +454,11 @@ class AbstractSchemeExpr:
             print('format not supported: ' + str(sexpr))
             return Constant(Void()) #TODO in my opinion we should raise an exception here
 
+    def lexical(self, bounded, params):
+        pass
+
     def debruijn(self):
-        pass
-
-    def recursive_debrujin(self, bounded_var_list):
-        pass
-
-    def update_bounded_vars_list(Old_list, fresh_variables):
-        pass
+        return self.lexical([], [])
 
 ### Constant ###
 class Constant(AbstractSchemeExpr):
@@ -475,19 +471,41 @@ class Constant(AbstractSchemeExpr):
         else:
             return str(self.value)
 
+    def lexical(self, bounded, params):
+        return Constant(self.value.lexical(bounded, params))
 
 ### Variable ###
 class Variable(AbstractSchemeExpr):
     def __init__(self, symbol):
-        self.name = symbol.get_value()
+        self.symbol = symbol
 
     def __str__(self):
-        return self.name
+        return self.symbol.get_value()
+
+    def __eq__(self, other):
+        return isinstance(other, Variable) and \
+               self.symbol.get_value() == other.symbol.get_value()
+
+    def __ne__(self, other):
+        return not self == other
+
+    def lexical(self, bounded, params):
+        if self in params:
+            return VarParam(self.symbol, params.index(self))
+        else:
+            search = [(x[0], x[1].index(self)) for x in enumerate(bounded) if self in x[1]]
+            if search:
+                return VarBound(self.symbol, search[0][0], search[0][1])
+            else:
+                return VarFree(self.symbol)
 
 
 class VarFree(Variable):
     def __init__(self, symbol):
         super(VarFree, self).__init__(symbol)
+
+    def __str__(self):
+        return self.symbol.get_value() + '()'
 
 
 class VarParam(Variable):
@@ -495,12 +513,19 @@ class VarParam(Variable):
         super(VarParam, self).__init__(symbol)
         self.minor = minor
 
+    def __str__(self):
+        return self.symbol.get_value() + '(' + str(self.minor) + ')'
+
 
 class VarBound(Variable):
     def __init__(self, symbol, major, minor):
         super(VarBound, self).__init__(symbol)
         self.major = major
         self.minor = minor
+
+    def __str__(self):
+        return self.symbol.get_value() + '(' + str(self.major) + ', ' + str(self.minor) + ')'
+
 
 ### Core Forms ###
 
@@ -517,6 +542,11 @@ class IfThenElse(AbstractSchemeExpr):
         res += ')'
         return res
 
+    def lexical(self, bounded, params):
+        return IfThenElse(self.predicate.lexical(bounded, params),
+                          self.then_body.lexical(bounded, params),
+                          self.else_body.lexical(bounded, params))
+
 
 class Applic(AbstractSchemeExpr):
     def __init__(self, func, args):
@@ -526,6 +556,10 @@ class Applic(AbstractSchemeExpr):
     def __str__(self):
         return '(' + ' '.join([str(self.func)] + [str(x) for x in self.args]) + ')'
 
+    def lexical(self, bounded, params):
+        return Applic(self.func.lexical(bounded, params),
+                      [x.lexical(bounded, params) for x in self.args])
+
 
 class Or(AbstractSchemeExpr):
     def __init__(self, elements):
@@ -533,6 +567,9 @@ class Or(AbstractSchemeExpr):
 
     def __str__(self):
         return '(' + ' '.join(['or'] + [str(x) for x in self.elements]) + ')'
+
+    def lexical(self, bounded, params):
+        return Or([x.lexical(bounded, params) for x in self.elements])
 
 
 class Def(AbstractSchemeExpr):
@@ -543,8 +580,11 @@ class Def(AbstractSchemeExpr):
     def __str__(self):
         return '(define ' + str(self.name) + ' ' + str(self.value) + ')'
 
+    def lexical(self, bounded, params):
+        return Def(self.name.lexical(bounded, params),
+                   self.value.lexical(bounded, params))
 
-### Lambda Forms ###
+    ### Lambda Forms ###
 
 class AbstractLambda(AbstractSchemeExpr):
     pass
@@ -558,6 +598,10 @@ class LambdaSimple(AbstractLambda):
     def __str__(self):
         return '(lambda (' + ' '.join([str(x) for x in self.variables]) + ') ' + str(self.body) + ')'
 
+    def lexical(self, bounded, params):
+        return LambdaSimple(self.variables,
+                            self.body.lexical([params] + bounded, self.variables))
+
 
 class LambdaVar(AbstractLambda):
     def __init__(self, var_list, body):
@@ -567,12 +611,21 @@ class LambdaVar(AbstractLambda):
     def __str__(self):
         return '(lambda ' + str(self.var_list) + ' ' + str(self.body) + ')'
 
+    def lexical(self, bounded, params):
+        return LambdaVar(self.var_list,
+                         self.body.lexical([params] + bounded, [self.var_list]))
+
 
 class LambdaOpt(AbstractLambda):
     def __init__(self, variables, var_list, body):
         self.variables = variables
         self.var_list = var_list
         self.body = body
+
+    def lexical(self, bounded, params):
+        return LambdaOpt(self.variables, self.var_list,
+                         self.body.lexical([params] + bounded,
+                                           self.variables + [self.var_list]))
 
     def __str__(self):
         return '(lambda (' + ' '.join([str(x) for x in self.variables]) + \
