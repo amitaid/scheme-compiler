@@ -261,8 +261,8 @@ proper_list = ps. \
     done()
 
 pair = ps. \
-    parser(improper_list). \
     parser(proper_list). \
+    parser(improper_list). \
     disj(). \
     done()
 
@@ -301,13 +301,13 @@ quote = ps. \
 ###### S-Expression ########
 
 pSexpr = ps. \
+    parser(pair). \
     parser(fraction). \
     parser(integer). \
     parser(symbol). \
     parser(string). \
     parser(boolean). \
     parser(char). \
-    parser(pair). \
     parser(vector). \
     parser(nil). \
     parser(quote). \

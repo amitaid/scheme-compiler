@@ -2,7 +2,6 @@ import sexprs
 
 # Zelig, this is the message
 # Amitai, this is a message
-from tag_parser import *
 
 
 def parse(input):
@@ -15,8 +14,9 @@ def main():
                 '(DEFINE FOO (LAMBDA (X) (IF (= X 1) (* 5 (HOO X)) (IF (= X 2) (HOO X) (FOO X)))))',
                 '(LAMBDA (A B C) (LAMBDA (E F G) (LIST (OR A B (OR C D)) (* G O G O) (LAMBDA Y (LAMBDA X (LAMBDA X (LAMBDA X (LAMBDA X (LAMBDA X (LAMBDA X (LAMBDA X (LAMBDA X (LAMBDA X (LAMBDA X (X Y)))))))))))) (IF (= 9 2) (OR 1 2 3) A) (IF A B (IF A B (IF A B C))) "bye bye")))']
 
-    for test in testlist:
-        print(AbstractSchemeExpr.parse(test)[0].debruijn().annotateTC())
+    #print(AbstractSchemeExpr.parse('(lambda (x) (if 1 (lambda (x) (+ x 1)) (lambda () x)))')[0].debruijn().annotateTC())
+    for test in testlist[-1:]:
+        print(sexprs.AbstractSexpr.readFromString(test)[0])
 
         # x, y = AbstractSchemeExpr.parse("(+ x (lambda (x) (if "
         #                                 "    1 "
