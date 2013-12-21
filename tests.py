@@ -10,26 +10,23 @@ def parse(input):
 
 
 def main():
-    #parse('(if 5 > 0 then 1 else 2)')
-    #print(sexprs.Pair.get_car(x))
-    #print(sexprs.Pair.get_cdr(x).get_car())
-    #parse("'a")
+    testlist = ['(LAMBDA (X) (LAMBDA (Y Z) ((LAMBDA (X V) (F Z X)) (+ V Z X))))',
+                '(LAMBDA X (LAMBDA (Y X) (LIST (IF Y X (IF Z T 2)) (OR (LAMBDA (X) (X Y)) X Y) 22 (D X (+ X Y)) (LAMBDA C (LAMBDA (A B . C) (LAMBDA (E F G) (LAMBDA (H I J) (IF (OR A B C) (D E F G) (D H (+ I J))))))))))',
+                '(DEFINE FOO (LAMBDA (X) (IF (= X 1) (* 5 (HOO X)) (IF (= X 2) (HOO X) (FOO X)))))',
+                '(LAMBDA (A B C) (LAMBDA (E F G) (LIST (OR A B (OR C D)) (* G O G O) (LAMBDA Y (LAMBDA X (LAMBDA X (LAMBDA X (LAMBDA X (LAMBDA X (LAMBDA X (LAMBDA X (LAMBDA X (LAMBDA X (LAMBDA X (X Y)))))))))))) (IF (= 9 2) (OR 1 2 3) A) (IF A B (IF A B (IF A B C))) "bye bye")))']
 
-    #x,y = sexprs.AbstractSexpr.readFromString('3')
-    #print(tag_parser.AbstractSchemeExpr.parse('(lambda (x . y) (+ 1 1))'))
-    #print(tag_parser.AbstractSchemeExpr.parse('(if 1 3 4)'))
-    #print(tag_parser.AbstractSchemeExpr.parse('#(1 a z)'))
-    #print(tag_parser.AbstractSchemeExpr.parse("`(,x)")[0])
-    #print(str(reader.list_to_pair([sexprs.Symbol('A'), sexprs.Symbol('B'),sexprs.Symbol('B'),sexprs.Symbol('B'), sexprs.Nil()])))
-    x, y = AbstractSchemeExpr.parse("(+ x (lambda (x) (if "
-                                    "    1 "
-                                    "(lambda (x) ( + 1 x))"
-                                    "(lambda () (+ x x))"
-                                    ")))")
-    print(x)
-    print(x.debruijn())
-    print(x.annotateTC())
-    #parse(',@3')
+    for test in testlist:
+        print(AbstractSchemeExpr.parse(test)[0].debruijn().annotateTC())
+
+        # x, y = AbstractSchemeExpr.parse("(+ x (lambda (x) (if "
+        #                                 "    1 "
+        #                                 "(lambda (x) ( + 1 x))"
+        #                                 "(lambda () (+ x x))"
+        #                                 ")))")
+        # print(x)
+        # print(x.debruijn().annotateTC())
+        #print(x.annotateTC())
+        #parse(',@3')
 
 if __name__ == '__main__':
     main()

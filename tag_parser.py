@@ -397,7 +397,7 @@ class AbstractSchemeExpr:
     @staticmethod
     def parse(input_string):
         sexpr, remaining = AbstractSexpr.readFromString(input_string)
-        print(sexpr)
+        #print(sexpr)
         expanded = AbstractSchemeExpr.expand(sexpr)
         scheme_expr = AbstractSchemeExpr.process(expanded)
         return scheme_expr, remaining
@@ -518,7 +518,8 @@ class VarFree(Variable):
         super(VarFree, self).__init__(symbol)
 
     def __str__(self):
-        return self.symbol.get_value() + '()'
+        return self.symbol.get_value()
+        #+ '()'
 
 
 class VarParam(Variable):
@@ -527,7 +528,8 @@ class VarParam(Variable):
         self.minor = minor
 
     def __str__(self):
-        return self.symbol.get_value() + '(' + str(self.minor) + ')'
+        return self.symbol.get_value()
+        #+ '(' + str(self.minor) + ')'
 
 
 class VarBound(Variable):
@@ -537,7 +539,8 @@ class VarBound(Variable):
         self.minor = minor
 
     def __str__(self):
-        return self.symbol.get_value() + '(' + str(self.major) + ', ' + str(self.minor) + ')'
+        return self.symbol.get_value()
+        #+ '(' + str(self.major) + ', ' + str(self.minor) + ')'
 
 
 ### Core Forms ###
@@ -592,7 +595,8 @@ class ApplicTP(Applic):
         super(ApplicTP, self).__init__(func, args)
 
     def __str__(self):
-        return super(ApplicTP, self).__str__() + 'TP'
+        return super(ApplicTP, self).__str__()
+        # + 'TP'
 
 
 class Or(AbstractSchemeExpr):
