@@ -460,6 +460,12 @@ class AbstractSchemeExpr:
     def debruijn(self):
         return self.lexical([], [])
 
+    def annotate(self, is_tp):
+        pass
+
+    def annotateTC(self):
+        return self.annotate(False)
+
 ### Constant ###
 class Constant(AbstractSchemeExpr):
     def __init__(self, value):
@@ -472,7 +478,11 @@ class Constant(AbstractSchemeExpr):
             return str(self.value)
 
     def lexical(self, bounded, params):
-        return Constant(self.value.lexical(bounded, params))
+        return Constant(self.value)
+        #return Constant(self.value.lexical(bounded, params))
+
+    def annotate(self, is_tp):
+        return self
 
 ### Variable ###
 class Variable(AbstractSchemeExpr):
@@ -498,6 +508,9 @@ class Variable(AbstractSchemeExpr):
                 return VarBound(self.symbol, search[0][0], search[0][1])
             else:
                 return VarFree(self.symbol)
+
+    def annotate(self, is_tp):
+        return self
 
 
 class VarFree(Variable):
@@ -547,6 +560,11 @@ class IfThenElse(AbstractSchemeExpr):
                           self.then_body.lexical(bounded, params),
                           self.else_body.lexical(bounded, params))
 
+    def annotate(self, is_tp):
+        return IfThenElse(self.predicate.annotate(False),
+                          self.then_body.annotate(is_tp),
+                          self.else_body.annotate(is_tp))
+
 
 class Applic(AbstractSchemeExpr):
     def __init__(self, func, args):
@@ -560,6 +578,22 @@ class Applic(AbstractSchemeExpr):
         return Applic(self.func.lexical(bounded, params),
                       [x.lexical(bounded, params) for x in self.args])
 
+    def annotate(self, is_tp):
+        if is_tp:
+            return ApplicTP(self.func.annotate(False),
+                            [x.annotate(False) for x in self.args])
+        else:
+            return Applic(self.func.annotate(False),
+                          [x.annotate(False) for x in self.args])
+
+
+class ApplicTP(Applic):
+    def __init__(self, func, args):
+        super(ApplicTP, self).__init__(func, args)
+
+    def __str__(self):
+        return super(ApplicTP, self).__str__() + 'TP'
+
 
 class Or(AbstractSchemeExpr):
     def __init__(self, elements):
@@ -570,6 +604,10 @@ class Or(AbstractSchemeExpr):
 
     def lexical(self, bounded, params):
         return Or([x.lexical(bounded, params) for x in self.elements])
+
+    def annotate(self, is_tp):
+        return Or([x.annotate(False) for x in self.elements[:-1]] \
+                  + [self.elements[-1].annotate(is_tp)])
 
 
 class Def(AbstractSchemeExpr):
@@ -584,7 +622,11 @@ class Def(AbstractSchemeExpr):
         return Def(self.name.lexical(bounded, params),
                    self.value.lexical(bounded, params))
 
-    ### Lambda Forms ###
+    def annotate(self, is_tp):
+        return Def(self.name, self.value.annotate(False))
+
+        ### Lambda Forms ###
+
 
 class AbstractLambda(AbstractSchemeExpr):
     pass
@@ -602,6 +644,9 @@ class LambdaSimple(AbstractLambda):
         return LambdaSimple(self.variables,
                             self.body.lexical([params] + bounded, self.variables))
 
+    def annotate(self, is_tp):
+        return LambdaSimple(self.variables, self.body.annotate(True))
+
 
 class LambdaVar(AbstractLambda):
     def __init__(self, var_list, body):
@@ -615,6 +660,9 @@ class LambdaVar(AbstractLambda):
         return LambdaVar(self.var_list,
                          self.body.lexical([params] + bounded, [self.var_list]))
 
+    def annotate(self, is_tp):
+        return LambdaVar(self.var_list, self.body.annotate(True))
+
 
 class LambdaOpt(AbstractLambda):
     def __init__(self, variables, var_list, body):
@@ -622,11 +670,14 @@ class LambdaOpt(AbstractLambda):
         self.var_list = var_list
         self.body = body
 
+    def __str__(self):
+        return '(lambda (' + ' '.join([str(x) for x in self.variables]) + \
+               ' . ' + str(self.var_list) + ') ' + str(self.body) + ')'
+
     def lexical(self, bounded, params):
         return LambdaOpt(self.variables, self.var_list,
                          self.body.lexical([params] + bounded,
                                            self.variables + [self.var_list]))
 
-    def __str__(self):
-        return '(lambda (' + ' '.join([str(x) for x in self.variables]) + \
-               ' . ' + str(self.var_list) + ') ' + str(self.body) + ')'
+    def annotate(self, is_tp):
+        return LambdaOpt(self.variables, self.var_list, self.body.annotate(True))

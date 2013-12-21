@@ -21,9 +21,15 @@ def main():
     #print(tag_parser.AbstractSchemeExpr.parse('#(1 a z)'))
     #print(tag_parser.AbstractSchemeExpr.parse("`(,x)")[0])
     #print(str(reader.list_to_pair([sexprs.Symbol('A'), sexprs.Symbol('B'),sexprs.Symbol('B'),sexprs.Symbol('B'), sexprs.Nil()])))
-    #print(tag_parser.AbstractSchemeExpr.parse("(if #f 1 2)")[0])
+    x, y = AbstractSchemeExpr.parse("(+ x (lambda (x) (if "
+                                    "    1 "
+                                    "(lambda (x) ( + 1 x))"
+                                    "(lambda () (+ x x))"
+                                    ")))")
+    print(x)
+    print(x.debruijn())
+    print(x.annotateTC())
     #parse(',@3')
-    print(Variable(Symbol('x')).lexical([[],[Variable(Symbol('y')),Variable(Symbol('x'))],[Variable(Symbol('y')),Variable(Symbol('x'))]],[]))
 
 if __name__ == '__main__':
     main()
