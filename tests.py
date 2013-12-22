@@ -14,11 +14,14 @@ def main():
                 '(DEFINE FOO (LAMBDA (X) (IF (= X 1) (* 5 (HOO X)) (IF (= X 2) (HOO X) (FOO X)))))',
                 '(LAMBDA (A B C) (LAMBDA (E F G) (LIST (OR A B (OR C D)) (* G O G O) (LAMBDA Y (LAMBDA X (LAMBDA X (LAMBDA X (LAMBDA X (LAMBDA X (LAMBDA X (LAMBDA X (LAMBDA X (LAMBDA X (LAMBDA X (X Y)))))))))))) (IF (= 9 2) (OR 1 2 3) A) (IF A B (IF A B (IF A B C))) "bye bye")))']
 
-    #print(AbstractSchemeExpr.parse('(lambda (x) (if 1 (lambda (x) (+ x 1)) (lambda () x)))')[0].debruijn().annotateTC())
-    for test in testlist[-1:]:
-        print(sexprs.AbstractSexpr.readFromString(test)[0])
+    parse(
+        '(LAMBDA (A B C) (LAMBDA (E F G) (LIST (OR A B (OR C D)) (* G O G O) (LAMBDA Y (LAMBDA X (LAMBDA X (LAMBDA X (LAMBDA X (LAMBDA X (LAMBDA X (LAMBDA X (LAMBDA X (LAMBDA X (LAMBDA X (X Y)))))))))))) (IF (= 9 2) (OR 1 2 3) A) (IF A B (IF A B (IF A B C))) "bye bye")))')
 
-        # x, y = AbstractSchemeExpr.parse("(+ x (lambda (x) (if "
+    #print(AbstractSchemeExpr.parse('(lambda (x) (if 1 (lambda (x) (+ x 1)) (lambda () x)))')[0].debruijn().annotateTC())
+    # for test in testlist[-1:]:
+    #     print(sexprs.AbstractSexpr.readFromString(test)[0])
+    # print(sexprs.AbstractSexpr.readFromString('(x y z . 5/5)')[0].cdr.cdr)
+    # x, y = AbstractSchemeExpr.parse("(+ x (lambda (x) (if "
         #                                 "    1 "
         #                                 "(lambda (x) ( + 1 x))"
         #                                 "(lambda () (+ x x))"

@@ -30,6 +30,16 @@ ignorable = ps. \
     disjs(3). \
     done()
 
+ignore_star = ps. \
+    parser(ignorable). \
+    star(). \
+    done()
+
+ignore_plus = ps. \
+    parser(ignorable). \
+    plus(). \
+    done()
+
 ######### Number ##########
 
 zero = pcChar('0')
@@ -230,50 +240,77 @@ def list_to_pair(l):
         return sexprs.Pair(l[0], list_to_pair(l[1:]))
 
 
-pSexpr_wrapped = ps. \
-    parser(ignorable). \
-    star(). \
-    parser(pSexpr_d). \
-    parser(ignorable). \
-    star(). \
-    catens(3). \
-    pack(lambda m: m[1]). \
-    done()
-
-improper_list = ps. \
-    parser(pcChar('(')). \
-    parser(pSexpr_wrapped). \
-    plus(). \
-    parser(pcWord('. ')). \
-    parser(pSexpr_wrapped). \
-    parser(pcChar(')')). \
-    catens(5). \
-    pack(lambda m: list_to_pair(m[1] + [m[3]])). \
-    done()
-
-proper_list = ps. \
-    parser(pcChar('(')). \
-    parser(pSexpr_wrapped). \
-    plus(). \
-    parser(pcChar(')')). \
-    catens(3). \
-    pack(lambda m: list_to_pair(m[1] + [sexprs.Nil()])). \
-    done()
-
 pair = ps. \
-    parser(proper_list). \
-    parser(improper_list). \
-    disj(). \
+    parser(pcChar('(')). \
+    parser(ignore_star). \
+    parser(pSexpr_d). \
+    parser(ignore_plus). \
+    parser(pSexpr_d). \
+    caten(). \
+    pack(lambda m: m[1]). \
+    star(). \
+    parser(ignore_plus). \
+    parser(pcChar('.')). \
+    parser(ignore_plus). \
+    parser(pSexpr_d). \
+    catens(4). \
+    pack(lambda m: m[3]). \
+    maybe(). \
+    parser(ignore_star). \
+    parser(pcChar(')')). \
+    catens(7). \
+    pack(lambda m: list_to_pair([m[2]] + m[3] + ([m[4][1]] if m[4][0] else [sexprs.Nil()]))). \
     done()
+
+# Old, inefficient version
+# pSexpr_wrapped = ps. \
+#     parser(ignorable). \
+#     star(). \
+#     parser(pSexpr_d). \
+#     parser(ignorable). \
+#     star(). \
+#     catens(3). \
+#     pack(lambda m: m[1]). \
+#     done()
+#
+# improper_list = ps. \
+#     parser(pcChar('(')). \
+#     parser(pSexpr_wrapped). \
+#     plus(). \
+#     parser(pcWord('.')). \
+#     parser(pSexpr_wrapped). \
+#     parser(pcChar(')')). \
+#     catens(5). \
+#     pack(lambda m: list_to_pair(m[1] + [m[3]])). \
+#     done()
+#
+# proper_list = ps. \
+#     parser(pcChar('(')). \
+#     parser(pSexpr_wrapped). \
+#     plus(). \
+#     parser(pcChar(')')). \
+#     catens(3). \
+#     pack(lambda m: list_to_pair(m[1] + [sexprs.Nil()])). \
+#     done()
+#
+# pair = ps. \
+#     parser(proper_list). \
+#     parser(improper_list). \
+#     disj(). \
+#     done()
 
 ######### Vector #########
 
 vector = ps. \
     parser(pcWord('#(')). \
-    parser(pSexpr_wrapped). \
+    parser(ignore_star). \
+    parser(pSexpr_d). \
+    caten(). \
+    pack(lambda m: m[1]). \
     star(). \
+    parser(ignore_star). \
     parser(pcChar(')')). \
-    catens(3). \
+    catens(4). \
     pack(lambda m: sexprs.Vector(m[1])). \
     done()
 
