@@ -65,6 +65,10 @@ def is_proper_list(sexpr):
 
     return is_nil(sexpr)
 
+
+def is_improper_list(sexpr):
+    return is_pair(sexpr) and not is_proper_list(sexpr)
+
 ### AbstractSchemeExpr Predicates ###
 
 def is_quote(sexpr): # TODO implement later
@@ -79,6 +83,7 @@ def is_const(sexpr):
            is_number(sexpr) or \
            is_string(sexpr) or \
            is_nil(sexpr) or \
+           is_improper_list(sexpr) or \
            is_void(sexpr)
 
 
@@ -415,10 +420,10 @@ class AbstractSchemeExpr:
         elif is_and(sexpr):
             return expand_and(sexpr)
         elif is_quote(sexpr):
-            return Pair(sexpr.car, AbstractSchemeExpr.expand(sexpr.cdr))
+            return Pair(sexpr.car, sexpr.cdr)
         elif is_quasiquoted(sexpr):
             return expand_quasiquote(sexpr.cdr.car)
-        elif is_pair(sexpr):
+        elif is_proper_list(sexpr):
             return Pair(AbstractSchemeExpr.expand(sexpr.car), AbstractSchemeExpr.expand(sexpr.cdr))
         else:
             return sexpr
