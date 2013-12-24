@@ -414,6 +414,8 @@ class AbstractSchemeExpr:
             return expand_cond(sexpr)
         elif is_and(sexpr):
             return expand_and(sexpr)
+        elif is_quote(sexpr):
+            return Pair(sexpr.car, AbstractSchemeExpr.expand(sexpr.cdr))
         elif is_quasiquoted(sexpr):
             return expand_quasiquote(sexpr.cdr.car)
         elif is_pair(sexpr):
@@ -472,7 +474,7 @@ class Constant(AbstractSchemeExpr):
         self.value = value
 
     def __str__(self):
-        if not is_const(self.value):
+        if not is_const(self.value) and not is_vector(self.value):
             return "'" + str(self.value)
         else:
             return str(self.value)
