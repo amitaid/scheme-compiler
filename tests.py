@@ -1,5 +1,6 @@
 import sexprs
-from tag_parser import *
+from reader import pSexpr
+
 # Zelig, this is the message
 # Amitai, this is a message
 
@@ -14,12 +15,13 @@ def main():
                 '(DEFINE FOO (LAMBDA (X) (IF (= X 1) (* 5 (HOO X)) (IF (= X 2) (HOO X) (FOO X)))))',
                 '(LAMBDA (A B C) (LAMBDA (E F G) (LIST (OR A B (OR C D)) (* G O G O) (LAMBDA Y (LAMBDA X (LAMBDA X (LAMBDA X (LAMBDA X (LAMBDA X (LAMBDA X (LAMBDA X (LAMBDA X (LAMBDA X (LAMBDA X (X Y)))))))))))) (IF (= 9 2) (OR 1 2 3) A) (IF A B (IF A B (IF A B C))) "bye bye")))']
 
-    res, rem = sexprs.AbstractSexpr.readFromString('(a b . c)')
-    print(res.car, res.cdr, res.cdr.cdr)
-    print(is_improper_list(res))
+    res, rem = pSexpr.match(" #;54252          (a b c);         \n  ")
+    print('result = ' + str(res))
+    print('remaining length = ' + str(len(rem)))
+    #print(is_improper_list(res))
 
-    #parse("'(1 2 () (1 2 . 3) . 3)")
-    print(AbstractSchemeExpr.parse("'(a b . c)")[0])
+    # parse("(a b c)")
+    #print(AbstractSchemeExpr.parse("(a b . c)")[0])
     #print(AbstractSchemeExpr.parse('(lambda (x) (if 1 (lambda (x) (+ x 1)) (lambda () x)))')[0].debruijn().annotateTC())
     # for test in testlist[-1:]:
     #     print(sexprs.AbstractSexpr.readFromString(test)[0])

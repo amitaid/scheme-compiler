@@ -3,7 +3,7 @@ import sexprs
 
 ps = ParserStack()
 
-pSexpr_d = delayed(lambda: pSexpr)
+pSexpr_d = delayed(lambda: sexpr)
 
 ######### Comment ###########
 
@@ -24,9 +24,9 @@ sexpr_comment = ps. \
     done()
 
 ignorable = ps. \
+    parser(pcWhite1). \
     parser(line_comment). \
     parser(sexpr_comment). \
-    parser(pcWhitePlus). \
     disjs(3). \
     done()
 
@@ -337,7 +337,7 @@ quote = ps. \
 
 ###### S-Expression ########
 
-pSexpr = ps. \
+sexpr = ps. \
     parser(pair). \
     parser(fraction). \
     parser(integer). \
@@ -349,4 +349,12 @@ pSexpr = ps. \
     parser(nil). \
     parser(quote). \
     disjs(10). \
+    done()
+
+pSexpr = ps. \
+    parser(ignore_star). \
+    parser(sexpr). \
+    parser(ignore_star). \
+    catens(3). \
+    pack(lambda m: m[1]). \
     done()
