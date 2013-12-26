@@ -473,6 +473,9 @@ class AbstractSchemeExpr:
     def annotateTC(self):
         return self.annotate(False)
 
+    def semantic_analysis(self):
+        return self.debruijn().annotateTC()
+
 ### Constant ###
 class Constant(AbstractSchemeExpr):
     def __init__(self, value):
@@ -525,8 +528,7 @@ class VarFree(Variable):
         super(VarFree, self).__init__(symbol)
 
     def __str__(self):
-        return self.symbol.get_value()
-        #+ '()'
+        return self.symbol.get_value() + '()'
 
 
 class VarParam(Variable):

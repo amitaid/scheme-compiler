@@ -1,5 +1,5 @@
 import sexprs
-from reader import pSexpr
+import tag_parser
 
 # Zelig, this is the message
 # Amitai, this is a message
@@ -10,15 +10,9 @@ def parse(input):
 
 
 def main():
-    testlist = ['(LAMBDA (X) (LAMBDA (Y Z) ((LAMBDA (X V) (F Z X)) (+ V Z X))))',
-                '(LAMBDA X (LAMBDA (Y X) (LIST (IF Y X (IF Z T 2)) (OR (LAMBDA (X) (X Y)) X Y) 22 (D X (+ X Y)) (LAMBDA C (LAMBDA (A B . C) (LAMBDA (E F G) (LAMBDA (H I J) (IF (OR A B C) (D E F G) (D H (+ I J))))))))))',
-                '(DEFINE FOO (LAMBDA (X) (IF (= X 1) (* 5 (HOO X)) (IF (= X 2) (HOO X) (FOO X)))))',
-                '(LAMBDA (A B C) (LAMBDA (E F G) (LIST (OR A B (OR C D)) (* G O G O) (LAMBDA Y (LAMBDA X (LAMBDA X (LAMBDA X (LAMBDA X (LAMBDA X (LAMBDA X (LAMBDA X (LAMBDA X (LAMBDA X (LAMBDA X (X Y)))))))))))) (IF (= 9 2) (OR 1 2 3) A) (IF A B (IF A B (IF A B C))) "bye bye")))']
-
-    res, rem = pSexpr.match(" #;54252          (a b c);         \n  ")
-    print('result = ' + str(res))
-    print('remaining length = ' + str(len(rem)))
-    #print(is_improper_list(res))
+    print(tag_parser.AbstractSchemeExpr.parse(
+        "(LAMBDA X (LAMBDA (Y X) (LIST (IF Y X (IF Z T 2)) (OR (LAMBDA (X) (X Y)) X Y) 22 (D X (+ X Y)) (LAMBDA C (LAMBDA (A B . C) (LAMBDA (E F G) (LAMBDA (H I J) (IF (OR A B C) (D E F G) (D H (+ I J))))))))))")[
+        0].semantic_analysis())
 
     # parse("(a b c)")
     #print(AbstractSchemeExpr.parse("(a b . c)")[0])
