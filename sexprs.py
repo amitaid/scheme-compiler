@@ -1,4 +1,4 @@
-from reader import pSexpr
+from reader import *
 
 
 class AbstractSexpr:
