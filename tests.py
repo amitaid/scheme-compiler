@@ -10,21 +10,21 @@ def parse(input):
 
 
 def main():
-    print(tag_parser.AbstractSchemeExpr.parse(
-        "(LAMBDA X"
-        "    (LAMBDA (Y X)"
-        "        (LIST"
-        "        (IF Y X (IF Z T 2))"
-        "        (OR (LAMBDA (X)"
-        "                (X Y))"
-        "        X Y)"
-        "        22"
-        "        (D X (+ X Y))"
-        "        (LAMBDA C"
-        "            (LAMBDA (A B . C)"
-        "                (LAMBDA (E F G)"
-        "                    (LAMBDA (H I J)"
-        "                        (IF (OR A B C) (D E F G) (D H (+ I J))))))))))")[0].semantic_analysis())
+    # print(tag_parser.AbstractSchemeExpr.parse(
+    #     "(LAMBDA X"
+    #     "    (LAMBDA (Y X)"
+    #     "        (LIST"
+    #     "        (IF Y X (IF Z T 2))"
+    #     "        (OR (LAMBDA (X)"
+    #     "                (X Y))"
+    #     "        X Y)"
+    #     "        22"
+    #     "        (D X (+ X Y))"
+    #     "        (LAMBDA C"
+    #     "            (LAMBDA (A B . C)"
+    #     "                (LAMBDA (E F G)"
+    #     "                    (LAMBDA (H I J)"
+    #     "                        (IF (OR A B C) (D E F G) (D H (+ I J))))))))))")[0].semantic_analysis())
 
     print(tag_parser.AbstractSchemeExpr.parse("(lambda (x y . z) (x y z))")[0].semantic_analysis())
     # parse("(a b c)")

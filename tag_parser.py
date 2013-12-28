@@ -83,7 +83,6 @@ def is_const(sexpr):
            is_number(sexpr) or \
            is_string(sexpr) or \
            is_nil(sexpr) or \
-           is_improper_list(sexpr) or \
            is_void(sexpr)
 
 
@@ -368,7 +367,7 @@ def build_lambda(sexpr):
         return LambdaVar(var_list, body)
 
     elif is_lambda_opt(sexpr):
-        l = pair_to_list(sexpr.cdr.car)
+        l = pair_to_list(AbstractSchemeExpr.process(sexpr.cdr.car))
         variables = l[:-1]
         var_remaining = l[-1]
         return LambdaOpt(variables, var_remaining, body)
@@ -435,6 +434,8 @@ class AbstractSchemeExpr:
             return Constant(sexpr)
         elif is_vector(sexpr):
             return Constant(Vector(list(map(AbstractSchemeExpr.process, sexpr.get_value()))))
+        elif is_improper_list(sexpr):
+            return list_to_pair(list(map(AbstractSchemeExpr.process, pair_to_list(sexpr))))
         elif is_variable(sexpr):
             return Variable(sexpr)
         elif is_quote(sexpr):
