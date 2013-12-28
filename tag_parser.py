@@ -528,7 +528,7 @@ class VarFree(Variable):
         super(VarFree, self).__init__(symbol)
 
     def __str__(self):
-        return self.symbol.get_value() + '()'
+        return self.symbol.get_value()
 
 
 class VarParam(Variable):
@@ -537,8 +537,8 @@ class VarParam(Variable):
         self.minor = minor
 
     def __str__(self):
-        return self.symbol.get_value() \
-               + '(' + str(self.minor) + ')'
+        return self.symbol.get_value()
+        # + '(' + str(self.minor) + ')'
 
 
 class VarBound(Variable):
@@ -548,8 +548,8 @@ class VarBound(Variable):
         self.minor = minor
 
     def __str__(self):
-        return self.symbol.get_value() \
-               + '(' + str(self.major) + ', ' + str(self.minor) + ')'
+        return self.symbol.get_value()
+        # + '(' + str(self.major) + ', ' + str(self.minor) + ')'
 
 
 ### Core Forms ###
