@@ -5,13 +5,15 @@ def compile_scheme_file(src, dest):
     s = open(src, 'r')
     d = open(dest, 'w')
     text = s.read().strip()
-    code = ''
+    code = []
 
     while text:
         sexpr, text = AbstractSchemeExpr.parse(text)
-        code += str(sexpr.semantic_analysis()) + '\n'
-    print(code)
-    d.write(code)
+        code += [sexpr.semantic_analysis()]
+
+    output = '\n'.join(map(str, code))
+    print(output)
+    d.write(output)
 
     s.close()
     d.close()
