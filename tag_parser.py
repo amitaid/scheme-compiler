@@ -462,20 +462,17 @@ class AbstractSchemeExpr:
             print('format not supported: ' + str(sexpr))
             return Constant(Void()) #TODO in my opinion we should raise an exception here
 
-    def lexical(self, bounded, params):
-        pass
+    def debruijn(self, bounded=list(), params=list()):
+        return self
 
-    def debruijn(self):
-        return self.lexical([], [])
-
-    def annotate(self, is_tp):
-        pass
-
-    def annotateTC(self):
-        return self.annotate(False)
+    def annotateTC(self, is_tp=false):
+        return self
 
     def semantic_analysis(self):
         return self.debruijn().annotateTC()
+
+    def code_gen(self):
+        return str(self)
 
 ### Constant ###
 class Constant(AbstractSchemeExpr):
@@ -488,12 +485,10 @@ class Constant(AbstractSchemeExpr):
         else:
             return str(self.value)
 
-    def lexical(self, bounded, params):
+    def debruijn(self, bounded=list(), params=list()):
         return Constant(self.value)
-        #return Constant(self.value.lexical(bounded, params))
+        #return Constant(self.value.debruijn(bounded, params))
 
-    def annotate(self, is_tp):
-        return self
 
 ### Variable ###
 class Variable(AbstractSchemeExpr):
@@ -510,7 +505,7 @@ class Variable(AbstractSchemeExpr):
     def __ne__(self, other):
         return not self == other
 
-    def lexical(self, bounded, params):
+    def debruijn(self, bounded=list(), params=list()):
         if self in params:
             return VarParam(self.symbol, params.index(self))
         else:
@@ -520,11 +515,6 @@ class Variable(AbstractSchemeExpr):
             else:
                 return VarFree(self.symbol)
 
-    def annotate(self, is_tp):
-        return self
-
-    def code_gen(self):
-        pass
 
 
 class VarFree(Variable):
@@ -571,15 +561,15 @@ class IfThenElse(AbstractSchemeExpr):
         res += ')'
         return res
 
-    def lexical(self, bounded, params):
-        return IfThenElse(self.predicate.lexical(bounded, params),
-                          self.then_body.lexical(bounded, params),
-                          self.else_body.lexical(bounded, params))
+    def debruijn(self, bounded=list(), params=list()):
+        return IfThenElse(self.predicate.debruijn(bounded, params),
+                          self.then_body.debruijn(bounded, params),
+                          self.else_body.debruijn(bounded, params))
 
-    def annotate(self, is_tp):
-        return IfThenElse(self.predicate.annotate(False),
-                          self.then_body.annotate(is_tp),
-                          self.else_body.annotate(is_tp))
+    def annotateTC(self, is_tp=false):
+        return IfThenElse(self.predicate.annotateTC(False),
+                          self.then_body.annotateTC(is_tp),
+                          self.else_body.annotateTC(is_tp))
 
 
 class Applic(AbstractSchemeExpr):
@@ -590,17 +580,17 @@ class Applic(AbstractSchemeExpr):
     def __str__(self):
         return '(' + ' '.join([str(self.func)] + [str(x) for x in self.args]) + ')'
 
-    def lexical(self, bounded, params):
-        return Applic(self.func.lexical(bounded, params),
-                      [x.lexical(bounded, params) for x in self.args])
+    def debruijn(self, bounded=list(), params=list()):
+        return Applic(self.func.debruijn(bounded, params),
+                      [x.debruijn(bounded, params) for x in self.args])
 
-    def annotate(self, is_tp):
+    def annotateTC(self, is_tp=false):
         if is_tp:
-            return ApplicTP(self.func.annotate(False),
-                            [x.annotate(False) for x in self.args])
+            return ApplicTP(self.func.annotateTC(False),
+                            [x.annotateTC(False) for x in self.args])
         else:
-            return Applic(self.func.annotate(False),
-                          [x.annotate(False) for x in self.args])
+            return Applic(self.func.annotateTC(False),
+                          [x.annotateTC(False) for x in self.args])
 
 
 class ApplicTP(Applic):
@@ -619,12 +609,12 @@ class Or(AbstractSchemeExpr):
     def __str__(self):
         return '(' + ' '.join(['or'] + [str(x) for x in self.elements]) + ')'
 
-    def lexical(self, bounded, params):
-        return Or([x.lexical(bounded, params) for x in self.elements])
+    def debruijn(self, bounded=list(), params=list()):
+        return Or([x.debruijn(bounded, params) for x in self.elements])
 
-    def annotate(self, is_tp):
-        return Or([x.annotate(False) for x in self.elements[:-1]] \
-                  + [self.elements[-1].annotate(is_tp)])
+    def annotateTC(self, is_tp=false):
+        return Or([x.annotateTC(False) for x in self.elements[:-1]] \
+                  + [self.elements[-1].annotateTC(is_tp)])
 
 
 class Def(AbstractSchemeExpr):
@@ -635,12 +625,12 @@ class Def(AbstractSchemeExpr):
     def __str__(self):
         return '(define ' + str(self.name) + ' ' + str(self.value) + ')'
 
-    def lexical(self, bounded, params):
-        return Def(self.name.lexical(bounded, params),
-                   self.value.lexical(bounded, params))
+    def debruijn(self, bounded=list(), params=list()):
+        return Def(self.name.debruijn(bounded, params),
+                   self.value.debruijn(bounded, params))
 
-    def annotate(self, is_tp):
-        return Def(self.name, self.value.annotate(False))
+    def annotateTC(self, is_tp=false):
+        return Def(self.name, self.value.annotateTC(False))
 
         ### Lambda Forms ###
 
@@ -657,12 +647,12 @@ class LambdaSimple(AbstractLambda):
     def __str__(self):
         return '(lambda (' + ' '.join([str(x) for x in self.variables]) + ') ' + str(self.body) + ')'
 
-    def lexical(self, bounded, params):
+    def debruijn(self, bounded=list(), params=list()):
         return LambdaSimple(self.variables,
-                            self.body.lexical([params] + bounded, self.variables))
+                            self.body.debruijn([params] + bounded, self.variables))
 
-    def annotate(self, is_tp):
-        return LambdaSimple(self.variables, self.body.annotate(True))
+    def annotateTC(self, is_tp=false):
+        return LambdaSimple(self.variables, self.body.annotateTC(True))
 
 
 class LambdaVar(AbstractLambda):
@@ -673,12 +663,12 @@ class LambdaVar(AbstractLambda):
     def __str__(self):
         return '(lambda ' + str(self.var_list) + ' ' + str(self.body) + ')'
 
-    def lexical(self, bounded, params):
+    def debruijn(self, bounded=list(), params=list()):
         return LambdaVar(self.var_list,
-                         self.body.lexical([params] + bounded, [self.var_list]))
+                         self.body.debruijn([params] + bounded, [self.var_list]))
 
-    def annotate(self, is_tp):
-        return LambdaVar(self.var_list, self.body.annotate(True))
+    def annotateTC(self, is_tp=false):
+        return LambdaVar(self.var_list, self.body.annotateTC(True))
 
 
 class LambdaOpt(AbstractLambda):
@@ -691,10 +681,10 @@ class LambdaOpt(AbstractLambda):
         return '(lambda (' + ' '.join([str(x) for x in self.variables]) + \
                ' . ' + str(self.var_list) + ') ' + str(self.body) + ')'
 
-    def lexical(self, bounded, params):
+    def debruijn(self, bounded=list(), params=list()):
         return LambdaOpt(self.variables, self.var_list,
-                         self.body.lexical([params] + bounded,
-                                           self.variables + [self.var_list]))
+                         self.body.debruijn([params] + bounded,
+                                            self.variables + [self.var_list]))
 
-    def annotate(self, is_tp):
-        return LambdaOpt(self.variables, self.var_list, self.body.annotate(True))
+    def annotateTC(self, is_tp=false):
+        return LambdaOpt(self.variables, self.var_list, self.body.annotateTC(True))
