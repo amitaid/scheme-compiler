@@ -9,7 +9,7 @@ def compile_scheme_file(src, dest):
 
     while text:
         sexpr, text = AbstractSchemeExpr.parse(text)
-        code += [sexpr.semantic_analysis()]
+        code.append(sexpr.semantic_analysis())
 
     output = '\n'.join(map(str, code))
     print(output)
