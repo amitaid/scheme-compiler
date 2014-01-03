@@ -11,7 +11,7 @@ def compile_scheme_file(src, dest):
         sexpr, text = AbstractSchemeExpr.parse(text)
         code.append(sexpr.semantic_analysis())
 
-    output = '\n'.join(map(str, code))
+    output = '\n'.join(map(str, code)) + '\n'
     print(output)
     d.write(output)
 

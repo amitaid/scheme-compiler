@@ -1,12 +1,7 @@
 CC		:=	gcc -m32
 CC_FLAGS	:=	-Wall -g
-ASM		:=	nasm
-ASM_FLAGS	:=	-f elf -g
-LINK		:=	ld
 
-SRC_DIR		:=	src
 OBJ_DIR		:=	obj
-LIST_DIR	:=	list
 BIN_DIR		:=	bin
 
 all: task1 task2
