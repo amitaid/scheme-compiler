@@ -1,7 +1,7 @@
-CC		:=	gcc
-CC_FLAGS	:=	-w
+CC              :=      gcc
+CC_FLAGS        :=      -w
 
 ARCH := arch
 
 all: $(src)
-	$(CC) $(CC_FLAGS) $(src) -o $(dest) -I$(ARCH)
+        $(CC) $(CC_FLAGS) $(src) -o $(dest) -I$(ARCH)
