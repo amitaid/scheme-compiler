@@ -1,4 +1,4 @@
-import tag_parser
+from tag_parser import AbstractSchemeExpr
 
 
 def compile_scheme_file(src, dest):
@@ -8,10 +8,10 @@ def compile_scheme_file(src, dest):
     code = ''
 
     while text:
-        sexpr, text = tag_parser.AbstractSchemeExpr.parse(text)
+        sexpr, text = AbstractSchemeExpr.parse(text)
         code += str(sexpr.semantic_analysis()) + '\n'
-    print(code.strip())
-    d.write(code.strip())
+    print(code)
+    d.write(code)
 
     s.close()
     d.close()
