@@ -1,4 +1,5 @@
 import tag_parser
+import sexprs
 
 
 class ExprStats:
@@ -9,7 +10,7 @@ class ExprStats:
 
     @staticmethod
     def count(e):
-        if not (isinstance(e, object)) or isinstance(e, (str, bool, int, float)):
+        if not (isinstance(e, object)) or isinstance(e, (str, bool, int, float, sexprs.Nil)):
             return
         elif type(e) is list:
             for x in e:

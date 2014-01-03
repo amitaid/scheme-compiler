@@ -523,6 +523,9 @@ class Variable(AbstractSchemeExpr):
     def annotate(self, is_tp):
         return self
 
+    def code_gen(self):
+        pass
+
 
 class VarFree(Variable):
     def __init__(self, symbol):
