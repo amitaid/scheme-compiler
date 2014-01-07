@@ -1,5 +1,7 @@
 from reader import *
 
+symbol_list = []
+
 
 class AbstractSexpr:
     def get_value(self):
@@ -96,6 +98,7 @@ class Symbol(AbstractSexpr):
     def __init__(self, symbol_str):
         self.value = symbol_str
         self.length = len(symbol_str)
+        symbol_list.append(self)
 
     def __str__(self):
         return self.value

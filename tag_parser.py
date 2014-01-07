@@ -9,15 +9,25 @@ primitive_ops = ['+', '-']
 gen_sym_counter = 0
 
 
-class InvalidSyntax(Exception):
-    pass
-
-
 def gen_sym():
     global gen_sym_counter
     new_gen_sym = '@' + str(gen_sym_counter)
     gen_sym_counter += 1
     return Symbol(new_gen_sym)
+
+
+label_index = 0
+
+
+def gen_label():
+    global label_index
+    new_label = "L" + str(label_index)
+    label_index += 1
+    return new_label
+
+
+class InvalidSyntax(Exception):
+    pass
 
 
 def is_void(sexpr):
@@ -472,7 +482,7 @@ class AbstractSchemeExpr:
         return self.debruijn().annotateTC()
 
     def code_gen(self):
-        return str(self)
+        pass
 
 ### Constant ###
 class Constant(AbstractSchemeExpr):
@@ -534,6 +544,9 @@ class VarParam(Variable):
         return self.symbol.get_value()
         # + '(' + str(self.minor) + ')'
 
+    def code_gen(self):
+        return "MOV(R0, STACK(FP-5-" + str(self.minor) + "));\n"
+
 
 class VarBound(Variable):
     def __init__(self, symbol, major, minor):
@@ -570,6 +583,11 @@ class IfThenElse(AbstractSchemeExpr):
         return IfThenElse(self.predicate.annotateTC(False),
                           self.then_body.annotateTC(is_tp),
                           self.else_body.annotateTC(is_tp))
+
+    def code_gen(self):
+        code = self.predicate.code_gen() + '\n'
+        code += 'CMP R0, SOB_FALSE;'
+        #TODO finish ifthenelse code_gen
 
 
 class Applic(AbstractSchemeExpr):

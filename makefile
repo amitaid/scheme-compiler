@@ -1,7 +1,11 @@
+.SUFFIXES:
+.SUFFIXES: .asm
 CC              :=      gcc
-CC_FLAGS        :=      -w
-
+CC_FLAGS        :=      -w -c
 ARCH := arch
+TARGET := $(wildcard *.asm)
 
-all: $(src)
-	$(CC) $(CC_FLAGS) $(src) -o $(dest) -I$(ARCH)
+all: $(TARGET)
+
+%: %.asm
+	$(CC) $(CC_FLAGS) -o $* $@ -I$(ARCH)
