@@ -9,6 +9,7 @@
 #define T_BOOL 		741553
 #define T_CHAR 		181048
 #define T_INTEGER 	945311
+#define T_FRACTION  123456  /* Added fraction type */
 #define T_STRING 	799345
 #define T_SYMBOL 	368031
 #define T_PAIR 		885397
