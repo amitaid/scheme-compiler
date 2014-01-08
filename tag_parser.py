@@ -585,9 +585,17 @@ class IfThenElse(AbstractSchemeExpr):
                           self.else_body.annotateTC(is_tp))
 
     def code_gen(self):
+        false_label = gen_label()
+        exit_label = gen_label()
         code = self.predicate.code_gen() + '\n'
-        code += 'CMP R0, SOB_FALSE;'
-        #TODO finish ifthenelse code_gen
+        code += '  CMP(R0, SOB_FALSE);\n'
+        code += '  JUMP_EQ(' + false_label + ');\n'
+        code += self.then_body.code_gen()
+        code += '  JUMP(' + exit_label + ');\n'
+        code += ' ' + false_label + ":\n"
+        code += self.else_body.code_gen()
+        code += ' ' + exit_label + ":\n"
+        return code
 
 
 class Applic(AbstractSchemeExpr):
