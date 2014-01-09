@@ -46,6 +46,14 @@ def is_number(sexpr):
     return isinstance(sexpr, AbstractNumber)
 
 
+def is_integer(sexpr):
+    return isinstance(sexpr, Integer)
+
+
+def is_fraction(sexpr):
+    return isinstance(sexpr, Fraction)
+
+
 def is_symbol(sexpr):
     return isinstance(sexpr, Symbol)
 
