@@ -1,11 +1,5 @@
-.SUFFIXES:
-.SUFFIXES: .asm
-CC              :=      gcc
-CC_FLAGS        :=      -w -c
-ARCH := arch
-TARGET := $(wildcard *.asm)
-
-all: $(TARGET)
+SUFFIXES: .asm
 
 %: %.asm
-	$(CC) $(CC_FLAGS) -o $* $@ -I$(ARCH)
+
+gcc -x c -o $@ $<
