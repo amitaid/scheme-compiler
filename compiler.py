@@ -57,8 +57,9 @@ def compile_scheme_file(src, dest):
     d.write(generate_header())
     while text:
         sexpr, text = AbstractSchemeExpr.parse(text)
+        sexpr = sexpr.semantic_analysis()
         print(str(sexpr))
-        d.write(str(sexpr.semantic_analysis()) + '\n')
+        d.write(str(sexpr) + '\n')
 
     d.write(generate_footer())
 
