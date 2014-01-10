@@ -687,6 +687,11 @@ class LambdaSimple(AbstractLambda):
     def annotateTC(self, is_tp=false):
         return LambdaSimple(self.variables, self.body.annotateTC(True))
 
+        # def code_gen(self):
+        #     label = gen_label()
+        #     code = '  PUSH(IMM(' + str(len(self.variables)+1) + ');'
+        #     code += '  CALL(MALLOC);'
+
 
 class LambdaVar(AbstractLambda):
     def __init__(self, var_list, body):
