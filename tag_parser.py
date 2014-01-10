@@ -596,7 +596,7 @@ class IfThenElse(AbstractSchemeExpr):
         false_label = gen_label()
         exit_label = gen_label()
         code = self.predicate.code_gen() + '\n'
-        code += '  CMP(R0, SOB_FALSE);\n'
+        code += '  CMP(R0, IMM(0));\n'
         code += '  JUMP_EQ(' + false_label + ');\n'
         code += self.then_body.code_gen()
         code += '  JUMP(' + exit_label + ');\n'
