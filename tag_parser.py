@@ -20,7 +20,7 @@ label_index = 0
 
 def gen_label():
     global label_index
-    new_label = 'L' + str(label_index)
+    new_label = str(label_index)
     label_index += 1
     return new_label
 
@@ -591,8 +591,9 @@ class IfThenElse(AbstractSchemeExpr):
                           self.else_body.annotateTC(is_tp))
 
     def code_gen(self):
-        false_label = gen_label()
-        exit_label = gen_label()
+        label = gen_label()
+        false_label = 'L_DIF_' + label
+        exit_label = 'L_EXIT_' + label
         code = self.predicate.code_gen() + '\n'
         code += '  CMP(R0, IMM(0));\n'
         code += '  JUMP_EQ(' + false_label + ');\n'
