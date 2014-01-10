@@ -1,5 +1,8 @@
+from fractions import gcd
+
 from pc import *
 import sexprs
+
 
 ps = ParserStack()
 
@@ -105,16 +108,21 @@ integer = ps. \
     parser(signed_int). \
     parser(unsigned_int). \
     disj(). \
-    pack(lambda m: sexprs.Integer(m)). \
+    pack(lambda m: sexprs.Integer(int(m, 0))). \
     done()
 
 fraction = ps. \
-    parser(integer). \
+    parser(signed_int). \
+    parser(unsigned_int). \
+    disj(). \
     parser(pcChar('/')). \
     parser(unsigned_int_nz). \
-    pack(lambda m: sexprs.Integer(m)). \
     catens(3). \
-    pack(lambda m: sexprs.Fraction(m[0], m[2])). \
+    pack(lambda m: (int(m[0], 0), int(m[2], 0))). \
+    pack(lambda m: (m[0], m[1], gcd(m[0], m[1]))). \
+    pack(lambda m: (int(m[0] / m[2]), int(m[1] / m[2]))). \
+    pack(
+    lambda m: sexprs.Fraction(sexprs.Integer(m[0]), sexprs.Integer(m[1])) if not m[1] == 1 else sexprs.Integer(m[0])). \
     done()
 
 ######### Symbol ##########
