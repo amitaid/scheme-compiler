@@ -1,10 +1,8 @@
 from tag_parser import AbstractSchemeExpr
 
 
-def generate_c_file(name):
-    f = open(name + '.c', 'w')
-
-    f.write("""#include <stdio.h>
+def generate_header():
+    return """#include <stdio.h>
 #include <stdlib.h>
 
 #include "cisc.h"
@@ -32,31 +30,35 @@ int main()
 #include "system.lib"
 
  CONTINUE:
-#include \"""" + name + """.asm\"
+"""
 
+
+def generate_footer():
+    return """
   STOP_MACHINE;
 
   return 0;
 }
-""")
-    f.close()
+"""
 
 
 def compile_scheme_file(src, dest):
     name = '.'.join(dest.split('.')[:-1])
-    generate_c_file(name)
 
     s = open(src, 'r')
     d = open(dest, 'w')
     text = s.read().strip()
     # code = []
 
+    d.write(generate_header())
     while text:
         sexpr, text = AbstractSchemeExpr.parse(text)
         print(str(sexpr))
         d.write(str(sexpr.semantic_analysis()) + '\n')
 
         #code.append(sexpr.semantic_analysis())
+
+    d.write(generate_footer())
 
     # print(symbol_list)
     #

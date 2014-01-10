@@ -21,7 +21,7 @@ label_index = 0
 
 def gen_label():
     global label_index
-    new_label = "L" + str(label_index)
+    new_label = 'L' + str(label_index)
     label_index += 1
     return new_label
 
@@ -498,7 +498,7 @@ class Constant(AbstractSchemeExpr):
         self.value = value
 
     def __str__(self):
-        if not is_const(self.value) and not is_vector(self.value):
+        if not is_const(self.value) and not is_vector(self.value) and not is_pair(self.value):
             return "'" + str(self.value)
         else:
             return str(self.value)
