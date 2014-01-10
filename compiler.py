@@ -29,9 +29,16 @@ int main()
 #include "string.lib"
 #include "system.lib"
 
+  CALL(MAKE_SOB_VOID);  /* SOB_Void = ADDR(1) */
+  CALL(MAKE_SOB_NIL);   /* SOB_Nil = ADDR(2) */
+  PUSH(IMM(0));
+  CALL(MAKE_SOB_BOOL);  /* SOB_False = ADDR(3) */
+  DROP(1);
+
  CONTINUE:
 """
 
+#TODO: Add basic functions and includes.
 
 def generate_footer():
     return """
@@ -43,20 +50,15 @@ def generate_footer():
 
 
 def compile_scheme_file(src, dest):
-    name = '.'.join(dest.split('.')[:-1])
-
     s = open(src, 'r')
     d = open(dest, 'w')
     text = s.read().strip()
-    # code = []
 
     d.write(generate_header())
     while text:
         sexpr, text = AbstractSchemeExpr.parse(text)
         print(str(sexpr))
         d.write(str(sexpr.semantic_analysis()) + '\n')
-
-        #code.append(sexpr.semantic_analysis())
 
     d.write(generate_footer())
 

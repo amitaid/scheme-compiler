@@ -1,5 +1,4 @@
 from sexprs import *
-from reader import list_to_pair
 
 key_words = ['DEFINE', 'LAMBDA', 'λ', 'IF', 'AND', 'OR', 'COND']
 primitive_ops = ['+', '-']
@@ -532,7 +531,6 @@ class Variable(AbstractSchemeExpr):
                 return VarBound(self.symbol, search[0][0], search[0][1])
             else:
                 return VarFree(self.symbol)
-
 
 
 class VarFree(Variable):
