@@ -14,5 +14,4 @@
   SUB(R1, IMM(1));
   JUMP(PLUS_LOOP);
  PLUS_EXIT:
-  POP(FP);
   RETURN;
