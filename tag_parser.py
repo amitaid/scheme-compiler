@@ -570,9 +570,9 @@ class VarBound(Variable):
         # + '(' + str(self.major) + ', ' + str(self.minor) + ')'
 
     def code_gen(self):
-        code = 'MOV(R0, FPARG(IMM(3)));\n'
-        code += 'MOV(R0, INDD(R0, IMM(' + str(self.major) + ')));\n'
-        code += 'MOV(R0, INDD(R0, IMM(' + str(self.minor) + ')));\n'
+        code = '  MOV(R0, FPARG(IMM(3)));\n'
+        code += '  MOV(R0, INDD(R0, IMM(' + str(self.major) + ')));\n'
+        code += '  MOV(R0, INDD(R0, IMM(' + str(self.minor) + ')));\n'
         return code
 
 
@@ -743,8 +743,16 @@ class LambdaSimple(AbstractLambda):
 
         # def code_gen(self):
         #     label = gen_label()
-        #     code = '  PUSH(IMM(' + str(len(self.variables)+1) + ');'
-        #     code += '  CALL(MALLOC);'
+        #     env_copy_label = 'L_ENV_LOOP_' + label
+        #     closure_label = 'L_CLOS_CODE_' + label
+        #     closure_exit_label = 'L_CLOS_EXIT_' + label
+        #
+        #     code = '  PUSH(IMM(' + str(len(self.env_depth)+1) + ');\n'
+        #     code += '  CALL(MALLOC);\n'
+        #     code += '  MOV(R1, R0);\n'
+        #     code += '  MOV(R2, IMM(' + self.env_depth + '));\n'
+        #     code += ' ' + env_copy_label + ':\n'
+        #     code += ''
 
 
 class LambdaVar(AbstractLambda):
