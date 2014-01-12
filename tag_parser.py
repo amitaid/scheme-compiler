@@ -569,6 +569,12 @@ class VarBound(Variable):
         return self.symbol.get_value()
         # + '(' + str(self.major) + ', ' + str(self.minor) + ')'
 
+    def code_gen(self):
+        code = 'MOV(R0, FPARG(IMM(3)));\n'
+        code += 'MOV(R0, INDD(R0, IMM(' + str(self.major) + ')));\n'
+        code += 'MOV(R0, INDD(R0, IMM(' + str(self.minor) + ')));\n'
+        return code
+
 
 ### Core Forms ###
 
