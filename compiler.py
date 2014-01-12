@@ -54,14 +54,16 @@ def compile_scheme_file(src, dest):
     s = open(src, 'r')
     d = open(dest, 'w')
     text = s.read().strip()
+    expressions = []
 
-    d.write(generate_header())
     while text:
         sexpr, text = AbstractSchemeExpr.parse(text)
-        sexpr = sexpr.semantic_analysis()
-        print(str(sexpr))
-        d.write(str(sexpr) + '\n')
+        expressions.append(sexpr.semantic_analysis())
 
+    d.write(generate_header())
+    for expr in expressions:
+        print(str(expr))
+        d.write(str(expr) + '\n')
     d.write(generate_footer())
 
     # print(symbol_list)

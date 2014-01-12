@@ -418,10 +418,9 @@ class AbstractSchemeExpr:
     @staticmethod
     def parse(input_string):
         sexpr, remaining = AbstractSexpr.readFromString(input_string)
-        #print(sexpr)
-        expanded = AbstractSchemeExpr.expand(sexpr)
-        scheme_expr = AbstractSchemeExpr.process(expanded)
-        return scheme_expr, remaining
+        sexpr = AbstractSchemeExpr.expand(sexpr)
+        sexpr = AbstractSchemeExpr.process(sexpr)
+        return sexpr, remaining
 
     @staticmethod
     def expand(sexpr):
@@ -486,10 +485,16 @@ class AbstractSchemeExpr:
         return self
 
     def semantic_analysis(self):
-        return self.debruijn().annotateTC()
+        res = self.debruijn().annotateTC()
+        res.analyze_env()
+        return res
+
+    def analyze_env(self, env_count=0, arg_count=0):
+        pass
 
     def code_gen(self):
         pass
+
 
 ### Constant ###
 class Constant(AbstractSchemeExpr):
@@ -590,6 +595,11 @@ class IfThenElse(AbstractSchemeExpr):
                           self.then_body.annotateTC(is_tp),
                           self.else_body.annotateTC(is_tp))
 
+    def analyze_env(self, env_count=0, arg_count=0):
+        self.predicate.analyze_env(env_count, arg_count)
+        self.then_body.analyze_env(env_count, arg_count)
+        self.else_body.analyze_env(env_count, arg_count)
+
     def code_gen(self):
         label = gen_label()
         false_label = 'L_ELSE_' + label
@@ -625,6 +635,11 @@ class Applic(AbstractSchemeExpr):
             return Applic(self.func.annotateTC(False),
                           [x.annotateTC(False) for x in self.args])
 
+    def analyze_env(self, env_count=0, arg_count=0):
+        self.func.analyze_env(env_count, arg_count),
+        for x in self.args:
+            x.analyze_env(env_count, arg_count)
+
 
 class ApplicTP(Applic):
     def __init__(self, func, args):
@@ -633,6 +648,11 @@ class ApplicTP(Applic):
     def __str__(self):
         return super(ApplicTP, self).__str__()
         # + 'TP'
+
+    def analyze_env(self, env_count=0, arg_count=0):
+        self.func.analyze_env(env_count, arg_count),
+        for x in self.args:
+            x.analyze_env(env_count, arg_count)
 
 
 class Or(AbstractSchemeExpr):
@@ -649,6 +669,10 @@ class Or(AbstractSchemeExpr):
         return Or([x.annotateTC(False) for x in self.elements[:-1]] \
                   + [self.elements[-1].annotateTC(is_tp)])
 
+    def analyze_env(self, env_count=0, arg_count=0):
+        for x in self.elements:
+            x.analyze_env(env_count, arg_count)
+
     def code_gen(self):
         label = gen_label()
         exit_label = 'L_OR_EXIT_' + label
@@ -659,6 +683,7 @@ class Or(AbstractSchemeExpr):
             code += '  JUMP_NE(' + exit_label + ');\n'
         code += self.elements[-1].code_gen()
         code += ' ' + exit_label + ':\n'
+        return code
 
 
 class Def(AbstractSchemeExpr):
@@ -674,10 +699,13 @@ class Def(AbstractSchemeExpr):
                    self.value.debruijn(bounded, params))
 
     def annotateTC(self, is_tp=false):
-        return Def(self.name, self.value.annotateTC(False))
+        return Def(self.name,
+                   self.value.annotateTC(False))
+
+    def analyze_env(self, env_count=0, arg_count=0):
+        self.value.analyze_env(env_count, arg_count)
 
         ### Lambda Forms ###
-
 
 class AbstractLambda(AbstractSchemeExpr):
     pass
@@ -687,16 +715,25 @@ class LambdaSimple(AbstractLambda):
     def __init__(self, variables, body):
         self.variables = variables
         self.body = body
+        self.env_depth = 0
+        self.parent_args = 0
 
     def __str__(self):
-        return '(lambda (' + ' '.join([str(x) for x in self.variables]) + ') ' + str(self.body) + ')'
+        return '(lambda (' + ' '.join([str(x) for x in self.variables]) + ') ' + \
+               str(self.body) + '){' + str(self.env_depth) + '}'
 
     def debruijn(self, bounded=list(), params=list()):
         return LambdaSimple(self.variables,
                             self.body.debruijn([params] + bounded, self.variables))
 
     def annotateTC(self, is_tp=false):
-        return LambdaSimple(self.variables, self.body.annotateTC(True))
+        return LambdaSimple(self.variables,
+                            self.body.annotateTC(True))
+
+    def analyze_env(self, env_count=0, arg_count=0):
+        self.env_depth = env_count
+        self.parent_args = arg_count
+        self.body.analyze_env(env_count + 1, len(self.variables))
 
         # def code_gen(self):
         #     label = gen_label()
@@ -708,6 +745,8 @@ class LambdaVar(AbstractLambda):
     def __init__(self, var_list, body):
         self.var_list = var_list
         self.body = body
+        self.env_depth = 0
+        self.parent_args = 0
 
     def __str__(self):
         return '(lambda ' + str(self.var_list) + ' ' + str(self.body) + ')'
@@ -719,12 +758,19 @@ class LambdaVar(AbstractLambda):
     def annotateTC(self, is_tp=false):
         return LambdaVar(self.var_list, self.body.annotateTC(True))
 
+    def analyze_env(self, env_count=0, arg_count=0):
+        self.env_depth = env_count
+        self.parent_args = arg_count
+        self.body.analyze_env(env_count + 1, 1)
+
 
 class LambdaOpt(AbstractLambda):
     def __init__(self, variables, var_list, body):
         self.variables = variables
         self.var_list = var_list
         self.body = body
+        self.env_depth = 0
+        self.parent_args = 0
 
     def __str__(self):
         return '(lambda (' + ' '.join([str(x) for x in self.variables]) + \
@@ -737,3 +783,8 @@ class LambdaOpt(AbstractLambda):
 
     def annotateTC(self, is_tp=false):
         return LambdaOpt(self.variables, self.var_list, self.body.annotateTC(True))
+
+    def analyze_env(self, env_count=0, arg_count=0):
+        self.env_depth = env_count
+        self.parent_args = arg_count
+        self.body.analyze_env(env_count + 1, len(self.variables) + 1)
