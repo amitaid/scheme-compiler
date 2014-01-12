@@ -34,6 +34,7 @@ int main()
   PUSH(IMM(0));
   CALL(MAKE_SOB_BOOL);  /* SOB_False = ADDR(3) */
   DROP(1);
+#define SOB_FALSE INDD(3,1)
 
  CONTINUE:
 """

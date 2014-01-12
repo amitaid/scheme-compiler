@@ -592,10 +592,10 @@ class IfThenElse(AbstractSchemeExpr):
 
     def code_gen(self):
         label = gen_label()
-        false_label = 'L_DIF_' + label
-        exit_label = 'L_EXIT_' + label
+        false_label = 'L_ELSE_' + label
+        exit_label = 'L_IF_EXIT_' + label
         code = self.predicate.code_gen() + '\n'
-        code += '  CMP(R0, IMM(0));\n'
+        code += '  CMP(R0, SOB_FALSE);\n'
         code += '  JUMP_EQ(' + false_label + ');\n'
         code += self.then_body.code_gen()
         code += '  JUMP(' + exit_label + ');\n'
@@ -648,6 +648,17 @@ class Or(AbstractSchemeExpr):
     def annotateTC(self, is_tp=false):
         return Or([x.annotateTC(False) for x in self.elements[:-1]] \
                   + [self.elements[-1].annotateTC(is_tp)])
+
+    def code_gen(self):
+        label = gen_label()
+        exit_label = 'L_OR_EXIT_' + label
+        code = ''
+        for element in self.elements[:-1]:
+            code += element.code_gen()
+            code += '  CMP(R0, SOB_FALSE);\n'
+            code += '  JUMP_NE(' + exit_label + ');\n'
+        code += self.elements[-1].code_gen()
+        code += ' ' + exit_label + ':\n'
 
 
 class Def(AbstractSchemeExpr):
