@@ -649,29 +649,30 @@ class Applic(AbstractSchemeExpr):
     def code_gen(self):
         label = gen_label();
         code = ''
+
         for arg in reversed(self.args):
             code += arg.code_gen()
             code += '  PUSH(R0);\''
         code += '  PUSH(IMM(" + len(self.args) + "));\n'
         code += self.func.code_gen()
 
-        code += '  MOV(R1,R0);'
-        code += '  PUSH(R0);'
-        code += '  CALL(IS_SOB_CLOSURE);'
-        code += '  DROP(1);'
-        code += '  CMP(R0,IMM(1));'
-        code += '  JUMP_EQ(L_APPLIC_EXIT_' +label + ');'
+        code += '  MOV(R1,R0);\n'
+        code += '  PUSH(R0);\n'
+        code += '  CALL(IS_SOB_CLOSURE);\n'
+        code += '  DROP(1);\n'
+        code += '  CMP(R0,IMM(1));\n'
+        code += '  JUMP_EQ(L_APPLIC_EXIT_' + label + ');\n'
 
         #TODO ERROR
 
-        code += ' L_APPLIC_EXIT_' +label + ':'
-        code += '  MOV(R0,R1);'
-        code += '  PUSH(INDD(R0,1));'
-        code += '  CALL(INDD(R0,2));'
-        code += '  DROP(1);'
-        code += '  POP(R1);'
-        code += '  DROP(R1)'
-        code += '  RETURN;' #TODO MAYBE THIS LINE IS NOT NEEDED
+        code += ' L_APPLIC_EXIT_' + label + ':\n'
+        code += '  MOV(R0,R1);\n'
+        code += '  PUSH(INDD(R0,1));\n'
+        code += '  CALL(INDD(R0,2));\n'
+        code += '  DROP(1);\n'
+        code += '  POP(R1);\n'
+        code += '  DROP(R1)\n'
+        code += '  RETURN;\n' #TODO MAYBE THIS LINE IS NOT NEEDED
         return code
 
 
@@ -687,6 +688,34 @@ class ApplicTP(Applic):
         self.func.analyze_env(env_count, arg_count),
         for x in self.args:
             x.analyze_env(env_count, arg_count)
+
+    def code_gen(self):
+        label = gen_label();
+        code = ''
+
+        for arg in reversed(self.args):
+            code += arg.code_gen()
+            code += '  PUSH(R0);\''
+        code += '  PUSH(IMM(" + len(self.args) + "));\n'
+        code += self.func.code_gen()
+
+        code += '  MOV(R1,R0);\n'
+        code += '  PUSH(R0);\n'
+        code += '  CALL(IS_SOB_CLOSURE);\n'
+        code += '  DROP(1);\n'
+        code += '  CMP(R0,IMM(1));V'
+        code += '  JUMP_EQ(L_APPLIC_EXIT_' + label + ');\n'
+
+        #TODO ERROR
+
+        code += ' L_APPLIC_TC_EXIT_' + label + ':\n'
+        code += '  MOV(R0,R1);\n'
+        code += '  PUSH(INDD(R0,IMM(1)));\n'  # here the diffenece from applic starts
+        code += '  PUSH(FPARG(-1));\n'
+        code += '  MOV(R1,FPARG(-2));\n'
+        code += '  MOV(FP,R1);\n'
+        code += '  JUMP(INDD(R0,2));\n'
+        return code
 
 
 class Or(AbstractSchemeExpr):
