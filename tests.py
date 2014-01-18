@@ -26,7 +26,7 @@ def main():
     #     "                    (LAMBDA (H I J)"
     #     "                        (IF (OR A B C) (D E F G) (D H (+ I J))))))))))")[0].semantic_analysis())
 
-    print(tag_parser.AbstractSchemeExpr.parse("(lambda (x y . z) (x y z))")[0].semantic_analysis())
+    print(tag_parser.AbstractSchemeExpr.parse("'1")[0].semantic_analysis())
     # parse("(a b c)")
     #print(AbstractSchemeExpr.parse("(a b . c)")[0])
     #print(AbstractSchemeExpr.parse('(lambda (x) (if 1 (lambda (x) (+ x 1)) (lambda () x)))')[0].debruijn().annotateTC())

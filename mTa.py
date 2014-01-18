@@ -85,6 +85,8 @@ index = 1
 for i in tests:
     try:
         m, r = parse(i[0])
+        print(m)
+        print(r)
         if r != '':
             print("Test " + str(index) + " failed. didn't parse entire string. Left to parse: " + str(r))
         elif str(i[2](str(m).lower(), i[0])) != "#t":

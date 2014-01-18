@@ -476,7 +476,7 @@ class AbstractSchemeExpr:
             return build_applic(sexpr)
         else:
             print('format not supported: ' + str(sexpr))
-            return Constant(Void()) #TODO in my opinion we should raise an exception here
+            return Constant(Void()) # TODO in my opinion we should raise an exception here
 
     def debruijn(self, bounded=list(), params=list()):
         return self
@@ -646,6 +646,10 @@ class Applic(AbstractSchemeExpr):
         for x in self.args:
             x.analyze_env(env_count, arg_count)
 
+            #def code_gen(self):
+            #    l;., ,kj
+            #    return code
+
 
 class ApplicTP(Applic):
     def __init__(self, func, args):
@@ -712,6 +716,7 @@ class Def(AbstractSchemeExpr):
         self.value.analyze_env(env_count, arg_count)
 
         ### Lambda Forms ###
+
 
 class AbstractLambda(AbstractSchemeExpr):
     pass
