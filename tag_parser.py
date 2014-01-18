@@ -646,9 +646,33 @@ class Applic(AbstractSchemeExpr):
         for x in self.args:
             x.analyze_env(env_count, arg_count)
 
-            #def code_gen(self):
-            #    l;., ,kj
-            #    return code
+    def code_gen(self):
+        label = gen_label();
+        code = ''
+        for arg in reversed(self.args):
+            code += arg.code_gen()
+            code += '  PUSH(R0);\''
+        code += '  PUSH(IMM(" + len(self.args) + "));\n'
+        code += self.func.code_gen()
+
+        code += '  MOV(R1,R0);'
+        code += '  PUSH(R0);'
+        code += '  CALL(IS_SOB_CLOSURE);'
+        code += '  DROP(1);'
+        code += '  CMP(R0,IMM(1));'
+        code += '  JUMP_EQ(L_APPLIC_EXIT_' +label + ');'
+
+        #TODO ERROR
+
+        code += ' L_APPLIC_EXIT_' +label + ':'
+        code += '  MOV(R0,R1);'
+        code += '  PUSH(INDD(R0,1));'
+        code += '  CALL(INDD(R0,2));'
+        code += '  DROP(1);'
+        code += '  POP(R1);'
+        code += '  DROP(R1)'
+        code += '  RETURN;' #TODO MAYBE THIS LINE IS NOT NEEDED
+        return code
 
 
 class ApplicTP(Applic):
@@ -685,7 +709,7 @@ class Or(AbstractSchemeExpr):
 
     def code_gen(self):
         label = gen_label()
-        exit_label = 'L_OR_EXIT_' + label
+        exit_label = ' L_OR_EXIT_' + label + ':'  # TODO I ADDED THE COLONS IN THE END
         code = ''
         for element in self.elements[:-1]:
             code += element.code_gen()
