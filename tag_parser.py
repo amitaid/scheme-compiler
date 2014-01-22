@@ -800,71 +800,71 @@ class LambdaSimple(AbstractLambda):
         self.parent_args = arg_count
         self.body.analyze_env(env_count + 1, len(self.variables))
 
-        def code_gen(self):
-            label = gen_label()
-            env_copy_label = 'L_ENV_LOOP_' + label
-            current_args_copy_label = 'L_ARGS_LOOP_' + label
-            build_closure_label = 'L_BUILD_CLOS_' + label
-            closure_code_label = 'L_CLOS_CODE_' + label
-            closure_exit_label = 'L_CLOS_EXIT_' + label
+    def code_gen(self):
+        label = gen_label()
+        env_copy_label = 'L_ENV_LOOP_' + label
+        current_args_copy_label = 'L_ARGS_LOOP_' + label
+        build_closure_label = 'L_BUILD_CLOS_' + label
+        closure_code_label = 'L_CLOS_CODE_' + label
+        closure_exit_label = 'L_CLOS_EXIT_' + label
 
-            code = ' ' + build_closure_label + ':\n'
+        code = ' ' + build_closure_label + ':\n'
 
-            # setting registers for 2nd loop
-            code += '  PUSH(IMM(' + str(self.env_depth + 1) + ');\n'
-            code += '  CALL(MALLOC);\n'
-            code += '  DROP(1);\n'
-            code += '  MOV(R1, R0);\n'
-            code += '  MOV(R2,FPARG(0));\n'
-            code += '  MOV(R3,IMM(1));\n'  # j
-            code += '  MOV(R4,IMM(0));\n'  # i
+        # setting registers for 2nd loop
+        code += '  PUSH(IMM(' + str(self.env_depth + 1) + ');\n'
+        code += '  CALL(MALLOC);\n'
+        code += '  DROP(1);\n'
+        code += '  MOV(R1, R0);\n'
+        code += '  MOV(R2,FPARG(0));\n'
+        code += '  MOV(R3,IMM(1));\n'  # j
+        code += '  MOV(R4,IMM(0));\n'  # i
 
-            # first loop - the environments copy
-            code += ' ' + env_copy_label + ':\n'
-            code += '  MOV(INDD(R1,R3),INDD(R2,R4));\n' # maybe this needs to be split to 2 commands
-            code += '  ADD(R3,IMM(1));\n'
-            code += '  ADD(R4,IMM(1));\n'
-            code += '  CMP(R4,R2);\n'
-            code += '  JUMP_LT(env_copy_label);\n'
+        # first loop - the environments copy
+        code += ' ' + env_copy_label + ':\n'
+        code += '  MOV(INDD(R1,R3),INDD(R2,R4));\n' # maybe this needs to be split to 2 commands
+        code += '  ADD(R3,IMM(1));\n'
+        code += '  ADD(R4,IMM(1));\n'
+        code += '  CMP(R4,R2);\n'
+        code += '  JUMP_LT(env_copy_label);\n'
 
-            # setting registers for 2nd loop, now R1 holds the new env
-            code += '  PUSH(FPARG(1));\n'
-            code += '  CALL(MALLOC);\n'
-            code += '  DROP(1);\n'
-            code += '  MOV(R2,R0);\n'
-            code += '  MOV(R3,IMM(0));\n'  # i
-            code += '  MOV(R4,IMM(2));\n'  # j
+        # setting registers for 2nd loop, now R1 holds the new env
+        code += '  PUSH(FPARG(1));\n'
+        code += '  CALL(MALLOC);\n'
+        code += '  DROP(1);\n'
+        code += '  MOV(R2,R0);\n'
+        code += '  MOV(R3,IMM(0));\n'  # i
+        code += '  MOV(R4,IMM(2));\n'  # j
 
-            # 2nd loop - current (param) stack args (vars) copy
-            code += ' ' + current_args_copy_label + ':\n'
-            code += '  MOV(INDD(R2,R3),FPARG(R4));\n'
-            code += '  ADD(R3,1);\n'
-            code += '  ADD(R4,1);\n'
-            code += '  CMP(R3,FPARG(1));\n'
-            code += '  JUMP_LT(' + current_args_copy_label + ');\n'
+        # 2nd loop - current (param) stack args (vars) copy
+        code += ' ' + current_args_copy_label + ':\n'
+        code += '  MOV(INDD(R2,R3),FPARG(R4));\n'
+        code += '  ADD(R3,1);\n'
+        code += '  ADD(R4,1);\n'
+        code += '  CMP(R3,FPARG(1));\n'
+        code += '  JUMP_LT(' + current_args_copy_label + ');\n'
 
-            # building the actual closure
-            code += '  MOV(INDD(R1,0),R2);\n'
-            code += '  PUSH(IMM(3));\n'
-            code += '  CALL(MALLOC);\n'
-            code += '  DROP(1);\n'
-            code += '  MOV(INDD(R0,0),T_CLOS);\n'
-            code += '  MOV(INDD(R0,1),R1);\n'
-            code += '  MOV(INDD(R0,2),LABEL(' + closure_code_label + '));\n'
-            code += '  JUMP(' + closure_exit_label + ');\n'
+        # building the actual closure
+        code += '  MOV(INDD(R1,0),R2);\n'
+        code += '  PUSH(IMM(3));\n'
+        code += '  CALL(MALLOC);\n'
+        code += '  DROP(1);\n'
+        code += '  MOV(INDD(R0,0),T_CLOS);\n'
+        code += '  MOV(INDD(R0,1),R1);\n'
+        code += '  MOV(INDD(R0,2),LABEL(' + closure_code_label + '));\n'
+        code += '  JUMP(' + closure_exit_label + ');\n'
 
-            code += ' ' + closure_code_label + ':\n'
-            code += '  PUSH(FP);\n'
-            code += '  MOV(FP,SP);\n'
-            #TODO WHATEVER THAT IS WRITTEN IN THE CLASS NOTES, CHECK VALIDITY OF ARGS ANS STUFF
-            code += self.body.code_gen()
-            code += '  POP(FP);\n'
-            code += '  RETURN;\n'
+        code += ' ' + closure_code_label + ':\n'
+        code += '  PUSH(FP);\n'
+        code += '  MOV(FP,SP);\n'
+        #TODO WHATEVER THAT IS WRITTEN IN THE CLASS NOTES, CHECK VALIDITY OF ARGS ANS STUFF
+        code += self.body.code_gen()
+        code += '  POP(FP);\n'
+        code += '  RETURN;\n'
 
-            code += ' ' + closure_exit_label + ':\n'
+        code += ' ' + closure_exit_label + ':\n'
 
-            #TODO RETURN NEEDED(?)
-            return code
+        #TODO RETURN NEEDED(?)
+        return code
 
 
 class LambdaVar(AbstractLambda):
@@ -890,7 +890,113 @@ class LambdaVar(AbstractLambda):
         self.body.analyze_env(env_count + 1, 1)
 
     def code_gen(self):
-        pass  # TODO
+        label = gen_label()
+        env_copy_label = 'L_ENV_LOOP_' + label                       # label for copying the environments
+        current_args_copy_label = 'L_ARGS_LOOP_' + label             # label for co
+        variadic_build_closure_label = 'L_BUILD_VAR_CLOS_' + label
+        variadic_closure_body_code_label = 'L_VAR_CLOS_BODY_CODE_' + label
+        variadic_closure_exit_label = 'L_VAR_CLOS_EXIT_' + label
+        stack_modification_loop = 'L_STACK_MODI_LOOP_' + label
+
+        code = ' ' + variadic_build_closure_label + ':\n'
+
+        # setting registers for 2nd loop
+        code += '  PUSH(IMM(' + str(self.env_depth + 1) + ');\n'
+        code += '  CALL(MALLOC);\n'
+        code += '  DROP(1);\n'
+        code += '  MOV(R1, R0);\n'
+        code += '  MOV(R2,FPARG(0));\n'  # supposed to be the number of args - n
+        code += '  MOV(R3,IMM(1));\n'  # j
+        code += '  MOV(R4,IMM(0));\n'  # i
+
+        # first loop - the environments copy
+        code += ' ' + env_copy_label + ':\n'
+        code += '  MOV(INDD(R1,R3),INDD(R2,R4));\n' # maybe this needs to be split to 2 commands
+        code += '  ADD(R3,IMM(1));\n'
+        code += '  ADD(R4,IMM(1));\n'
+        code += '  CMP(R4,R2);\n'
+        code += '  JUMP_LT(env_copy_label);\n'
+
+
+        #setting parameters for stack args
+        code += '  MOV(R2,FPARG(1));\n'
+        code += '  ADD(R2,1)'
+        code += '  PUSH(T_NIL);\n'
+
+        stack_args_to_proper_list_label = 'L_PROPERLIST_MAKE_' + label
+
+
+        # TODO check 1 arg case
+
+        # 2nd loop - properlist of the stack args - the case of more than 1 arg
+        code += ' ' + stack_args_to_proper_list_label + ':'
+        code += '  PUSH(FPARG(R2));\n'
+        code += '  CALL(MAKE_SOB_PAIR);\n'
+        code += '  DROP(1);\n'
+        code += '  PUSH(R0);\n'
+        code += '  SUB(R2,IMM(1));\n'
+        code += '  CMP(R2,IMM(2));\n'
+        code += '  JUMP_GE(' + stack_args_to_proper_list_label + ');\n'
+        code += '  POP(R0);'
+
+        #setting registers for copying the stack to overide all the args besides the first. - now R1 holds the env, R0 holds the properlist
+        code += '  MOV(R2,FPARG(1));\n'
+        code += '  ADD(R2,1);\n'         # new address pointer
+        code += '  MOV(R3,IMM(2));\n'
+        code += '  MOV(R4,FPARG(1));\n'  #
+        code += '  ADD(R4,IMM(3));\n'    # n args + 3 for pointers change (ret address, old env, and args num)
+
+
+        # 3rd loop - stack modification
+        code += ' ' + stack_modification_loop + ':'
+        code += '  MOV(FPARG(R2),FPARG(R3));\n' # copying the stack to a lower address
+        code += '  SUB(R2,IMM(1));\n'
+        code += '  SUB(R3,IMM(1));\n'
+        code += '  SUB(R4,IMM(1));\n'
+        code += '  CMP(R4,IMM(0));\n'
+        code += '  JUMP_GE(' + stack_modification_loop + ');\n'
+
+        code += '  MOV(FPARG(1),IMM(1));'
+        #todo need to modifiy the fpargs and stuff
+
+        # setting registers for 4th loop, now R1 holds the new env
+        code += '  PUSH(FPARG(1));\n'
+        code += '  CALL(MALLOC);\n'
+        code += '  DROP(1);\n'
+        code += '  MOV(R2,R0);\n'
+        code += '  MOV(R3,IMM(0));\n'  # i
+        code += '  MOV(R4,IMM(2));\n'  # j
+
+        # 4th loop - current (param) stack args (vars) copy
+        code += ' ' + current_args_copy_label + ':\n'
+        code += '  MOV(INDD(R2,R3),FPARG(R4));\n'
+        code += '  ADD(R3,1);\n'
+        code += '  ADD(R4,1);\n'
+        code += '  CMP(R3,FPARG(1));\n'
+        code += '  JUMP_LT(' + current_args_copy_label + ');\n'
+
+        # building the actual closure
+        code += '  MOV(INDD(R1,0),R2);\n'
+        code += '  PUSH(IMM(3));\n'
+        code += '  CALL(MALLOC);\n'
+        code += '  DROP(1);\n'
+        code += '  MOV(INDD(R0,0),T_CLOS);\n'
+        code += '  MOV(INDD(R0,1),R1);\n'
+        code += '  MOV(INDD(R0,2),LABEL(' + variadic_closure_body_code_label + '));\n'
+        code += '  JUMP(' + variadic_closure_exit_label + ');\n'
+
+        code += ' ' + variadic_closure_body_code_label + ':\n'
+        code += '  PUSH(FP);\n'
+        code += '  MOV(FP,SP);\n'
+        # TODO WHATEVER THAT IS WRITTEN IN THE CLASS NOTES, CHECK VALIDITY OF ARGS ANS STUFF
+        code += self.body.code_gen()
+        code += '  POP(FP);\n'
+        code += '  RETURN;\n'
+
+        code += ' ' + variadic_closure_exit_label + ':\n'
+
+        #TODO RETURN NEEDED(?)
+        return code
 
 
 class LambdaOpt(AbstractLambda):
