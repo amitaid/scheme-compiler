@@ -653,7 +653,7 @@ class Applic(AbstractSchemeExpr):
         for arg in reversed(self.args):
             code += arg.code_gen()
             code += '  PUSH(R0);\n'
-        code += '  PUSH(IMM(" + len(self.args) + "));\n'
+        code += '  PUSH(IMM(' + str(len(self.args)) + '));\n'
         code += self.func.code_gen()
 
         code += '  MOV(R1,R0);\n'
@@ -697,14 +697,14 @@ class ApplicTP(Applic):
         for arg in reversed(self.args):
             code += arg.code_gen()
             code += '  PUSH(R0);\''
-        code += '  PUSH(IMM(" + len(self.args) + "));\n'
+        code += '  PUSH(IMM(' + str(len(self.args)) + '));\n'
         code += self.func.code_gen()
 
         code += '  MOV(R1,R0);\n'
         code += '  PUSH(R0);\n'
         code += '  CALL(IS_SOB_CLOSURE);\n'
         code += '  DROP(1);\n'
-        code += '  CMP(R0,IMM(1));V'
+        code += '  CMP(R0,IMM(1));'
         code += '  JUMP_EQ(' + applic_tc_exit_label + ');\n'
 
         #TODO ERROR
