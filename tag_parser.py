@@ -647,7 +647,7 @@ class Applic(AbstractSchemeExpr):
             x.analyze_env(env_count, arg_count)
 
     def code_gen(self):
-        label = gen_label();
+        label = gen_label()
         code = ''
 
         for arg in reversed(self.args):
@@ -690,7 +690,7 @@ class ApplicTP(Applic):
             x.analyze_env(env_count, arg_count)
 
     def code_gen(self):
-        label = gen_label();
+        label = gen_label()
         applic_tc_exit_label = 'L_APPLIC_EXIT_' + label
         code = ''
 
@@ -810,12 +810,12 @@ class LambdaSimple(AbstractLambda):
 
         code = ' ' + build_closure_label + ':\n'
 
-        # setting registers for 2nd loop
+        # setting registers for 1st loop
         code += '  PUSH(IMM(' + str(self.env_depth + 1) + ');\n'
         code += '  CALL(MALLOC);\n'
         code += '  DROP(1);\n'
         code += '  MOV(R1, R0);\n'
-        code += '  MOV(R2,FPARG(0));\n'
+        code += '  MOV(R2,FPARG(0));\n'  # TODO Should point to old env.
         code += '  MOV(R3,IMM(1));\n'  # j
         code += '  MOV(R4,IMM(0));\n'  # i
 
