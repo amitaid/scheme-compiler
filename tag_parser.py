@@ -672,7 +672,7 @@ class Applic(AbstractSchemeExpr):
         code += '  DROP(1);\n'
         code += '  POP(R1);\n'
         code += '  DROP(R1)\n'
-        code += '  RETURN;\n' #TODO MAYBE THIS LINE IS NOT NEEDED
+        # code += '  RETURN;\n' #TODO MAYBE THIS LINE IS NOT NEEDED
         return code
 
 
