@@ -511,6 +511,11 @@ class Constant(AbstractSchemeExpr):
         return Constant(self.value)
         #return Constant(self.value.debruijn(bounded, params))
 
+    def code_gen(self):
+
+
+        if isinstance(self.value, sexprs.Integer):
+            pass
 
 ### Variable ###
 class Variable(AbstractSchemeExpr):

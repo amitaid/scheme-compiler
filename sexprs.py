@@ -16,10 +16,22 @@ class Void(AbstractSexpr):
     def __str__(self):
         return 'Void()'
 
+    def __eq__(self, other):
+        return isinstance(other, Void)
+
+    def __ne__(self, other):
+        return not self == other
+
 
 class Nil(AbstractSexpr):
     def __str__(self):
         return '()'
+
+    def __eq__(self, other):
+        return isinstance(other, Nil)
+
+    def __ne__(self, other):
+        return not self == other
 
     def get_value(self):
         return None
@@ -35,6 +47,12 @@ class Boolean(AbstractSexpr):
         else:
             return '#f'
 
+    def __eq__(self, other):
+        return isinstance(other, Boolean) and self.value == other.value
+
+    def __ne__(self, other):
+        return not self == other
+
     def get_value(self):
         return self.value
 
@@ -46,11 +64,23 @@ class Char(AbstractSexpr):
     def __str__(self):
         return str(self.value)
 
+    def __eq__(self, other):
+        return isinstance(other, Char) and self.value == other.value
+
+    def __ne__(self, other):
+        return not self == other
+
     def get_value(self):
         return self.value
 
 
 class AbstractNumber(AbstractSexpr):
+    def __eq__(self, other):
+        return isinstance(other, AbstractNumber) and self.eval() == other.eval()
+
+    def __ne__(self, other):
+        return not self == other
+
     def eval(self):
         pass
 
@@ -90,6 +120,12 @@ class String(AbstractSexpr):
     def __str__(self):
         return '"' + self.value + '"'
 
+    def __eq__(self, other):
+        return isinstance(other, String) and self.value == other.value
+
+    def __ne__(self, other):
+        return not self == other
+
     def get_value(self):
         return self.value
 
@@ -103,6 +139,12 @@ class Symbol(AbstractSexpr):
     def __str__(self):
         return self.value
 
+    def __eq__(self, other):
+        return isinstance(other, Symbol) and self.value == other.value
+
+    def __ne__(self, other):
+        return not self == other
+
     def get_value(self):
         return self.value
 
@@ -114,6 +156,14 @@ class Pair(AbstractSexpr):
 
     def __str__(self):
         return '(' + self.inner_str() + ')'
+
+    def __eq__(self, other):
+        return isinstance(other, Pair) and \
+               self.car == other.car and \
+               self.cdr == other.cdr
+
+    def __ne__(self, other):
+        return not self == other
 
     def inner_str(self):
         res = str(self.car)
@@ -135,6 +185,12 @@ class Vector(AbstractSexpr):
 
     def __str__(self):
         return '#(' + ' '.join(map(str, self.value)) + ')'
+
+    def __eq__(self, other):
+        return isinstance(other, Vector) and self.value == other.value
+
+    def __ne__(self, other):
+        return not self == other
 
     def get_value(self):
         return self.value
