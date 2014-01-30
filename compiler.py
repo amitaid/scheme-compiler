@@ -1,8 +1,6 @@
-from tag_parser import AbstractSchemeExpr
+from tag_parser import AbstractSchemeExpr, const_code
 
-
-def generate_header():
-    return """#include <stdio.h>
+header = """#include <stdio.h>
 #include <stdlib.h>
 
 #include "cisc.h"
@@ -33,16 +31,19 @@ int main()
   CALL(MAKE_SOB_NIL);   /* SOB_Nil = ADDR(2) */
   PUSH(IMM(0));
   CALL(MAKE_SOB_BOOL);  /* SOB_False = ADDR(3) */
-  DROP(1);
-#define SOB_FALSE INDD(3,1)
+  PUSH(IMM(1));
+  CALL(MAKE_SOB_BOOL);  /* SOB_True = ADDR(5) */
+  DROP(2);
+#define SOB_FALSE 0
+#define SOB_TRUE 1
+
 
  CONTINUE:
 """
 
 #TODO: Add basic functions and includes.
 
-def generate_footer():
-    return """
+footer = """
   STOP_MACHINE;
 
   return 0;
@@ -60,11 +61,12 @@ def compile_scheme_file(src, dest):
         sexpr, text = AbstractSchemeExpr.parse(text)
         expressions.append(sexpr.semantic_analysis())
 
-    d.write(generate_header())
+    d.write(header)
+    d.write(const_code)
     for expr in expressions:
         print(str(expr))
-        d.write(str(expr) + '\n')
-    d.write(generate_footer())
+        d.write(expr.code_gen() + '\n')
+    d.write(footer)
 
     # print(symbol_list)
     #

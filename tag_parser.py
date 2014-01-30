@@ -497,9 +497,17 @@ class AbstractSchemeExpr:
 
 
 ### Constant ###
+constants = {sexprs.Void: 1,
+             sexprs.Nil: 2,
+             sexprs.Boolean('#f'): 3,
+             sexprs.Boolean('#t'): 5}
+
+
 class Constant(AbstractSchemeExpr):
     def __init__(self, value):
         self.value = value
+        print(isinstance(self.value, Integer))
+        add_const(self.value)
 
     def __str__(self):
         if not is_const(self.value) and not is_vector(self.value) and not is_pair(self.value):
@@ -512,10 +520,43 @@ class Constant(AbstractSchemeExpr):
         #return Constant(self.value.debruijn(bounded, params))
 
     def code_gen(self):
+        return 'ADDR(' + str(constants[self.value]) + ')'
 
 
-        if isinstance(self.value, sexprs.Integer):
-            pass
+def cg_integer(value):
+    return """
+  PUSH(IMM(""" + str(value) + """));
+  CALL(MAKE_SOB_INTEGER);
+  DROP(1);
+"""
+
+
+def cg_fraction(numer, denum):
+    return """
+  PUSH(IMM(""" + str(denum) + """));
+  PUSH(IMM(""" + str(numer) + """));
+  CALL(MAKE_SOB_FRACTION);
+  DROP(2);
+"""
+
+
+const_code = ''
+sp = 7
+
+
+def add_const(const):
+    global const_code, constants, sp
+    if const not in constants:
+        constants[const] = sp
+        if isinstance(const, sexprs.Integer):
+            print('hi')
+            const_code += cg_integer(const.value)
+            print(const_code)
+            sp += 2
+        elif isinstance(const, sexprs.Fraction):
+            const_code += cg_fraction(const.numer, const.denum)
+            sp += 3
+
 
 ### Variable ###
 class Variable(AbstractSchemeExpr):

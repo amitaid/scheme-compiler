@@ -53,6 +53,9 @@ class Boolean(AbstractSexpr):
     def __ne__(self, other):
         return not self == other
 
+    def __hash__(self):
+        return hash('Boolean')
+
     def get_value(self):
         return self.value
 
@@ -80,6 +83,9 @@ class AbstractNumber(AbstractSexpr):
 
     def __ne__(self, other):
         return not self == other
+
+    def __hash__(self):
+        return hash(self.eval())
 
     def eval(self):
         pass
