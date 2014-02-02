@@ -541,21 +541,21 @@ def cg_fraction(numer, denum):
 
 
 const_code = ''
-sp = 7
+mem_ptr = 7
 
 
 def add_const(const):
-    global const_code, constants, sp
+    global const_code, constants, mem_ptr
     if const not in constants:
-        constants[const] = sp
+        constants[const] = mem_ptr
         if isinstance(const, sexprs.Integer):
             print('hi')
             const_code += cg_integer(const.value)
             print(const_code)
-            sp += 2
+            mem_ptr += 2
         elif isinstance(const, sexprs.Fraction):
             const_code += cg_fraction(const.numer, const.denum)
-            sp += 3
+            mem_ptr += 3
 
 
 ### Variable ###
