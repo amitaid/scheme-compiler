@@ -500,10 +500,10 @@ class AbstractSchemeExpr:
 constants = {sexprs.Void: 1,
              sexprs.Nil: 2,
              sexprs.Boolean('#f'): 3,
-             sexprs.Boolean('#t'): 5}
+             sexprs.Boolean('#t'): 5,
+             'const_code': ''}
 
 print('wattap')
-const_code = ''
 mem_ptr = 7
 
 
@@ -545,17 +545,17 @@ def cg_fraction(numer, denum):
 
 
 def add_const(const):
-    global const_code, constants, mem_ptr
+    global constants, mem_ptr
     if const not in constants:
         constants[const] = mem_ptr
         if isinstance(const, sexprs.Integer):
             print('hi')
-            const_code += cg_integer(const.value)
+            constants['const_code'] += cg_integer(const.value)
             mem_ptr += 2
         elif isinstance(const, sexprs.Fraction):
-            const_code += cg_fraction(const.numer, const.denum)
+            constants['const_code'] += cg_fraction(const.numer, const.denum)
             mem_ptr += 3
-        print(const_code)
+        print(constants['const_code'])
 
 
 ### Variable ###

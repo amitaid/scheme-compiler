@@ -1,4 +1,4 @@
-from tag_parser import AbstractSchemeExpr, const_code
+import tag_parser
 
 header = """#include <stdio.h>
 #include <stdlib.h>
@@ -58,11 +58,13 @@ def compile_scheme_file(src, dest):
     expressions = []
 
     while text:
-        sexpr, text = AbstractSchemeExpr.parse(text)
+        sexpr, text = tag_parser.AbstractSchemeExpr.parse(text)
         expressions.append(sexpr.semantic_analysis())
 
     d.write(header)
-    d.write(const_code)
+    d.write('  /* Constant code generation /*\n')
+    d.write(tag_parser.constants['const_code'])
+    d.write('\n  /* Program code */\n')
     for expr in expressions:
         print(str(expr))
         d.write(expr.code_gen() + '\n')
