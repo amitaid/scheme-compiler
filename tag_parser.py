@@ -502,8 +502,6 @@ constants = {sexprs.Void: 1,
              sexprs.Boolean('#f'): 3,
              sexprs.Boolean('#t'): 5,
              'const_code': ''}
-
-print('wattap')
 mem_ptr = 7
 
 
@@ -526,22 +524,30 @@ class Constant(AbstractSchemeExpr):
         return '  MOV(R0, IMM(' + str(constants[self.value]) + '));\n'
 
 
-def cg_integer(value):
-    return """  /* Const """ + str(value) + """ */
-  PUSH(IMM(""" + str(value) + """));
+def cg_integer(const):
+    return """  /* Const """ + str(const.value) + """ */
+  PUSH(IMM(""" + str(const.value) + """));
   CALL(MAKE_SOB_INTEGER);
   DROP(1);
 """
 
 
-def cg_fraction(numer, denum):
-    return """  /* Const """ + str(numer) + '/' + str(denum) + """ */
-  PUSH(IMM(""" + str(denum) + """));
-  PUSH(IMM(""" + str(numer) + """));
+def cg_fraction(const):
+    return """  /* Const """ + str(const.numer) + '/' + str(const.denum) + """ */
+  PUSH(IMM(""" + str(const.denum) + """));
+  PUSH(IMM(""" + str(const.numer) + """));
   CALL(MAKE_SOB_FRACTION);
   DROP(2);
 """
 
+
+def cg_pair(const):
+    return """  /* Const """ + str(const.value) + """ */
+  PUSH(IMM(""" + str(constants[const.car]) + """));
+  PUSH(IMM(""" + str(constants[const.cdr]) + """));
+  CALL(MAKE_SOB_PAIR);
+  DROP(2);
+"""
 
 
 def add_const(const):
@@ -549,12 +555,16 @@ def add_const(const):
     if const not in constants:
         constants[const] = mem_ptr
         if isinstance(const, sexprs.Integer):
-            print('hi')
-            constants['const_code'] += cg_integer(const.value)
+            constants['const_code'] += cg_integer(const)
             mem_ptr += 2
         elif isinstance(const, sexprs.Fraction):
-            constants['const_code'] += cg_fraction(const.numer, const.denum)
+            constants['const_code'] += cg_fraction(const)
             mem_ptr += 3
+        if isinstance(const, sexprs.Pair):
+            print('hi')
+            constants['const_code'] += cg_pair(const)
+            mem_ptr += 3
+
         print(constants['const_code'])
 
 
