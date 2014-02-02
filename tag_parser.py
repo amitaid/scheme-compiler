@@ -502,11 +502,14 @@ constants = {sexprs.Void: 1,
              sexprs.Boolean('#f'): 3,
              sexprs.Boolean('#t'): 5}
 
+print('wattap')
+const_code = ''
+mem_ptr = 7
+
 
 class Constant(AbstractSchemeExpr):
     def __init__(self, value):
         self.value = value
-        print(isinstance(self.value, Integer))
         add_const(self.value)
 
     def __str__(self):
@@ -520,11 +523,11 @@ class Constant(AbstractSchemeExpr):
         #return Constant(self.value.debruijn(bounded, params))
 
     def code_gen(self):
-        return 'ADDR(' + str(constants[self.value]) + ')'
+        return '  MOV(R0, IMM(' + str(constants[self.value]) + '));\n'
 
 
 def cg_integer(value):
-    return """
+    return """  /* Const """ + str(value) + """ */
   PUSH(IMM(""" + str(value) + """));
   CALL(MAKE_SOB_INTEGER);
   DROP(1);
@@ -532,16 +535,13 @@ def cg_integer(value):
 
 
 def cg_fraction(numer, denum):
-    return """
+    return """  /* Const """ + str(numer) + '/' + str(denum) + """ */
   PUSH(IMM(""" + str(denum) + """));
   PUSH(IMM(""" + str(numer) + """));
   CALL(MAKE_SOB_FRACTION);
   DROP(2);
 """
 
-
-const_code = ''
-mem_ptr = 7
 
 
 def add_const(const):
@@ -551,11 +551,11 @@ def add_const(const):
         if isinstance(const, sexprs.Integer):
             print('hi')
             const_code += cg_integer(const.value)
-            print(const_code)
             mem_ptr += 2
         elif isinstance(const, sexprs.Fraction):
             const_code += cg_fraction(const.numer, const.denum)
             mem_ptr += 3
+        print(const_code)
 
 
 ### Variable ###
