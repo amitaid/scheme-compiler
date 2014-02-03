@@ -100,7 +100,8 @@ def is_const(sexpr):
            is_number(sexpr) or \
            is_string(sexpr) or \
            is_nil(sexpr) or \
-           is_void(sexpr)
+           is_void(sexpr) or \
+           (is_pair(sexpr) and not is_symbol(sexpr.car))
 
 
 def is_variable(sexpr):
@@ -435,7 +436,7 @@ class AbstractSchemeExpr:
         elif is_and(sexpr):
             return expand_and(sexpr)
         elif is_quote(sexpr):
-            return Pair(sexpr.car, sexpr.cdr)
+            return sexpr.cdr
         elif is_quasiquoted(sexpr):
             return expand_quasiquote(sexpr.cdr.car)
         elif is_proper_list(sexpr):

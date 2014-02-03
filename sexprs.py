@@ -22,6 +22,9 @@ class Void(AbstractSexpr):
     def __ne__(self, other):
         return not self == other
 
+    def __hash__(self):
+        return hash('%Void')
+
 
 class Nil(AbstractSexpr):
     def __str__(self):
@@ -32,6 +35,9 @@ class Nil(AbstractSexpr):
 
     def __ne__(self, other):
         return not self == other
+
+    def __hash__(self):
+        return hash('%Nil')
 
     def get_value(self):
         return None
@@ -54,7 +60,7 @@ class Boolean(AbstractSexpr):
         return not self == other
 
     def __hash__(self):
-        return hash('Boolean')
+        return hash('%Boolean')
 
     def get_value(self):
         return self.value
@@ -73,6 +79,9 @@ class Char(AbstractSexpr):
     def __ne__(self, other):
         return not self == other
 
+    def __hash__(self):
+        return hash('%Char' + self.value)
+
     def get_value(self):
         return self.value
 
@@ -85,7 +94,7 @@ class AbstractNumber(AbstractSexpr):
         return not self == other
 
     def __hash__(self):
-        return hash(self.eval())
+        return hash('%Number' + str(self.eval()))
 
     def eval(self):
         pass
@@ -132,6 +141,9 @@ class String(AbstractSexpr):
     def __ne__(self, other):
         return not self == other
 
+    def __hash__(self):
+        return hash('%String' + self.value)
+
     def get_value(self):
         return self.value
 
@@ -150,6 +162,9 @@ class Symbol(AbstractSexpr):
 
     def __ne__(self, other):
         return not self == other
+
+    def __hash__(self):
+        return hash('%Symbol' + self.value)
 
     def get_value(self):
         return self.value
@@ -170,6 +185,9 @@ class Pair(AbstractSexpr):
 
     def __ne__(self, other):
         return not self == other
+
+    def __hash__(self):
+        return hash(hash(self.car) + hash(self.cdr))
 
     def inner_str(self):
         res = str(self.car)
@@ -197,6 +215,9 @@ class Vector(AbstractSexpr):
 
     def __ne__(self, other):
         return not self == other
+
+    def __hash__(self):
+        return hash(sum(hash(x) for x in self.value))
 
     def get_value(self):
         return self.value
