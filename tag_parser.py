@@ -558,7 +558,7 @@ def cg_string(const):
   PUSH(IMM(""" + str(len(const.value)) + """));\n"""
     for ch in const.value:
         code += """  PUSH(IMM(""" + str(ord(ch)) + """));\n"""
-    code += """CALL(MAKE_SOB_STRING);
+    code += """  CALL(MAKE_SOB_STRING);
   DROP(""" + str(len(const.value) + 1) + """);\n"""
     return code
 
