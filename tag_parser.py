@@ -568,17 +568,17 @@ def add_const(const):
     if const not in constants:
         constants[const] = mem_ptr
         if isinstance(const, sexprs.Integer):
-            constants['const_code'].append(cg_integer(const))
             mem_ptr += 2
+            constants['const_code'].append(cg_integer(const))
         elif isinstance(const, sexprs.Fraction):
+            mem_ptr += 3
             constants['const_code'].append(cg_fraction(const))
-            mem_ptr += 3
         elif isinstance(const, sexprs.Pair):
-            constants['const_code'].append(cg_pair(const))
             mem_ptr += 3
+            constants['const_code'].append(cg_pair(const))
         elif isinstance(const, sexprs.String):
-            constants['const_code'].append(cg_string(const))
             mem_ptr += 2 + len(const.value)
+            constants['const_code'].append(cg_string(const))
             #print('\n\n'.join(constants['const_code']))
 
 
