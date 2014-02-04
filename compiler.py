@@ -63,7 +63,7 @@ def compile_scheme_file(src, dest):
 
     d.write(header)
     d.write('  /* Constant code generation /*\n')
-    d.write(tag_parser.constants['const_code'])
+    d.write(''.join(tag_parser.constants['const_code']))
     d.write('\n  /* Program code */\n')
     for expr in expressions:
         print(str(expr))

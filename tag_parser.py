@@ -436,7 +436,7 @@ class AbstractSchemeExpr:
         elif is_and(sexpr):
             return expand_and(sexpr)
         elif is_quote(sexpr):
-            return sexpr.cdr
+            return sexpr.cdr.car
         elif is_quasiquoted(sexpr):
             return expand_quasiquote(sexpr.cdr.car)
         elif is_proper_list(sexpr):
@@ -498,18 +498,17 @@ class AbstractSchemeExpr:
 
 
 ### Constant ###
-constants = {sexprs.Void: 1,
-             sexprs.Nil: 2,
+constants = {sexprs.Void(): 1,
+             sexprs.Nil(): 2,
              sexprs.Boolean('#f'): 3,
              sexprs.Boolean('#t'): 5,
-             'const_code': ''}
+             'const_code': []}
 mem_ptr = 7
 
 
 class Constant(AbstractSchemeExpr):
     def __init__(self, value):
         self.value = value
-        add_const(self.value)
 
     def __str__(self):
         if not is_const(self.value) and not is_vector(self.value) and not is_pair(self.value):
@@ -518,6 +517,7 @@ class Constant(AbstractSchemeExpr):
             return str(self.value)
 
     def debruijn(self, bounded=list(), params=list()):
+        add_const(self.value)
         return Constant(self.value)
         #return Constant(self.value.debruijn(bounded, params))
 
@@ -543,7 +543,9 @@ def cg_fraction(const):
 
 
 def cg_pair(const):
-    return """  /* Const """ + str(const.value) + """ */
+    add_const(const.car)
+    add_const(const.cdr)
+    return """  /* Const """ + str(const) + """ */
   PUSH(IMM(""" + str(constants[const.car]) + """));
   PUSH(IMM(""" + str(constants[const.cdr]) + """));
   CALL(MAKE_SOB_PAIR);
@@ -551,22 +553,33 @@ def cg_pair(const):
 """
 
 
+def cg_string(const):
+    code = """  /* Const """ + str(const) + """ */
+  PUSH(IMM(""" + str(len(const.value)) + """));\n"""
+    for ch in const.value:
+        code += """  PUSH(IMM(""" + str(ord(ch)) + """));\n"""
+    code += """CALL(MAKE_SOB_STRING);
+  DROP(""" + str(len(const.value) + 1) + """);\n"""
+    return code
+
+
 def add_const(const):
     global constants, mem_ptr
     if const not in constants:
         constants[const] = mem_ptr
         if isinstance(const, sexprs.Integer):
-            constants['const_code'] += cg_integer(const)
+            constants['const_code'].append(cg_integer(const))
             mem_ptr += 2
         elif isinstance(const, sexprs.Fraction):
-            constants['const_code'] += cg_fraction(const)
+            constants['const_code'].append(cg_fraction(const))
             mem_ptr += 3
-        if isinstance(const, sexprs.Pair):
-            print('hi')
-            constants['const_code'] += cg_pair(const)
+        elif isinstance(const, sexprs.Pair):
+            constants['const_code'].append(cg_pair(const))
             mem_ptr += 3
-
-        print(constants['const_code'])
+        elif isinstance(const, sexprs.String):
+            constants['const_code'].append(cg_string(const))
+            mem_ptr += 2 + len(const.value)
+            #print('\n\n'.join(constants['const_code']))
 
 
 ### Variable ###
