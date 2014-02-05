@@ -1,9 +1,33 @@
 from sexprs import *
 
-key_words = ['DEFINE', 'LAMBDA', 'λ', 'IF', 'AND', 'OR', 'COND']
-primitive_ops = ['+', '-']
+#key_words = ['DEFINE', 'LAMBDA', 'λ', 'IF', 'AND', 'OR', 'COND']
+#primitive_ops = ['
+# +', '-',]
+
+#symbol table
+
+def sym_tab_cg():
+    code = "  PUSH(IMM(" + str(len(symbol_table)) + "));\n"
+    code += "  CALL(MALLOC);\n"
+    code += "  DROP(1);"
+    #for sym in symbol_table():
+    return code;
+
+# i will do malloc to the number of symbols + 1
+# in the first cell we will write the amount of the symbols
+# and after that a pointer to a bucket in each of them
+#
+# must be instansiated after the constant table
+#
+
+
+symbol_table = ['DEFINE', 'LAMBDA', 'λ', 'IF', 'AND', 'OR', 'COND', '+',
+                '-']  # a combination of keywords and primitive ops
 
 ### sexprs predicates ###
+
+
+
 
 gen_sym_counter = 0
 
@@ -106,7 +130,8 @@ def is_const(sexpr):
 
 def is_variable(sexpr):
     return is_symbol(sexpr) and \
-           not sexpr.get_value() in key_words
+           not sexpr.get_value() in symbol_table  # key_words
+
 
 # predicate for both IfThen & IfThenElse
 def is_if(sexpr):
@@ -509,6 +534,8 @@ mem_ptr = 7
 class Constant(AbstractSchemeExpr):
     def __init__(self, value):
         self.value = value
+        add_const(self.value)
+
 
     def __str__(self):
         if not is_const(self.value) and not is_vector(self.value) and not is_pair(self.value):
@@ -517,7 +544,6 @@ class Constant(AbstractSchemeExpr):
             return str(self.value)
 
     def debruijn(self, bounded=list(), params=list()):
-        add_const(self.value)
         return Constant(self.value)
         #return Constant(self.value.debruijn(bounded, params))
 
@@ -573,25 +599,65 @@ def cg_vector(const):
 
 def add_const(const):
     global constants, mem_ptr
+    cur_mem_ptr = mem_ptr
     if const not in constants:
-        constants[const] = mem_ptr
+        #constants[const] = mem_ptr
         if isinstance(const, sexprs.Integer):
-            mem_ptr += 2
+            #mem_ptr += 2
             constants['const_code'].append(cg_integer(const))
+            print("the mem_ptr is now " + str(mem_ptr) + " added innt")
+            constants[const] = mem_ptr
+            mem_ptr += 2
         elif isinstance(const, sexprs.Fraction):
-            mem_ptr += 3
+            #mem_ptr += 3
             constants['const_code'].append(cg_fraction(const))
+            print("the mem_ptr is now " + str(mem_ptr) + " added fraction")
+            constants[const] = mem_ptr
+            mem_ptr += 3
         elif isinstance(const, sexprs.Pair):
             mem_ptr += 3
+            constants[const] = mem_ptr
+            print("the mem_ptr is now " + str(mem_ptr))
             constants['const_code'].append(cg_pair(const))
         elif isinstance(const, sexprs.String):
             mem_ptr += 2 + len(const.value)
+            constants[const] = mem_ptr
+            print("the mem_ptr is now " + str(mem_ptr))
             constants['const_code'].append(cg_string(const))
         elif isinstance(const, sexprs.Vector):
             mem_ptr += 2 + len(const.value)
+            constants[const] = mem_ptr
+            print("the mem_ptr is now " + str(mem_ptr))
             constants['const_code'].append(cg_vector(const))
             #print('\n\n'.join(constants['const_code']))
+            #constants[const] = cur_mem_ptr
 
+
+#def add_const(const):
+#    global constants, mem_ptr
+#    if const not in constants:
+#        constants[const] = mem_ptr
+#        if isinstance(const, sexprs.Integer):
+#            mem_ptr += 2
+#            print("the mem_ptr is now "+ str(mem_ptr))
+#            constants['const_code'].append(cg_integer(const))
+#        elif isinstance(const, sexprs.Fraction):
+#            mem_ptr += 3
+#            print("the mem_ptr is now "+ str(mem_ptr))
+#            constants['const_code'].append(cg_fraction(const))
+#        elif isinstance(const, sexprs.Pair):
+#            mem_ptr += 3
+#            print("the mem_ptr is now "+ str(mem_ptr))
+#            constants['const_code'].append(cg_pair(const))
+#        elif isinstance(const, sexprs.String):
+#            mem_ptr += 2 + len(const.value)
+#            print("the mem_ptr is now "+ str(mem_ptr))
+#            constants['const_code'].append(cg_string(const))
+#        elif isinstance(const, sexprs.Vector):
+#            mem_ptr += 2 + len(const.value)
+#            print("the mem_ptr is now "+ str(mem_ptr))
+#            constants['const_code'].append(cg_vector(const))
+#            #print('\n\n'.join(constants['const_code']))
 
 ### Variable ###
 class Variable(AbstractSchemeExpr):
@@ -622,6 +688,8 @@ class Variable(AbstractSchemeExpr):
 class VarFree(Variable):
     def __init__(self, symbol):
         super(VarFree, self).__init__(symbol)
+        if not symbol.value in symbol_table:
+            symbol_table.append(symbol.value)
 
     def __str__(self):
         return self.symbol.get_value()
