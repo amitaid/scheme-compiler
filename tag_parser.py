@@ -509,6 +509,7 @@ mem_ptr = 7
 class Constant(AbstractSchemeExpr):
     def __init__(self, value):
         self.value = value
+        add_const(self.value)
 
     def __str__(self):
         if not is_const(self.value) and not is_vector(self.value) and not is_pair(self.value):
@@ -517,7 +518,6 @@ class Constant(AbstractSchemeExpr):
             return str(self.value)
 
     def debruijn(self, bounded=list(), params=list()):
-        add_const(self.value)
         return Constant(self.value)
         #return Constant(self.value.debruijn(bounded, params))
 
@@ -563,7 +563,8 @@ def cg_string(const):
 def cg_vector(const):
     code = """  /* Const """ + str(const) + """ */\n"""
     for item in const.value:
-        code += """  PUSH(IMM(""" + constants[item] + """));\n"""
+        code += item.code_gen()
+        code += """  PUSH(R0));\n"""
     code += """  PUSH(IMM(""" + str(len(const.value)) + """));
   CALL(MAKE_SOB_VECTOR);
   DROP(""" + str(len(const.value) + 1) + """);\n\n"""
