@@ -533,9 +533,13 @@ def cg_integer(const):
 
 
 def cg_fraction(const):
-    return """  /* Const """ + str(const.numer) + '/' + str(const.denum) + """ */
-  PUSH(IMM(""" + str(const.denum) + """));
-  PUSH(IMM(""" + str(const.numer) + """));
+    numer = Constant(const.numer)
+    denum = Constant(const.denum)
+    add_const(numer.value)
+    add_const(denum.value)
+    return """  /* Const """ + str(numer) + '/' + str(denum) + """ */
+""" + denum.code_gen() + """  PUSH(R0);
+""" + numer.code_gen() + """  PUSH(R0);
   CALL(MAKE_SOB_FRACTION);
   DROP(2);\n\n"""
 
