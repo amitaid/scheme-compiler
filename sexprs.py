@@ -217,7 +217,7 @@ class Vector(AbstractSexpr):
         return not self == other
 
     def __hash__(self):
-        return hash(sum(hash(x) for x in self.value))
+        return hash(self.value)
 
     def get_value(self):
         return self.value

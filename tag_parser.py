@@ -529,8 +529,7 @@ def cg_integer(const):
     return """  /* Const """ + str(const.value) + """ */
   PUSH(IMM(""" + str(const.value) + """));
   CALL(MAKE_SOB_INTEGER);
-  DROP(1);
-"""
+  DROP(1);\n\n"""
 
 
 def cg_fraction(const):
@@ -538,8 +537,7 @@ def cg_fraction(const):
   PUSH(IMM(""" + str(const.denum) + """));
   PUSH(IMM(""" + str(const.numer) + """));
   CALL(MAKE_SOB_FRACTION);
-  DROP(2);
-"""
+  DROP(2);\n\n"""
 
 
 def cg_pair(const):
@@ -549,17 +547,16 @@ def cg_pair(const):
   PUSH(IMM(""" + str(constants[const.car]) + """));
   PUSH(IMM(""" + str(constants[const.cdr]) + """));
   CALL(MAKE_SOB_PAIR);
-  DROP(2);
-"""
+  DROP(2);\n\n"""
 
 
 def cg_string(const):
-    code = """  /* Const """ + str(const) + """ */
-  PUSH(IMM(""" + str(len(const.value)) + """));\n"""
+    code = """  /* Const """ + str(const) + """ */\n"""
     for ch in const.value:
         code += """  PUSH(IMM(""" + str(ord(ch)) + """));\n"""
-    code += """  CALL(MAKE_SOB_STRING);
-  DROP(""" + str(len(const.value) + 1) + """);\n"""
+    code += """  PUSH(IMM(""" + str(len(const.value)) + """));
+  CALL(MAKE_SOB_STRING);
+  DROP(""" + str(len(const.value) + 1) + """);\n\n"""
     return code
 
 

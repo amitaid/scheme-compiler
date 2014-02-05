@@ -43,6 +43,11 @@ int main()
 
 #TODO: Add basic functions and includes.
 
+write_sob_code = """  PUSH(R0);
+  CALL(WRITE_SOB);
+
+"""
+
 footer = """
   STOP_MACHINE;
 
@@ -67,7 +72,7 @@ def compile_scheme_file(src, dest):
     d.write('\n  /* Program code */\n')
     for expr in expressions:
         print(str(expr))
-        d.write(expr.code_gen() + '\n')
+        d.write(expr.code_gen() + write_sob_code)
     d.write(footer)
 
     # print(symbol_list)
