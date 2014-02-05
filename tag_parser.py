@@ -560,6 +560,16 @@ def cg_string(const):
     return code
 
 
+def cg_vector(const):
+    code = """  /* Const """ + str(const) + """ */\n"""
+    for item in const.value:
+        code += """  PUSH(IMM(""" + constants[item] + """));\n"""
+    code += """  PUSH(IMM(""" + str(len(const.value)) + """));
+  CALL(MAKE_SOB_VECTOR);
+  DROP(""" + str(len(const.value) + 1) + """);\n\n"""
+    return code
+
+
 def add_const(const):
     global constants, mem_ptr
     if const not in constants:
@@ -576,6 +586,9 @@ def add_const(const):
         elif isinstance(const, sexprs.String):
             mem_ptr += 2 + len(const.value)
             constants['const_code'].append(cg_string(const))
+        elif isinstance(const, sexprs.Vector):
+            mem_ptr += 2 + len(const.value)
+            constants['const_code'].append(cg_vector(const))
             #print('\n\n'.join(constants['const_code']))
 
 
