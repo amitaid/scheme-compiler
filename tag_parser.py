@@ -509,7 +509,6 @@ mem_ptr = 7
 class Constant(AbstractSchemeExpr):
     def __init__(self, value):
         self.value = value
-        add_const(self.value)
 
     def __str__(self):
         if not is_const(self.value) and not is_vector(self.value) and not is_pair(self.value):
@@ -518,6 +517,7 @@ class Constant(AbstractSchemeExpr):
             return str(self.value)
 
     def debruijn(self, bounded=list(), params=list()):
+        add_const(self.value)
         return Constant(self.value)
         #return Constant(self.value.debruijn(bounded, params))
 
@@ -535,8 +535,6 @@ def cg_integer(const):
 def cg_fraction(const):
     numer = Constant(const.numer)
     denum = Constant(const.denum)
-    add_const(numer.value)
-    add_const(denum.value)
     return """  /* Const """ + str(numer) + '/' + str(denum) + """ */
 """ + denum.code_gen() + """  PUSH(R0);
 """ + numer.code_gen() + """  PUSH(R0);
@@ -545,11 +543,9 @@ def cg_fraction(const):
 
 
 def cg_pair(const):
-    add_const(const.car)
-    add_const(const.cdr)
     return """  /* Const """ + str(const) + """ */
-  PUSH(IMM(""" + str(constants[const.car]) + """));
-  PUSH(IMM(""" + str(constants[const.cdr]) + """));
+""" + const.car.code_gen() + """  PUSH(R0);
+""" + const.cdr.code_gen() + """  PUSH(R0);
   CALL(MAKE_SOB_PAIR);
   DROP(2);\n\n"""
 
