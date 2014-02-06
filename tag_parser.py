@@ -552,56 +552,59 @@ class Constant(AbstractSchemeExpr):
 
 
 def cg_integer(const):
-    return """  /* Const """ + str(const.value) + """ */
-  PUSH(IMM(""" + str(const.value) + """));
-  CALL(MAKE_SOB_INTEGER);
-  DROP(1);\n\n"""
+    code = '  /* Const ' + str(const) + ' */\n'
+    code += '  PUSH(IMM(' + str(const.value) + '));\n'
+    code += '  CALL(MAKE_SOB_INTEGER);\n'
+    code += '  DROP(1);\n\n'
+    return code
 
 
 def cg_fraction(const):
-    numer = Constant(const.numer)
-    denum = Constant(const.denum)
-    return """  /* Const """ + str(numer) + '/' + str(denum) + """ */
-""" + denum.code_gen() + """  PUSH(R0);
-""" + numer.code_gen() + """  PUSH(R0);
-  CALL(MAKE_SOB_FRACTION);
-  DROP(2);\n\n"""
+    code = '  /* Const ' + str(const) + ' */\n'
+    code += Constant(const.denum).code_gen()
+    code += '  PUSH(R0);\n'
+    code += Constant(const.numer).code_gen()
+    code += '  PUSH(R0);\n'
+    code += '  CALL(MAKE_SOB_FRACTION);\n'
+    code += '  DROP(2);\n\n'
+    return code
 
 
 def cg_pair(const):
+    code = '  /* Const ' + str(const) + ' */\n'
     if is_const(const.car):
-        car = Constant(const.car)
+        code += Constant(const.car).code_gen()
     else:
-        car = const.car
+        code += const.car.code_gen()
+    code += '  PUSH(R0);\n'
     if is_const(const.cdr):
-        cdr = Constant(const.cdr)
+        code += Constant(const.cdr).code_gen()
     else:
-        cdr = const.cdr
-    return """  /* Const """ + str(const) + """ */
-""" + car.code_gen() + """  PUSH(R0);
-""" + cdr.code_gen() + """  PUSH(R0);
-  CALL(MAKE_SOB_PAIR);
-  DROP(2);\n\n"""
+        code += const.cdr.code_gen()
+    code += '  PUSH(R0);\n'
+    code += '  CALL(MAKE_SOB_PAIR);\n'
+    code += '  DROP(2);\n\n'
+    return code
 
 
 def cg_string(const):
-    code = """  /* Const """ + str(const) + """ */\n"""
-    for ch in const.value:
-        code += """  PUSH(IMM(""" + str(ord(ch)) + """));\n"""
-    code += """  PUSH(IMM(""" + str(len(const.value)) + """));
-  CALL(MAKE_SOB_STRING);
-  DROP(""" + str(len(const.value) + 1) + """);\n\n"""
+    code = '  /* Const ' + str(const) + ' */\n'
+    for ch in const.value[::-1]:
+        code += '  PUSH(IMM(' + str(ord(ch)) + '));\n'
+    code += '  PUSH(IMM(' + str(len(const.value)) + '));\n'
+    code += '  CALL(MAKE_SOB_STRING);\n'
+    code += '  DROP(' + str(len(const.value) + 1) + ');\n\n'
     return code
 
 
 def cg_vector(const):
-    code = """  /* Const """ + str(const) + """ */\n"""
-    for item in const.value:
+    code = '  /* Const ' + str(const) + ' */\n'
+    for item in const.value[::-1]:
         code += item.code_gen()
-        code += """  PUSH(R0));\n"""
-    code += """  PUSH(IMM(""" + str(len(const.value)) + """));
-  CALL(MAKE_SOB_VECTOR);
-  DROP(""" + str(len(const.value) + 1) + """);\n\n"""
+        code += '  PUSH(R0));\n'
+    code += '  PUSH(IMM(' + str(len(const.value)) + '));\n'
+    code += 'CALL(MAKE_SOB_VECTOR);\n'
+    code += 'DROP(' + str(len(const.value) + 1) + ');\n\n'
     return code
 
 
