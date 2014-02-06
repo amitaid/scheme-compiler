@@ -617,15 +617,15 @@ def update_consts(const, size, code):
 
 def add_const(const):
     if const not in constants:
-        if isinstance(const, sexprs.Integer):
+        if is_integer(const):
             update_consts(const, 2, cg_integer(const))
-        elif isinstance(const, sexprs.Fraction):
+        elif is_fraction(const):
             update_consts(const, 3, cg_fraction(const))
-        elif isinstance(const, sexprs.Pair):
+        elif is_pair(const):
             update_consts(const, 3, cg_pair(const))
-        elif isinstance(const, sexprs.String):
+        elif is_string(const):
             update_consts(const, 2 + len(const.value), cg_string(const))
-        elif isinstance(const, sexprs.Vector):
+        elif is_vector(const):
             update_consts(const, 2 + len(const.value), cg_vector(const))
 
 
