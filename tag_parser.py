@@ -11,7 +11,7 @@ def sym_tab_cg():
     code += "  CALL(MALLOC);\n"
     code += "  DROP(1);"
     #for sym in symbol_table():
-    return code;
+    return code
 
 # i will do malloc to the number of symbols + 1
 # in the first cell we will write the amount of the symbols
@@ -569,9 +569,17 @@ def cg_fraction(const):
 
 
 def cg_pair(const):
+    if is_const(const.car):
+        car = Constant(const.car)
+    else:
+        car = const.car
+    if is_const(const.cdr):
+        cdr = Constant(const.cdr)
+    else:
+        cdr = const.cdr
     return """  /* Const """ + str(const) + """ */
-""" + const.car.code_gen() + """  PUSH(R0);
-""" + const.cdr.code_gen() + """  PUSH(R0);
+""" + car.code_gen() + """  PUSH(R0);
+""" + cdr.code_gen() + """  PUSH(R0);
   CALL(MAKE_SOB_PAIR);
   DROP(2);\n\n"""
 
@@ -597,40 +605,25 @@ def cg_vector(const):
     return code
 
 
-def add_const(const):
+def update_consts(const, size, code):
     global constants, mem_ptr
-    cur_mem_ptr = mem_ptr
+    constants['const_code'].append(code)
+    constants[const] = mem_ptr
+    mem_ptr += size
+
+
+def add_const(const):
     if const not in constants:
-        #constants[const] = mem_ptr
         if isinstance(const, sexprs.Integer):
-            #mem_ptr += 2
-            constants['const_code'].append(cg_integer(const))
-            print("the mem_ptr is now " + str(mem_ptr) + " added innt")
-            constants[const] = mem_ptr
-            mem_ptr += 2
+            update_consts(const, 2, cg_integer(const))
         elif isinstance(const, sexprs.Fraction):
-            #mem_ptr += 3
-            constants['const_code'].append(cg_fraction(const))
-            print("the mem_ptr is now " + str(mem_ptr) + " added fraction")
-            constants[const] = mem_ptr
-            mem_ptr += 3
+            update_consts(const, 3, cg_fraction(const))
         elif isinstance(const, sexprs.Pair):
-            mem_ptr += 3
-            constants[const] = mem_ptr
-            print("the mem_ptr is now " + str(mem_ptr))
-            constants['const_code'].append(cg_pair(const))
+            update_consts(const, 3, cg_pair(const))
         elif isinstance(const, sexprs.String):
-            mem_ptr += 2 + len(const.value)
-            constants[const] = mem_ptr
-            print("the mem_ptr is now " + str(mem_ptr))
-            constants['const_code'].append(cg_string(const))
+            update_consts(const, 2 + len(const.value), cg_string(const))
         elif isinstance(const, sexprs.Vector):
-            mem_ptr += 2 + len(const.value)
-            constants[const] = mem_ptr
-            print("the mem_ptr is now " + str(mem_ptr))
-            constants['const_code'].append(cg_vector(const))
-            #print('\n\n'.join(constants['const_code']))
-            #constants[const] = cur_mem_ptr
+            update_consts(const, 2 + len(const.value), cg_vector(const))
 
 
 #def add_const(const):
