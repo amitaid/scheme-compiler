@@ -4,27 +4,38 @@ from sexprs import *
 #primitive_ops = ['+', '-',]
 
 #symbol table
-keywords = {}
-symbol_table = ['DEFINE', 'LAMBDA', 'λ', 'IF', 'AND', 'OR', 'COND', '+',
-                '-']  # a combination of keywords and primitive ops
 
+# todo -1 must be replaced with the appropiate code for the primitive procedures
+# todo must take care of variables whose name is a keyword
+symbol_table = {'DEFINE': -1, 'LAMBDA': -1, 'λ': -1, 'IF': -1, 'AND': -1, 'OR': -1, 'COND': -1, '+': -1,
+                '-': -1}
 #todo needs to add a dict that holds the pointer for the symbols themselves
 def sym_tab_cg():
+    global mem_ptr, symbol_table
     code = "  PUSH(IMM(2));\n"
     code += "  CALL(MALLOC);\n"
+    mem_ptr += 2
     code += "  DROP(1);"
     code += "  MOV(IND(R0),IMM(" + str(len(symbol_table)) + "));\n"
     code += "  MOV(R4,R0);\n"  # r4 holds the beginning of the list
     code += "  MOV(R3,R0);\n"  # r3 holds the current link
-    for sym in symbol_table:
+    for sym in symbol_table.keys():
         code += generate_link()  # after this line, r2 holds the new link
+        mem_ptr += 2
         code += generate_symbol()  # after this line, r1 holds the new symbol
+        symbol_table[sym] = mem_ptr  # now it is supposed to be
+        mem_ptr += 2
         code += generate_bucket(sym)  # after this line, r0 holds the bucket
+        mem_ptr += 2
         code += "  MOV(INDD(R1,1),R0);\n"  # puts the bucket inside the symbol
         code += "  MOV(IND(R2),R1);\n"  # puts the symbol in the link
         code += "  MOV(IND(R3,1),R2);\n"  # updates the pointer of the old link
         code += "  MOV(R3,R2);\n"  # updates the new link to be the next old line
     code += "  MOV(R3,IMM(0));\n"  # puts in the tail the value of zero, so we will know its the end
+
+    # puts the symbol table in memory address 7
+    code += "  MOV(R0,IMM(7));\n"
+    code += "  MOV(IND(R0),R4);\n"
     return code
 
 
@@ -51,8 +62,9 @@ def generate_bucket(symbol):
     code += "  CALL(MALLOC);\n"
     code += "  DROP(1);\n"
     code += "  MOV(IND(R0), IMM(" + constants[symbol] + "));\n"
-    if symbol in keywords:
-        code += "  MOV(INDD(R0,1),LABEL(" + keywords[symbol] + "));\n"
+    if symbol_table[symbol] is not -1:
+        code += "  MOV(INDD(R0,1),LABEL(" + str(
+            symbol_table[symbol]) + "));\n"  # this line is intended only for predefined procedures
     return code
 
 ### sexprs predicates ###
@@ -559,7 +571,7 @@ constants = {sexprs.Void(): 1,
              sexprs.Boolean('#f'): 3,
              sexprs.Boolean('#t'): 5,
              'const_code': []}
-mem_ptr = 7
+mem_ptr = 8
 
 
 class Constant(AbstractSchemeExpr):
@@ -716,8 +728,8 @@ class VarFree(Variable):
     def __init__(self, symbol):
         super(VarFree, self).__init__(symbol)
         Constant(self.symbol.value)
-        if not symbol.value in symbol_table:
-            symbol_table.append(symbol.value)
+        if symbol_table.get(self.symbol.value) is None:
+            symbol_table[self.symbol.value] = -1
 
     def __str__(self):
         return self.symbol.get_value()

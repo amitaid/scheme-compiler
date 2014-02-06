@@ -34,6 +34,11 @@ int main()
   PUSH(IMM(1));
   CALL(MAKE_SOB_BOOL);  /* SOB_True = ADDR(5) */
   DROP(2);
+
+  PUSH(IMM(0));
+  CALL(MALLOC);  /* malloc of 1 for the sym table, address 7 */
+  DROP(1);
+
 #define SOB_FALSE 0
 #define SOB_TRUE 1
 
