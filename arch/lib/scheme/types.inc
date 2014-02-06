@@ -1,4 +1,4 @@
-/* types.inc
+ /* types.inc
  * Type tags for the basic Scheme data types
  *
  * Programmer: Mayer Goldberg, 2010

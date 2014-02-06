@@ -8,29 +8,45 @@ keywords = {}
 symbol_table = ['DEFINE', 'LAMBDA', 'λ', 'IF', 'AND', 'OR', 'COND', '+',
                 '-']  # a combination of keywords and primitive ops
 
-
+#todo needs to add a dict that holds the pointer for the symbols themselves
 def sym_tab_cg():
-    sym_tab_len = str(len(symbol_table))
-    i = 1
-    code = "  PUSH(IMM(" + sym_tab_len + "));\n"
+    code = "  PUSH(IMM(2));\n"
     code += "  CALL(MALLOC);\n"
     code += "  DROP(1);"
-    code += "  MOV(R1,R0);\n"
-    code += "  MOV(IND(R1),IMM(" + sym_tab_len + "));\n"
-    for sym in symbol_table():
-        create_bucket(sym)
-        code += "  MOV(INDD(R1,IMM(" + i + "),R0);\n"
-        i += 1
+    code += "  MOV(IND(R0),IMM(" + str(len(symbol_table)) + "));\n"
+    code += "  MOV(R4,R0);\n"  # r4 holds the beginning of the list
+    code += "  MOV(R3,R0);\n"  # r3 holds the current link
+    for sym in symbol_table:
+        code += generate_link()  # after this line, r2 holds the new link
+        code += generate_symbol()  # after this line, r1 holds the new symbol
+        code += generate_bucket(sym)  # after this line, r0 holds the bucket
+        code += "  MOV(INDD(R1,1),R0);\n"  # puts the bucket inside the symbol
+        code += "  MOV(IND(R2),R1);\n"  # puts the symbol in the link
+        code += "  MOV(IND(R3,1),R2);\n"  # updates the pointer of the old link
+        code += "  MOV(R3,R2);\n"  # updates the new link to be the next old line
+        code += "  MOV(R3,IMM(0));\n"  # puts in the tail the value of zero, so we will know its the end
     return code
 
-# i will do malloc to the number of symbols + 1
-# in the first cell we will write the amount of the symbols
-# and after that a pointer to a bucket in each of them
-#
-# must be instansiated after the constant table
-#
 
-def create_bucket(symbol):
+# each link is made of 2 cells. first - data, second - next link
+def generate_link():
+    code = "  PUSH(IMM(2));\n"
+    code += "  CALL(MALLOC);\n"
+    code += "  DROP(1);\n"
+    code += "  MOV(R2,R0);\n"
+    return code
+
+
+def generate_symbol():
+    code = "  PUSH(IMM(2));\n"
+    code += "  CALL(MALLOC);\n"
+    code += "  DROP(1);\n"
+    code += "  MOV(IND(R0),T_SYMBOL);\n"
+    code += "  MOV(R1,R0);\n"
+    return code
+
+
+def generate_bucket(symbol):
     code = "  PUSH(IMM(2));\n"
     code += "  CALL(MALLOC);\n"
     code += "  DROP(1);\n"
