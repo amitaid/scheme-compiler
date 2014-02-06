@@ -10,10 +10,17 @@ symbol_table = ['DEFINE', 'LAMBDA', 'λ', 'IF', 'AND', 'OR', 'COND', '+',
 
 
 def sym_tab_cg():
-    code = "  PUSH(IMM(" + str(len(symbol_table)) + "));\n"
+    sym_tab_len = str(len(symbol_table))
+    i = 1
+    code = "  PUSH(IMM(" + sym_tab_len + "));\n"
     code += "  CALL(MALLOC);\n"
     code += "  DROP(1);"
-    #for sym in symbol_table():
+    code += "  MOV(R1,R0);\n"
+    code += "  MOV(IND(R1),IMM(" + sym_tab_len + "));\n"
+    for sym in symbol_table():
+        create_bucket(sym)
+        code += "  MOV(INDD(R1,IMM(" + i + "),R0);\n"
+        i += 1
     return code
 
 # i will do malloc to the number of symbols + 1
@@ -30,7 +37,6 @@ def create_bucket(symbol):
     code += "  MOV(IND(R0), IMM(" + constants[symbol] + "));\n"
     if symbol in keywords:
         code += "  MOV(INDD(R0,1),LABEL(" + keywords[symbol] + "));\n"
-    code += " MOV(R1,R0);\n"
     return code
 
 ### sexprs predicates ###
