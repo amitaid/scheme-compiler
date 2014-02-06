@@ -1,10 +1,13 @@
 from sexprs import *
 
 #key_words = ['DEFINE', 'LAMBDA', 'λ', 'IF', 'AND', 'OR', 'COND']
-#primitive_ops = ['
-# +', '-',]
+#primitive_ops = ['+', '-',]
 
 #symbol table
+keywords = {}
+symbol_table = ['DEFINE', 'LAMBDA', 'λ', 'IF', 'AND', 'OR', 'COND', '+',
+                '-']  # a combination of keywords and primitive ops
+
 
 def sym_tab_cg():
     code = "  PUSH(IMM(" + str(len(symbol_table)) + "));\n"
@@ -20,9 +23,15 @@ def sym_tab_cg():
 # must be instansiated after the constant table
 #
 
-
-symbol_table = ['DEFINE', 'LAMBDA', 'λ', 'IF', 'AND', 'OR', 'COND', '+',
-                '-']  # a combination of keywords and primitive ops
+def create_bucket(symbol):
+    code = "  PUSH(IMM(2));\n"
+    code += "  CALL(MALLOC);\n"
+    code += "  DROP(1);\n"
+    code += "  MOV(IND(R0), IMM(" + constants[symbol] + "));\n"
+    if symbol in keywords:
+        code += "  MOV(INDD(R0,1),LABEL(" + keywords[symbol] + "));\n"
+    code += " MOV(R1,R0);\n"
+    return code
 
 ### sexprs predicates ###
 
@@ -498,7 +507,7 @@ class AbstractSchemeExpr:
             return build_define(sexpr)
         elif is_or(sexpr):
             return build_or(sexpr)
-        elif is_applic(sexpr): # must always come last
+        elif is_applic(sexpr):  # must always come last
             return build_applic(sexpr)
         else:
             print('format not supported: ' + str(sexpr))
@@ -684,6 +693,7 @@ class Variable(AbstractSchemeExpr):
 class VarFree(Variable):
     def __init__(self, symbol):
         super(VarFree, self).__init__(symbol)
+        Constant(self.symbol.value)
         if not symbol.value in symbol_table:
             symbol_table.append(symbol.value)
 
