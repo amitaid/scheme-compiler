@@ -24,7 +24,7 @@ def sym_tab_cg():
         code += "  MOV(IND(R2),R1);\n"  # puts the symbol in the link
         code += "  MOV(IND(R3,1),R2);\n"  # updates the pointer of the old link
         code += "  MOV(R3,R2);\n"  # updates the new link to be the next old line
-        code += "  MOV(R3,IMM(0));\n"  # puts in the tail the value of zero, so we will know its the end
+    code += "  MOV(R3,IMM(0));\n"  # puts in the tail the value of zero, so we will know its the end
     return code
 
 
