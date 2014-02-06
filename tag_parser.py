@@ -608,25 +608,25 @@ def cg_vector(const):
     return code
 
 
-def update_consts(const, size, code):
+def update_consts(const, code, mem_size):
     global constants, mem_ptr
     constants['const_code'].append(code)
     constants[const] = mem_ptr
-    mem_ptr += size
+    mem_ptr += mem_size
 
 
 def add_const(const):
     if const not in constants:
         if is_integer(const):
-            update_consts(const, 2, cg_integer(const))
+            update_consts(const, cg_integer(const), 2)
         elif is_fraction(const):
-            update_consts(const, 3, cg_fraction(const))
+            update_consts(const, cg_fraction(const), 3)
         elif is_pair(const):
-            update_consts(const, 3, cg_pair(const))
+            update_consts(const, cg_pair(const), 3)
         elif is_string(const):
-            update_consts(const, 2 + len(const.value), cg_string(const))
+            update_consts(const, cg_string(const), 2 + len(const.value))
         elif is_vector(const):
-            update_consts(const, 2 + len(const.value), cg_vector(const))
+            update_consts(const, cg_vector(const), 2 + len(const.value))
 
 
 #def add_const(const):
