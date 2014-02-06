@@ -601,10 +601,10 @@ def cg_vector(const):
     code = '  /* Const ' + str(const) + ' */\n'
     for item in const.value[::-1]:
         code += item.code_gen()
-        code += '  PUSH(R0));\n'
+        code += '  PUSH(R0);\n'
     code += '  PUSH(IMM(' + str(len(const.value)) + '));\n'
-    code += 'CALL(MAKE_SOB_VECTOR);\n'
-    code += 'DROP(' + str(len(const.value) + 1) + ');\n\n'
+    code += '  CALL(MAKE_SOB_VECTOR);\n'
+    code += '  DROP(' + str(len(const.value) + 1) + ');\n\n'
     return code
 
 
