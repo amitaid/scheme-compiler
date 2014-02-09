@@ -26,6 +26,7 @@ int main()
 #include "math.lib"
 #include "string.lib"
 #include "system.lib"
+#include "scheme.lib"
 
 
 #define SOB_FALSE 0
