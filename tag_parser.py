@@ -44,45 +44,6 @@ def symbol_link(symbol_string):
     return code
 
 
-# each link is made of 2 cells. first - data, second - next link
-#def generate_link():
-#    global mem_ptr
-#    code = "  PUSH(IMM(2));\n"
-#    code += "  CALL(MALLOC);\n"
-#    code += "  DROP(1);\n"
-#    mem_ptr += 2
-#    code += "  MOV(R2,R0);\n"
-#    return code
-#
-#
-#def generate_symbol():
-#    global mem_ptr
-#    code = "  PUSH(IMM(2));\n"
-#    code += "  CALL(MALLOC);\n"
-#    code += "  DROP(1);\n"
-#    mem_ptr += 2
-#    code += "  MOV(IND(R0),T_SYMBOL);\n"
-#    code += "  MOV(R1,R0);\n"
-#    return code
-#
-#
-#def generate_bucket(symbol):
-#    global mem_ptr
-#    code = "  PUSH(IMM(2));\n"
-#    code += "  CALL(MALLOC);\n"
-#    code += "  DROP(1);\n"
-#    mem_ptr += 2
-#    code += "  MOV(INDD(R0, 1), IMM(3));\n"
-#    if symbol_table[symbol] is not -1:
-#        code += "  MOV(INDD(R0, 1), IND(" + \
-#                str(symbol_table[symbol]) + "));\n"  # this line is intended only for predefined procedures
-#    return code
-
-### sexprs predicates ###
-
-
-
-
 gen_sym_counter = 0
 
 
@@ -106,6 +67,8 @@ def gen_label():
 class InvalidSyntax(Exception):
     pass
 
+
+### sexprs predicates ###
 
 def is_void(sexpr):
     return isinstance(sexpr, Void)
