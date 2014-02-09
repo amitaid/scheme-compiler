@@ -619,15 +619,17 @@ def cg_fraction(const):
 
 def cg_pair(const):
     code = '  /* Const ' + str(const) + ' */\n'
-    if is_const(const.cdr):
-        code += Constant(const.cdr).code_gen()
-    else:
-        code += const.cdr.code_gen()
-    code += '  PUSH(R0);\n'
     if is_const(const.car):
-        code += Constant(const.car).code_gen()
+        car = Constant(const.car)
     else:
-        code += const.car.code_gen()
+        car = const.car
+    if is_const(const.cdr):
+        cdr = Constant(const.cdr)
+    else:
+        cdr = const.cdr
+    code += cdr.code_gen()
+    code += '  PUSH(R0);\n'
+    code += car.code_gen()
     code += '  PUSH(R0);\n'
     code += '  CALL(MAKE_SOB_PAIR);\n'
     code += '  DROP(2);\n\n'
@@ -636,7 +638,7 @@ def cg_pair(const):
 
 def cg_string(const):
     code = '  /* Const ' + str(const) + ' */\n'
-    for ch in const.value[::-1]:
+    for ch in const.value:
         code += '  PUSH(IMM(' + str(ord(ch)) + '));\n'
     code += '  PUSH(IMM(' + str(len(const.value)) + '));\n'
     code += '  CALL(MAKE_SOB_STRING);\n'
