@@ -97,7 +97,7 @@ def compile_scheme_file(src, dest):
 
 
 if __name__ == '__main__':
-    if len(sys.argv) < 1:
+    if len(sys.argv) < 2:
         print('Please enter a compilation target.\n')
     else:
-        compile_scheme_file(sys.argv[0], sys.argv[1].split('.')[0] + '.asm')
+        compile_scheme_file(sys.argv[1], sys.argv[1].split('.')[0] + '.asm')
