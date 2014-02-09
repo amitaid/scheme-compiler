@@ -100,4 +100,4 @@ if __name__ == '__main__':
     if len(sys.argv) < 1:
         print('Please enter a compilation target.\n')
     else:
-        compile_scheme_file('src.scm', 'src.asm')
+        compile_scheme_file(sys.argv[0], sys.argv[1].split('.')[0] + '.asm')
