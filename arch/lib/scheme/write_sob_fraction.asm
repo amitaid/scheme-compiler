@@ -12,12 +12,14 @@
   MOV(FP, SP);
   MOV(R0, FPARG(1));
   MOV(R1, INDD(R0, 1));
+  PUSH(R0);
   PUSH(INDD(R1, 1));
   CALL(WRITE_INTEGER);
   DROP(1);
   PUSH(IMM('/'));
   CALL(PUTCHAR);
   DROP(1);
+  POP(R0);
   MOV(R1, INDD(R0, 2));
   PUSH(INDD(R1, 1));
   CALL(WRITE_INTEGER);
