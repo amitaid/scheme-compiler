@@ -46,12 +46,14 @@ int main()
   CALL(MALLOC);  /* malloc of 1 for the sym table, address 7 */
   DROP(1);
 
+
 """
 
 #TODO: Add basic functions and includes.
 
 write_sob_code = """  PUSH(R0);
   CALL(WRITE_SOB);
+  CALL(NEWLINE);
 
 """
 
