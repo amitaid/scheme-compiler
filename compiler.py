@@ -1,3 +1,5 @@
+import sys
+
 import tag_parser
 
 header = """#include <stdio.h>
@@ -95,4 +97,7 @@ def compile_scheme_file(src, dest):
 
 
 if __name__ == '__main__':
-    compile_scheme_file('src.scm', 'src.asm')
+    if len(sys.argv) < 1:
+        print('Please enter a compilation target.\n')
+    else:
+        compile_scheme_file('src.scm', 'src.asm')
