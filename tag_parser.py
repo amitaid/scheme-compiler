@@ -182,8 +182,7 @@ def is_const(sexpr):
 
 
 def is_variable(sexpr):
-    return is_symbol(sexpr) and \
-           not sexpr.get_value() in symbol_table  # key_words
+    return is_symbol(sexpr)
 
 
 # predicate for both IfThen & IfThenElse
@@ -492,6 +491,8 @@ def build_or(sexpr):
 
 def build_define(sexpr):
     var = AbstractSchemeExpr.process(sexpr.cdr.car)
+    if not isinstance(var, Variable):
+        raise InvalidSyntax('Attempt to use define without a variable')
     expr = AbstractSchemeExpr.process(sexpr.cdr.cdr.car)
     return Def(var, expr)
 
@@ -557,6 +558,7 @@ class AbstractSchemeExpr:
         elif is_applic(sexpr):  # must always come last
             return build_applic(sexpr)
         else:
+            print(isinstance(sexpr, Symbol))
             print('format not supported: ' + str(sexpr))
             return Constant(Void())  # TODO in my opinion we should raise an exception here
 
@@ -743,7 +745,6 @@ class VarFree(Variable):
     def __init__(self, symbol):
         super(VarFree, self).__init__(symbol)
         Constant(String(self.symbol.value))
-        print(String(self.symbol.value))
         if self.symbol.value not in symbol_table:
             symbol_table[self.symbol.value] = -1
 
@@ -950,11 +951,11 @@ class Or(AbstractSchemeExpr):
 
     def code_gen(self):
         label = gen_label()
-        exit_label = ' L_OR_EXIT_' + label + ':'  # TODO I ADDED THE COLONS IN THE END
+        exit_label = 'L_OR_EXIT_' + label  # TODO I ADDED THE COLONS IN THE END
         code = ''
         for element in self.elements[:-1]:
             code += element.code_gen()
-            code += '  CMP(R0, SOB_FALSE);\n'
+            code += '  CMP(IND(R0), IND(3));\n'
             code += '  JUMP_NE(' + exit_label + ');\n'
         code += self.elements[-1].code_gen()
         code += ' ' + exit_label + ':\n'
@@ -962,23 +963,31 @@ class Or(AbstractSchemeExpr):
 
 
 class Def(AbstractSchemeExpr):
-    def __init__(self, name, value):
-        self.name = name
+    def __init__(self, var, value):
+        self.var = var
         self.value = value
 
     def __str__(self):
-        return '(define ' + str(self.name) + ' ' + str(self.value) + ')'
+        return '(define ' + str(self.var) + ' ' + str(self.value) + ')'
 
     def debruijn(self, bounded=list(), params=list()):
-        return Def(self.name.debruijn(bounded, params),
+        return Def(self.var.debruijn(bounded, params),
                    self.value.debruijn(bounded, params))
 
     def annotateTC(self, is_tp=false):
-        return Def(self.name,
+        return Def(self.var,
                    self.value.annotateTC(False))
 
     def analyze_env(self, env_count=0, arg_count=0):
         self.value.analyze_env(env_count, arg_count)
+
+    def code_gen(self):
+        code = self.value.code_gen()
+        code += "  MOV(R1, INDD(" + str(symbol_table[self.var.symbol.value]) + ",1));\n"
+        code += "  MOV(INDD(R1,1), R0);\n"
+        code += "  MOV(R0, IMM(1));\n"
+        return code
+
 
         ### Lambda Forms ###
 
