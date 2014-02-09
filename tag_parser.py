@@ -9,62 +9,77 @@ from sexprs import *
 # todo must take care of variables whose name is a keyword
 symbol_table = {'DEFINE': -1, 'LAMBDA': -1, 'λ': -1, 'IF': -1, 'AND': -1, 'OR': -1, 'COND': -1, '+': -1,
                 '-': -1}
-#todo needs to add a dict that holds the pointer for the symbols themselves
+
+
 def sym_tab_cg():
     global mem_ptr, symbol_table
-    code = "  PUSH(IMM(2));\n"
+    code = "  PUSH(R1);\n"
+    code += "  PUSH(R2);\n"
+    code += "  PUSH(R3);\n"
+
+    code += "  PUSH(IMM(1));\n"   # Creates the symbol table
     code += "  CALL(MALLOC);\n"
-    mem_ptr += 2
-    code += "  DROP(1);"
+    code += "  DROP(1);\n"
+    code += "  MOV(IND(IMM(7)), R0);\n"
+
+    code += "  PUSH(IMM(2));\n"
+    code += "  CALL(MALLOC);\n"
+    code += "  MOV(IND(R0), IMM(" + str(mem_ptr) + "));\n"
+    code += "  DROP(1);\n"
     code += "  MOV(IND(R0),IMM(" + str(len(symbol_table)) + "));\n"
-    code += "  MOV(R4,R0);\n"  # r4 holds the beginning of the list
     code += "  MOV(R3,R0);\n"  # r3 holds the current link
+    mem_ptr += 2
+
     for sym in symbol_table.keys():
         code += generate_link()  # after this line, r2 holds the new link
-        mem_ptr += 2
         code += generate_symbol()  # after this line, r1 holds the new symbol
-        symbol_table[sym] = mem_ptr  # now it is supposed to be
-        mem_ptr += 2
+        symbol_table[sym] = mem_ptr
         code += generate_bucket(sym)  # after this line, r0 holds the bucket
-        mem_ptr += 2
         code += "  MOV(INDD(R1,1),R0);\n"  # puts the bucket inside the symbol
         code += "  MOV(IND(R2),R1);\n"  # puts the symbol in the link
-        code += "  MOV(IND(R3,1),R2);\n"  # updates the pointer of the old link
+        code += "  MOV(INDD(R3,1),R2);\n"  # updates the pointer of the old link
         code += "  MOV(R3,R2);\n"  # updates the new link to be the next old line
-    code += "  MOV(R3,IMM(0));\n"  # puts in the tail the value of zero, so we will know its the end
+    code += "  MOV(INDD(R3, 1),IMM(0));\n"  # puts in the tail the value of zero, so we will know its the end
 
-    # puts the symbol table in memory address 7
-    code += "  MOV(R0,IMM(7));\n"
-    code += "  MOV(IND(R0),R4);\n"
+    code += "  POP(R3);\n"
+    code += "  POP(R2);\n"
+    code += "  POP(R1);\n"
+
     return code
 
 
 # each link is made of 2 cells. first - data, second - next link
 def generate_link():
+    global mem_ptr
     code = "  PUSH(IMM(2));\n"
     code += "  CALL(MALLOC);\n"
     code += "  DROP(1);\n"
+    mem_ptr += 2
     code += "  MOV(R2,R0);\n"
     return code
 
 
 def generate_symbol():
+    global mem_ptr
     code = "  PUSH(IMM(2));\n"
     code += "  CALL(MALLOC);\n"
     code += "  DROP(1);\n"
+    mem_ptr += 2
     code += "  MOV(IND(R0),T_SYMBOL);\n"
     code += "  MOV(R1,R0);\n"
     return code
 
 
 def generate_bucket(symbol):
+    global mem_ptr
     code = "  PUSH(IMM(2));\n"
     code += "  CALL(MALLOC);\n"
     code += "  DROP(1);\n"
-    code += "  MOV(IND(R0), IMM(" + constants[symbol] + "));\n"
+    mem_ptr += 2
+    #code += "  MOV(IND(R0), IMM(" + constants[symbol] + "));\n"
     if symbol_table[symbol] is not -1:
-        code += "  MOV(INDD(R0,1),LABEL(" + str(
-            symbol_table[symbol]) + "));\n"  # this line is intended only for predefined procedures
+        code += "  MOV(INDD(R0,IMM(1)),LABEL(" + \
+                str(symbol_table[symbol]) + "));\n"  # this line is intended only for predefined procedures
     return code
 
 ### sexprs predicates ###
@@ -733,8 +748,8 @@ class Variable(AbstractSchemeExpr):
 class VarFree(Variable):
     def __init__(self, symbol):
         super(VarFree, self).__init__(symbol)
-        Constant(self.symbol.value)
-        if symbol_table.get(self.symbol.value) is None:
+        Constant(String(self.symbol.value))
+        if self.symbol.value not in symbol_table:
             symbol_table[self.symbol.value] = -1
 
     def __str__(self):
