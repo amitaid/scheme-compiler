@@ -17,7 +17,7 @@ def sym_tab_cg():
     first_link = True
     code = ''
     for sym in symbol_table.keys():
-        code += symbol_link(sym)
+        code += make_symbol_link(sym)
         if first_link:
             code += "  MOV(IND(IMM(7)), R0);\n" # First link is in 7
             first_link = False
@@ -28,7 +28,7 @@ def sym_tab_cg():
     return code
 
 
-def symbol_link(symbol_string):
+def make_symbol_link(symbol_string):
     global mem_ptr, symbol_table, constants
     code = "  PUSH(IMM(6));\n"
     code += "  CALL(MALLOC);\n"
