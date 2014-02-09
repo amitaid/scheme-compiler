@@ -819,11 +819,15 @@ class IfThenElse(AbstractSchemeExpr):
 
     def code_gen(self):
         label = gen_label()
+        true_label = 'L_THEN_' + label
         false_label = 'L_ELSE_' + label
         exit_label = 'L_IF_EXIT_' + label
         code = self.predicate.code_gen() + '\n'
-        code += '  CMP(R0, SOB_FALSE);\n'
+        code += '  CMP(IND(R0), T_BOOL);\n'       # If predicate isn't T_BOOL, it's true
+        code += '  JUMP_NE(' + true_label + ');\n'
+        code += '  CMP(INDD(R0,1), INDD(3,1));\n' # If predicate is T_BOOL, compare values
         code += '  JUMP_EQ(' + false_label + ');\n'
+        code += ' ' + true_label + ":\n"
         code += self.then_body.code_gen()
         code += '  JUMP(' + exit_label + ');\n'
         code += ' ' + false_label + ":\n"
@@ -951,7 +955,7 @@ class Or(AbstractSchemeExpr):
 
     def code_gen(self):
         label = gen_label()
-        exit_label = 'L_OR_EXIT_' + label  # TODO I ADDED THE COLONS IN THE END
+        exit_label = 'L_OR_EXIT_' + label
         code = ''
         for element in self.elements[:-1]:
             code += element.code_gen()
