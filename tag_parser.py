@@ -974,7 +974,7 @@ class LambdaSimple(AbstractLambda):
 
     def __str__(self):
         return '(lambda (' + ' '.join([str(x) for x in self.variables]) + ') ' + \
-               str(self.body) + '){' + str(self.env_depth) + '}'
+               str(self.body) + ')' #{' + str(self.env_depth) + '}'
 
     def debruijn(self, bounded=list(), params=list()):
         return LambdaSimple(self.variables,
@@ -1000,46 +1000,45 @@ class LambdaSimple(AbstractLambda):
         code = ' ' + build_closure_label + ':\n'
 
         # setting registers for 1st loop
-        code += '  PUSH(IMM(' + str(self.env_depth + 1) + ');\n'
+        code += '  PUSH(IMM(' + str(self.env_depth + 1) + '));\n'
         code += '  CALL(MALLOC);\n'
         code += '  DROP(1);\n'
-        code += '  MOV(R1, R0);\n'
-        code += '  MOV(R2,FPARG(0));\n'  # TODO Should point to old env.
-        code += '  MOV(R3,IMM(1));\n'  # j
-        code += '  MOV(R4,IMM(0));\n'  # i
 
-        # first loop - the environments copy
-        code += ' ' + env_copy_label + ':\n'
-        code += '  MOV(INDD(R1,R3),INDD(R2,R4));\n'  # maybe this needs to be split to 2 commands
-        code += '  ADD(R3,IMM(1));\n'
-        code += '  ADD(R4,IMM(1));\n'
-        code += '  CMP(R4,R2);\n'
-        code += '  JUMP_LT(env_copy_label);\n'
+        if self.env_depth > 0:
+            code += '  MOV(R1, R0);\n'          # New env
+            code += '  MOV(R2, FPARG(0));\n'    # Old env
+            code += '  MOV(R3, IMM(1));\n'      # j
 
-        # setting registers for 2nd loop, now R1 holds the new env
-        code += '  PUSH(FPARG(1));\n'
-        code += '  CALL(MALLOC);\n'
-        code += '  DROP(1);\n'
-        code += '  MOV(R2,R0);\n'
-        code += '  MOV(R3,IMM(0));\n'  # i
-        code += '  MOV(R4,IMM(2));\n'  # j
+            # first loop - the environments copy
+            code += ' ' + env_copy_label + ':\n'
+            code += '  MOV(INDD(R1,R3),INDD(R2,R3-1));\n'  # maybe this needs to be split to 2 commands
+            code += '  INCR(R3);\n'
+            code += '  CMP(R3-1,R2);\n'
+            code += '  JUMP_LT(' + env_copy_label + ');\n'
 
-        # 2nd loop - current (param) stack args (vars) copy
-        code += ' ' + current_args_copy_label + ':\n'
-        code += '  MOV(INDD(R2,R3),FPARG(R4));\n'
-        code += '  ADD(R3,1);\n'
-        code += '  ADD(R4,1);\n'
-        code += '  CMP(R3,FPARG(1));\n'
-        code += '  JUMP_LT(' + current_args_copy_label + ');\n'
+            # setting registers for 2nd loop, now R1 holds the new env
+            code += '  PUSH(FPARG(1));\n'   # Number of arguments
+            code += '  CALL(MALLOC);\n'
+            code += '  DROP(1);\n'
+            code += '  MOV(R2,R0);\n'
+            code += '  MOV(R3,IMM(0));\n'  # i
+
+            # 2nd loop - current (param) stack args (vars) copy
+            code += ' ' + current_args_copy_label + ':\n'
+            code += '  MOV(INDD(R2,R3),FPARG(R3+2));\n'
+            code += '  INCR(R3);\n'
+            code += '  CMP(R3,FPARG(1));\n'
+            code += '  JUMP_LT(' + current_args_copy_label + ');\n'
+
+        else:
+            code += '  PUSH(IMM(0));\n'
+            code += '  PUSH(IMM(0));\n'
 
         # building the actual closure
-        code += '  MOV(INDD(R1,0),R2);\n'
-        code += '  PUSH(IMM(3));\n'
-        code += '  CALL(MALLOC);\n'
-        code += '  DROP(1);\n'
-        code += '  MOV(INDD(R0,0),T_CLOS);\n'
-        code += '  MOV(INDD(R0,1),R1);\n'
-        code += '  MOV(INDD(R0,2),LABEL(' + closure_code_label + '));\n'
+        code += '  PUSH(LABEL(' + closure_code_label + '));\n'
+        code += '  PUSH(R1);\n'
+        code += '  CALL(MAKE_SOB_CLOSURE);\n'
+        code += '  DROP(2);\n'
         code += '  JUMP(' + closure_exit_label + ');\n'
 
         code += ' ' + closure_code_label + ':\n'
@@ -1052,7 +1051,6 @@ class LambdaSimple(AbstractLambda):
 
         code += ' ' + closure_exit_label + ':\n'
 
-        #TODO RETURN NEEDED(?)
         return code
 
 
