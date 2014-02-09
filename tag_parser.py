@@ -14,31 +14,33 @@ symbol_table = {}
 
 
 def sym_tab_cg():
-    global mem_ptr, symbol_table
-
-    code = ""
     first_link = True
-
+    code = ''
     for sym in symbol_table.keys():
-        code += "  PUSH(IMM(6));\n"
-        code += "  CALL(MALLOC);\n"
-        code += "  DROP(1);\n"
+        code += symbol_link(sym)
         if first_link:
             code += "  MOV(IND(IMM(7)), R0);\n" # First link is in 7
-        code += "  MOV(IND(R0), " + str(mem_ptr + 4) + ");\n"  # Pointer to bucket
-        code += "  MOV(INDD(R0,1), IMM(-1));\n"
-        code += "  MOV(INDD(R0,2),T_SYMBOL);\n"
-        code += "  MOV(INDD(R0,3), " + str(mem_ptr + 4) + ");\n"  # Pointer to bucket"
-        code += "  MOV(INDD(R0,4), IMM(" + str(constants[String(sym)]) + "));\n"
-        code += "  MOV(INDD(R0,5), IMM(3));\n"
-        if not first_link:
-            code += "  MOV(R1, IND(IMM(8)));\n"
+            first_link = False
+        else:
             code += "  MOV(INDD(R1,1), R0);\n" # Update previous link's next pointer
-        code += "  MOV(IND(IMM(8)), R0);\n"  # Last link sits in cell 8
-        symbol_table[sym] = mem_ptr + 2
-        mem_ptr += 6
-        first_link = False
+        code += "  MOV(R1, R0);\n"
 
+    return code
+
+
+def symbol_link(symbol_string):
+    global mem_ptr, symbol_table, constants
+    code = "  PUSH(IMM(6));\n"
+    code += "  CALL(MALLOC);\n"
+    code += "  DROP(1);\n"
+    code += "  MOV(IND(R0), " + str(mem_ptr + 4) + ");\n"  # Pointer to bucket
+    code += "  MOV(INDD(R0,1), IMM(-1));\n"
+    code += "  MOV(INDD(R0,2),T_SYMBOL);\n"
+    code += "  MOV(INDD(R0,3), " + str(mem_ptr + 4) + ");\n"  # Pointer to bucket"
+    code += "  MOV(INDD(R0,4), IMM(" + str(constants[String(symbol_string)]) + "));\n"
+    code += "  MOV(INDD(R0,5), IMM(3));\n"
+    symbol_table[symbol_string] = mem_ptr + 2
+    mem_ptr += 6
     return code
 
 
@@ -586,7 +588,7 @@ constants = {sexprs.Void(): 1,
              sexprs.Boolean('#f'): 3,
              sexprs.Boolean('#t'): 5,
              'const_code': []}
-mem_ptr = 9
+mem_ptr = 8
 
 
 class Constant(AbstractSchemeExpr):

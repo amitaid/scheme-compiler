@@ -44,7 +44,7 @@ int main()
   CALL(MAKE_SOB_BOOL);  /* SOB_True = ADDR(5) */
   DROP(2);
 
-  PUSH(IMM(2));  /* Creates the symbol table */
+  PUSH(IMM(1));  /* Creates the symbol table, ADDR(7) */
   CALL(MALLOC);
   DROP(1);
 
