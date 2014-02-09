@@ -3,7 +3,7 @@ import tag_parser
 header = """#include <stdio.h>
 #include <stdlib.h>
 
-#include "cisc.h"
+#include "arch/cisc.h"
 
 /* change to 0 for no debug info to be printed: */
 #define DO_SHOW 0
@@ -21,12 +21,12 @@ int main()
 
   JUMP(CONTINUE);
 
-#include "char.lib"
-#include "io.lib"
-#include "math.lib"
-#include "string.lib"
-#include "system.lib"
-#include "scheme.lib"
+#include "arch/char.lib"
+#include "arch/io.lib"
+#include "arch/math.lib"
+#include "arch/string.lib"
+#include "arch/system.lib"
+#include "arch/scheme.lib"
 
 
 #define SOB_FALSE 0
