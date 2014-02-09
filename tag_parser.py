@@ -591,7 +591,7 @@ class Constant(AbstractSchemeExpr):
         #return Constant(self.value.debruijn(bounded, params))
 
     def code_gen(self):
-        return '  MOV(R0, ADDR(' + str(constants[self.value]) + '));\n'
+        return '  MOV(R0, ' + str(constants[self.value]) + ');\n'
 
 
 def cg_integer(const):
