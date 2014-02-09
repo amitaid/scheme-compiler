@@ -8,15 +8,21 @@
 
  WRITE_SOB_FRACTION:
   PUSH(FP);
+  PUSH(R1);
   MOV(FP, SP);
-  MOV(R0, FPARG(0));
-  PUSH(INDD(R0, 2));
+  MOV(R0, FPARG(1));
+  MOV(R1, INDD(R0, 1));
+  PUSH(INDD(R1, 1));
   CALL(WRITE_INTEGER);
+  DROP(1);
   PUSH(IMM('/'));
   CALL(PUTCHAR);
-  PUSH(INDD(R0, 1));
+  DROP(1);
+  MOV(R1, INDD(R0, 2));
+  PUSH(INDD(R1, 1));
   CALL(WRITE_INTEGER);
-  DROP(3);
+  DROP(1);
+  POP(R1);
   POP(FP);
   RETURN;
 
