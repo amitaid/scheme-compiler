@@ -82,7 +82,7 @@ def compile_scheme_file(src, dest):
 
     d.write('\n  /* Symbol code generation */\n')
     d.write(tag_parser.sym_tab_cg())
-
+    d.write(tag_parser.gen_builtin())
     d.write('\n  /* Program code */\n')
     for expr in expressions:
         print(expr)
