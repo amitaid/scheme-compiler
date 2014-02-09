@@ -153,9 +153,10 @@ def is_proper_list(sexpr):
 def is_improper_list(sexpr):
     return is_pair(sexpr) and not is_proper_list(sexpr)
 
+
 ### AbstractSchemeExpr Predicates ###
 
-def is_quote(sexpr): # TODO implement later
+def is_quote(sexpr):  # TODO implement later
     return is_proper_list(sexpr) and \
            is_symbol(sexpr.car) and \
            sexpr.car.get_value() == 'quote'
@@ -197,6 +198,7 @@ def is_lambda(sexpr):
     return is_proper_list(sexpr) and \
            is_symbol(sexpr.car) and \
            sexpr.car.get_value() == 'LAMBDA'
+
 
 # These will only be called if is_lambda succeeded
 def is_lambda_simple(sexpr):
@@ -270,6 +272,7 @@ def is_or(sexpr):
            is_symbol(sexpr.car) and \
            str(sexpr.car) == 'OR'
 
+
 #------------------------------------
 
 # Helper function to expand a pair list to a python list
@@ -283,6 +286,7 @@ def pair_to_list(sexpr):
         res.append(sexpr)
 
     return res
+
 
 ######## Builders and expanders #########
 
@@ -545,7 +549,7 @@ class AbstractSchemeExpr:
             return build_applic(sexpr)
         else:
             print('format not supported: ' + str(sexpr))
-            return Constant(Void()) # TODO in my opinion we should raise an exception here
+            return Constant(Void())  # TODO in my opinion we should raise an exception here
 
     def debruijn(self, bounded=list(), params=list()):
         return self
@@ -642,7 +646,7 @@ def cg_string(const):
 
 def cg_vector(const):
     code = '  /* Const ' + str(const) + ' */\n'
-    for item in const.value[::-1]:
+    for item in const.value:
         code += item.code_gen()
         code += '  PUSH(R0);\n'
     code += '  PUSH(IMM(' + str(len(const.value)) + '));\n'
@@ -965,6 +969,7 @@ class Def(AbstractSchemeExpr):
 class AbstractLambda(AbstractSchemeExpr):
     pass
 
+
 class LambdaSimple(AbstractLambda):
     def __init__(self, variables, body):
         self.variables = variables
@@ -1010,7 +1015,7 @@ class LambdaSimple(AbstractLambda):
 
         # first loop - the environments copy
         code += ' ' + env_copy_label + ':\n'
-        code += '  MOV(INDD(R1,R3),INDD(R2,R4));\n' # maybe this needs to be split to 2 commands
+        code += '  MOV(INDD(R1,R3),INDD(R2,R4));\n'  # maybe this needs to be split to 2 commands
         code += '  ADD(R3,IMM(1));\n'
         code += '  ADD(R4,IMM(1));\n'
         code += '  CMP(R4,R2);\n'
@@ -1080,8 +1085,8 @@ class LambdaVar(AbstractLambda):
 
     def code_gen(self):
         label = gen_label()
-        env_copy_label = 'L_ENV_LOOP_' + label                       # label for copying the environments
-        current_args_copy_label = 'L_ARGS_LOOP_' + label             # label for co
+        env_copy_label = 'L_ENV_LOOP_' + label  # label for copying the environments
+        current_args_copy_label = 'L_ARGS_LOOP_' + label  # label for co
         variadic_build_closure_label = 'L_BUILD_VAR_CLOS_' + label
         variadic_closure_body_code_label = 'L_VAR_CLOS_BODY_CODE_' + label
         variadic_closure_exit_label = 'L_VAR_CLOS_EXIT_' + label
@@ -1100,7 +1105,7 @@ class LambdaVar(AbstractLambda):
 
         # first loop - the environments copy
         code += ' ' + env_copy_label + ':\n'
-        code += '  MOV(INDD(R1,R3),INDD(R2,R4));\n' # maybe this needs to be split to 2 commands
+        code += '  MOV(INDD(R1,R3),INDD(R2,R4));\n'  # maybe this needs to be split to 2 commands
         code += '  ADD(R3,IMM(1));\n'
         code += '  ADD(R4,IMM(1));\n'
         code += '  CMP(R4,R2);\n'
@@ -1130,15 +1135,15 @@ class LambdaVar(AbstractLambda):
 
         #setting registers for copying the stack to overide all the args besides the first. - now R1 holds the env, R0 holds the properlist
         code += '  MOV(R2,FPARG(1));\n'
-        code += '  ADD(R2,1);\n'         # new address pointer
+        code += '  ADD(R2,1);\n'  # new address pointer
         code += '  MOV(R3,IMM(2));\n'
         code += '  MOV(R4,FPARG(1));\n'  #
-        code += '  ADD(R4,IMM(3));\n'    # n args + 3 for pointers change (ret address, old env, and args num)
+        code += '  ADD(R4,IMM(3));\n'  # n args + 3 for pointers change (ret address, old env, and args num)
 
 
         # 3rd loop - stack modification
         code += ' ' + stack_modification_loop + ':'
-        code += '  MOV(FPARG(R2),FPARG(R3));\n' # copying the stack to a lower address
+        code += '  MOV(FPARG(R2),FPARG(R3));\n'  # copying the stack to a lower address
         code += '  SUB(R2,IMM(1));\n'
         code += '  SUB(R3,IMM(1));\n'
         code += '  SUB(R4,IMM(1));\n'
