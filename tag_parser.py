@@ -7,80 +7,74 @@ from sexprs import *
 
 # todo -1 must be replaced with the appropiate code for the primitive procedures
 # todo must take care of variables whose name is a keyword
-symbol_table = {'DEFINE': -1, 'LAMBDA': -1, 'λ': -1, 'IF': -1, 'AND': -1, 'OR': -1, 'COND': -1, '+': -1,
-                '-': -1}
+#symbol_table = {'DEFINE': -1, 'LAMBDA': -1, 'λ': -1, 'IF': -1, 'AND': -1, 'OR': -1, 'COND': -1, '+': -1,
+#                '-': -1}
+
+symbol_table = {}
 
 
 def sym_tab_cg():
     global mem_ptr, symbol_table
-    code = "  PUSH(R1);\n"
-    code += "  PUSH(R2);\n"
-    code += "  PUSH(R3);\n"
 
-    code += "  PUSH(IMM(1));\n"   # Creates the symbol table
-    code += "  CALL(MALLOC);\n"
-    code += "  DROP(1);\n"
-    code += "  MOV(IND(IMM(7)), R0);\n"
-
-    code += "  PUSH(IMM(2));\n"
-    code += "  CALL(MALLOC);\n"
-    code += "  MOV(IND(R0), IMM(" + str(mem_ptr) + "));\n"
-    code += "  DROP(1);\n"
-    code += "  MOV(IND(R0),IMM(" + str(len(symbol_table)) + "));\n"
-    code += "  MOV(R3,R0);\n"  # r3 holds the current link
-    mem_ptr += 2
+    code = ""
+    first_link = True
 
     for sym in symbol_table.keys():
-        code += generate_link()  # after this line, r2 holds the new link
-        code += generate_symbol()  # after this line, r1 holds the new symbol
-        symbol_table[sym] = mem_ptr
-        code += generate_bucket(sym)  # after this line, r0 holds the bucket
-        code += "  MOV(INDD(R1,1),R0);\n"  # puts the bucket inside the symbol
-        code += "  MOV(IND(R2),R1);\n"  # puts the symbol in the link
-        code += "  MOV(INDD(R3,1),R2);\n"  # updates the pointer of the old link
-        code += "  MOV(R3,R2);\n"  # updates the new link to be the next old line
-    code += "  MOV(INDD(R3, 1),IMM(0));\n"  # puts in the tail the value of zero, so we will know its the end
-
-    code += "  POP(R3);\n"
-    code += "  POP(R2);\n"
-    code += "  POP(R1);\n"
+        code += "  PUSH(IMM(6));\n"
+        code += "  CALL(MALLOC);\n"
+        code += "  DROP(1);\n"
+        if first_link:
+            code += "  MOV(IND(IMM(7)), R0);\n" # First link is in 7
+        code += "  MOV(IND(R0), " + str(mem_ptr + 4) + ");\n"  # Pointer to bucket
+        code += "  MOV(INDD(R0,1), IMM(-1));\n"
+        code += "  MOV(INDD(R0,2),T_SYMBOL);\n"
+        code += "  MOV(INDD(R0,3), " + str(mem_ptr + 4) + ");\n"  # Pointer to bucket"
+        code += "  MOV(INDD(R0,4), IMM(" + str(constants[String(sym)]) + "));\n"
+        code += "  MOV(INDD(R0,5), IMM(3));\n"
+        if not first_link:
+            code += "  MOV(R1, IND(IMM(8)));\n"
+            code += "  MOV(INDD(R1,1), R0);\n" # Update previous link's next pointer
+        code += "  MOV(IND(IMM(8)), R0);\n"  # Last link sits in cell 8
+        symbol_table[sym] = mem_ptr + 2
+        mem_ptr += 6
+        first_link = False
 
     return code
 
 
 # each link is made of 2 cells. first - data, second - next link
-def generate_link():
-    global mem_ptr
-    code = "  PUSH(IMM(2));\n"
-    code += "  CALL(MALLOC);\n"
-    code += "  DROP(1);\n"
-    mem_ptr += 2
-    code += "  MOV(R2,R0);\n"
-    return code
-
-
-def generate_symbol():
-    global mem_ptr
-    code = "  PUSH(IMM(2));\n"
-    code += "  CALL(MALLOC);\n"
-    code += "  DROP(1);\n"
-    mem_ptr += 2
-    code += "  MOV(IND(R0),T_SYMBOL);\n"
-    code += "  MOV(R1,R0);\n"
-    return code
-
-
-def generate_bucket(symbol):
-    global mem_ptr
-    code = "  PUSH(IMM(2));\n"
-    code += "  CALL(MALLOC);\n"
-    code += "  DROP(1);\n"
-    mem_ptr += 2
-    #code += "  MOV(IND(R0), IMM(" + constants[symbol] + "));\n"
-    if symbol_table[symbol] is not -1:
-        code += "  MOV(INDD(R0,IMM(1)),LABEL(" + \
-                str(symbol_table[symbol]) + "));\n"  # this line is intended only for predefined procedures
-    return code
+#def generate_link():
+#    global mem_ptr
+#    code = "  PUSH(IMM(2));\n"
+#    code += "  CALL(MALLOC);\n"
+#    code += "  DROP(1);\n"
+#    mem_ptr += 2
+#    code += "  MOV(R2,R0);\n"
+#    return code
+#
+#
+#def generate_symbol():
+#    global mem_ptr
+#    code = "  PUSH(IMM(2));\n"
+#    code += "  CALL(MALLOC);\n"
+#    code += "  DROP(1);\n"
+#    mem_ptr += 2
+#    code += "  MOV(IND(R0),T_SYMBOL);\n"
+#    code += "  MOV(R1,R0);\n"
+#    return code
+#
+#
+#def generate_bucket(symbol):
+#    global mem_ptr
+#    code = "  PUSH(IMM(2));\n"
+#    code += "  CALL(MALLOC);\n"
+#    code += "  DROP(1);\n"
+#    mem_ptr += 2
+#    code += "  MOV(INDD(R0, 1), IMM(3));\n"
+#    if symbol_table[symbol] is not -1:
+#        code += "  MOV(INDD(R0, 1), IND(" + \
+#                str(symbol_table[symbol]) + "));\n"  # this line is intended only for predefined procedures
+#    return code
 
 ### sexprs predicates ###
 
@@ -590,7 +584,7 @@ constants = {sexprs.Void(): 1,
              sexprs.Boolean('#f'): 3,
              sexprs.Boolean('#t'): 5,
              'const_code': []}
-mem_ptr = 8
+mem_ptr = 9
 
 
 class Constant(AbstractSchemeExpr):
@@ -749,11 +743,17 @@ class VarFree(Variable):
     def __init__(self, symbol):
         super(VarFree, self).__init__(symbol)
         Constant(String(self.symbol.value))
+        print(String(self.symbol.value))
         if self.symbol.value not in symbol_table:
             symbol_table[self.symbol.value] = -1
 
     def __str__(self):
         return self.symbol.get_value()
+
+    def code_gen(self):
+        code = '  MOV(R0, INDD(' + str(symbol_table[self.symbol.value]) + ', 1));\n'
+        code += '  MOV(R0, INDD(R0, 1));\n'
+        return code
 
 
 class VarParam(Variable):

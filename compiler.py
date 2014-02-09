@@ -44,6 +44,10 @@ int main()
   CALL(MAKE_SOB_BOOL);  /* SOB_True = ADDR(5) */
   DROP(2);
 
+  PUSH(IMM(2));  /* Creates the symbol table */
+  CALL(MALLOC);
+  DROP(1);
+
 """
 
 #TODO: Add basic functions and includes.
@@ -76,12 +80,12 @@ def compile_scheme_file(src, dest):
     d.write('  /* Constant code generation /*\n')
     d.write(''.join(tag_parser.constants['const_code']))
 
-    d.write('\n  /* Symbol code generation /*\n')
+    d.write('\n  /* Symbol code generation */\n')
     d.write(tag_parser.sym_tab_cg())
 
     d.write('\n  /* Program code */\n')
     for expr in expressions:
-        print(str(expr))
+        print(expr)
         code = expr.code_gen()
         if code:
             d.write(code)
