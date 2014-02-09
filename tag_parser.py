@@ -142,8 +142,8 @@ def is_const(sexpr):
            is_number(sexpr) or \
            is_string(sexpr) or \
            is_nil(sexpr) or \
-           is_void(sexpr) or \
-           (is_pair(sexpr) and not is_symbol(sexpr.car))
+           is_void(sexpr)# or \
+    #(is_pair(sexpr) and not is_symbol(sexpr.car))
 
 
 def is_variable(sexpr):
@@ -413,8 +413,9 @@ def expand_quasiquote(sexpr):
 
 
 def build_applic(sexpr):
-    func = AbstractSchemeExpr.process(sexpr.car)
-    args = list(map(AbstractSchemeExpr.process, pair_to_list(sexpr.cdr)))
+    func = AbstractSchemeExpr.process(AbstractSchemeExpr.expand(sexpr.car))
+    args = list(map(AbstractSchemeExpr.expand, pair_to_list(sexpr.cdr)))
+    args = list(map(AbstractSchemeExpr.process, args))
     return Applic(func, args)
 
 
@@ -732,7 +733,7 @@ class VarParam(Variable):
         # + '(' + str(self.minor) + ')'
 
     def code_gen(self):
-        return '  MOV(R0, STACK(FP-5-' + str(self.minor) + '));\n'
+        return '  MOV(R0, FPARG(' + str(self.minor + 2) + '));\n'
 
 
 class VarBound(Variable):
@@ -746,9 +747,9 @@ class VarBound(Variable):
         # + '(' + str(self.major) + ', ' + str(self.minor) + ')'
 
     def code_gen(self):
-        code = '  MOV(R0, FPARG(IMM(3)));\n'
-        code += '  MOV(R0, INDD(R0, IMM(' + str(self.major) + ')));\n'
-        code += '  MOV(R0, INDD(R0, IMM(' + str(self.minor) + ')));\n'
+        code = '  MOV(R0, FPARG(0));\n'
+        code += '  MOV(R0, INDD(R0, ' + str(self.major) + '));\n'
+        code += '  MOV(R0, INDD(R0, ' + str(self.minor) + '));\n'
         return code
 
 
@@ -835,7 +836,6 @@ class Applic(AbstractSchemeExpr):
             code += '  PUSH(R0);\n'
         code += '  PUSH(IMM(' + str(len(self.args)) + '));\n'
         code += self.func.code_gen()
-
         code += '  MOV(R1,R0);\n'
         code += '  PUSH(R0);\n'
         code += '  CALL(IS_SOB_CLOSURE);\n'
@@ -848,10 +848,10 @@ class Applic(AbstractSchemeExpr):
         code += ' L_APPLIC_EXIT_' + label + ':\n'
         code += '  MOV(R0,R1);\n'
         code += '  PUSH(INDD(R0,1));\n'
-        code += '  CALL(INDD(R0,2));\n'
+        code += '  CALLA(INDD(R0,2));\n'
         code += '  DROP(1);\n'
         code += '  POP(R1);\n'
-        code += '  DROP(R1)\n'
+        code += '  DROP(R1);\n'
         # code += '  RETURN;\n' #TODO MAYBE THIS LINE IS NOT NEEDED
         return code
 
@@ -869,35 +869,36 @@ class ApplicTP(Applic):
         for x in self.args:
             x.analyze_env(env_count, arg_count)
 
-    def code_gen(self):
-        label = gen_label()
-        applic_tc_exit_label = 'L_APPLIC_EXIT_' + label
-        code = ''
-
-        for arg in reversed(self.args):
-            code += arg.code_gen()
-            code += '  PUSH(R0);\''
-        code += '  PUSH(IMM(' + str(len(self.args)) + '));\n'
-        code += self.func.code_gen()
-
-        code += '  MOV(R1,R0);\n'
-        code += '  PUSH(R0);\n'
-        code += '  CALL(IS_SOB_CLOSURE);\n'
-        code += '  DROP(1);\n'
-        code += '  CMP(R0,IMM(1));'
-        code += '  JUMP_EQ(' + applic_tc_exit_label + ');\n'
-
-        #TODO ERROR
-
-        code += ' ' + applic_tc_exit_label + ':\n'
-        code += '  MOV(R0,R1);\n'
-        code += '  PUSH(INDD(R0,IMM(1)));\n'  # here the diffenece from applic starts
-        code += '  PUSH(FPARG(-1));\n'
-        code += '  MOV(R1,FPARG(-2));\n'
-        code += '  MOV(FP,R1);\n'
-        code += '  JUMP(INDD(R0,2));\n'
-        #TODO RETURN?
-        return code
+            #def code_gen(self):
+            #    pass
+            #label = gen_label()
+            #applic_tc_exit_label = 'L_APPLIC_EXIT_' + label
+            #code = ''
+            #
+            #for arg in reversed(self.args):
+            #    code += arg.code_gen()
+            #    code += '  PUSH(R0);\''
+            #code += '  PUSH(IMM(' + str(len(self.args)) + '));\n'
+            #code += self.func.code_gen()
+            #
+            #code += '  MOV(R1,R0);\n'
+            #code += '  PUSH(R0);\n'
+            #code += '  CALL(IS_SOB_CLOSURE);\n'
+            #code += '  DROP(1);\n'
+            #code += '  CMP(R0,IMM(1));'
+            #code += '  JUMP_EQ(' + applic_tc_exit_label + ');\n'
+            #
+            ##TODO ERROR
+            #
+            #code += ' ' + applic_tc_exit_label + ':\n'
+            #code += '  MOV(R0,R1);\n'
+            #code += '  PUSH(INDD(R0,IMM(1)));\n'  # here the diffenece from applic starts
+            #code += '  PUSH(FPARG(-1));\n'
+            #code += '  MOV(R1,FPARG(-2));\n'
+            #code += '  MOV(FP,R1);\n'
+            #code += '  JUMP(INDD(R0,2));\n'
+            ##TODO RETURN?
+            #return code
 
 
 class Or(AbstractSchemeExpr):
@@ -997,45 +998,52 @@ class LambdaSimple(AbstractLambda):
         closure_code_label = 'L_CLOS_CODE_' + label
         closure_exit_label = 'L_CLOS_EXIT_' + label
 
-        code = ' ' + build_closure_label + ':\n'
-
         # setting registers for 1st loop
-        code += '  PUSH(IMM(' + str(self.env_depth + 1) + '));\n'
+        code = '  PUSH(IMM(' + str(self.env_depth + 1) + '));\n'
         code += '  CALL(MALLOC);\n'
         code += '  DROP(1);\n'
+        code += '  MOV(R1, R0);\n'          # New env
 
         if self.env_depth > 0:
-            code += '  MOV(R1, R0);\n'          # New env
             code += '  MOV(R2, FPARG(0));\n'    # Old env
             code += '  MOV(R3, IMM(1));\n'      # j
+            code += '  MOV(R4, IMM(0));\n'
 
             # first loop - the environments copy
             code += ' ' + env_copy_label + ':\n'
-            code += '  MOV(INDD(R1,R3),INDD(R2,R3-1));\n'  # maybe this needs to be split to 2 commands
+            code += '  MOV(R0, INDD(R2,R4));\n'
+            code += '  MOV(INDD(R1,R3),R0);\n'  # maybe this needs to be split to 2 commands
             code += '  INCR(R3);\n'
-            code += '  CMP(R3-1,R2);\n'
+            code += '  INCR(R4);\n'
+            code += '  CMP(R4, IMM(' + str(self.env_depth) + '));\n'
             code += '  JUMP_LT(' + env_copy_label + ');\n'
 
             # setting registers for 2nd loop, now R1 holds the new env
             code += '  PUSH(FPARG(1));\n'   # Number of arguments
             code += '  CALL(MALLOC);\n'
             code += '  DROP(1);\n'
+            code += '  MOV(IND(R1),R0);\n'
             code += '  MOV(R2,R0);\n'
             code += '  MOV(R3,IMM(0));\n'  # i
+            code += '  MOV(R4,IMM(2));\n'  # j
 
             # 2nd loop - current (param) stack args (vars) copy
             code += ' ' + current_args_copy_label + ':\n'
-            code += '  MOV(INDD(R2,R3),FPARG(R3+2));\n'
-            code += '  INCR(R3);\n'
             code += '  CMP(R3,FPARG(1));\n'
-            code += '  JUMP_LT(' + current_args_copy_label + ');\n'
+            code += '  JUMP_GE(' + build_closure_label + ');\n'
+            code += '  MOV(INDD(R2,R3),FPARG(R4));\n'
+            code += '  INCR(R3);\n'
+            code += '  INCR(R4);\n'
+            code += '  JUMP(' + current_args_copy_label + ');\n'
 
         else:
-            code += '  PUSH(IMM(0));\n'
-            code += '  PUSH(IMM(0));\n'
+            code += '  MOV(R2, IMM(0));\n'
+            #    code += '  PUSH(IMM(0));\n'
 
+        code += ' ' + build_closure_label + ':\n'
         # building the actual closure
         code += '  PUSH(LABEL(' + closure_code_label + '));\n'
+        code += '  MOV(IND(R1), R2);\n'
         code += '  PUSH(R1);\n'
         code += '  CALL(MAKE_SOB_CLOSURE);\n'
         code += '  DROP(2);\n'
