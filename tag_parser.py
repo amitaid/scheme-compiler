@@ -615,15 +615,15 @@ def cg_fraction(const):
 
 def cg_pair(const):
     code = '  /* Const ' + str(const) + ' */\n'
-    if is_const(const.car):
-        code += Constant(const.car).code_gen()
-    else:
-        code += const.car.code_gen()
-    code += '  PUSH(R0);\n'
     if is_const(const.cdr):
         code += Constant(const.cdr).code_gen()
     else:
         code += const.cdr.code_gen()
+    code += '  PUSH(R0);\n'
+    if is_const(const.car):
+        code += Constant(const.car).code_gen()
+    else:
+        code += const.car.code_gen()
     code += '  PUSH(R0);\n'
     code += '  CALL(MAKE_SOB_PAIR);\n'
     code += '  DROP(2);\n\n'
