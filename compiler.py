@@ -42,7 +42,7 @@ int main()
   CALL(MAKE_SOB_BOOL);  /* SOB_True = ADDR(5) */
   DROP(2);
 
-  PUSH(IMM(0));
+  PUSH(IMM(1));
   CALL(MALLOC);  /* malloc of 1 for the sym table, address 7 */
   DROP(1);
 
