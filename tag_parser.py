@@ -9,10 +9,16 @@ from sexprs import *
 # todo must take care of variables whose name is a keyword
 symbol_table = {}
 
+builtin = {'+': 'PLUS', '-': 'MINUS', '*': 'MULT', '/': 'DIVIDE'}
+
 
 def sym_tab_cg():
     first_link = True
     code = ''
+    for sym in builtin.keys():
+        Constant(String(sym))
+        symbol_table[sym] = -1
+
     for sym in symbol_table.keys():
         code += make_symbol_link(sym)
         if first_link:
@@ -43,14 +49,13 @@ def make_symbol_link(symbol_string):
 
 def gen_builtin():
     global mem_ptr, symbol_table
-    # +
     code = ''
-    if '+' in symbol_table:
-        code += '  PUSH(LABEL(PLUS));\n'
+    for sym in builtin.keys():
+        code += '  PUSH(LABEL(' + builtin[sym] + '));\n'
         code += '  PUSH(IMM(0));\n'
         code += '  CALL(MAKE_SOB_CLOSURE);\n'
         code += '  DROP(2);\n'
-        code += '  MOV(R1, INDD(' + str(symbol_table['+']) + ',1));\n'
+        code += '  MOV(R1, INDD(' + str(symbol_table[sym]) + ',1));\n'
         code += '  MOV(INDD(R1,1), IMM(' + str(mem_ptr) + '));\n'
         mem_ptr += 3
     return code
