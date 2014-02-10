@@ -666,32 +666,6 @@ def add_const(const):
             update_consts(const, cg_vector(const), 2 + len(const.value))
 
 
-#def add_const(const):
-#    global constants, mem_ptr
-#    if const not in constants:
-#        constants[const] = mem_ptr
-#        if isinstance(const, sexprs.Integer):
-#            mem_ptr += 2
-#            print("the mem_ptr is now "+ str(mem_ptr))
-#            constants['const_code'].append(cg_integer(const))
-#        elif isinstance(const, sexprs.Fraction):
-#            mem_ptr += 3
-#            print("the mem_ptr is now "+ str(mem_ptr))
-#            constants['const_code'].append(cg_fraction(const))
-#        elif isinstance(const, sexprs.Pair):
-#            mem_ptr += 3
-#            print("the mem_ptr is now "+ str(mem_ptr))
-#            constants['const_code'].append(cg_pair(const))
-#        elif isinstance(const, sexprs.String):
-#            mem_ptr += 2 + len(const.value)
-#            print("the mem_ptr is now "+ str(mem_ptr))
-#            constants['const_code'].append(cg_string(const))
-#        elif isinstance(const, sexprs.Vector):
-#            mem_ptr += 2 + len(const.value)
-#            print("the mem_ptr is now "+ str(mem_ptr))
-#            constants['const_code'].append(cg_vector(const))
-#            #print('\n\n'.join(constants['const_code']))
-
 ### Variable ###
 class Variable(AbstractSchemeExpr):
     def __init__(self, symbol):
