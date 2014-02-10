@@ -1221,4 +1221,126 @@ class LambdaOpt(AbstractLambda):
         self.body.analyze_env(env_count + 1, len(self.variables) + 1)
 
     def code_gen(self):
-        pass  # TODO
+        label = gen_label()
+        env_copy_label = 'L_OPT_ENV_LOOP_' + label
+        current_args_copy_label = 'L_OPT_ARGS_LOOP_' + label
+        build_closure_label = 'L_OPT_BUILD_CLOS_' + label
+        closure_code_label = 'L_OPT_CLOS_CODE_' + label
+        closure_stack_loop_label = 'L_OPT_STACK_LOOP_' + label
+        closure_stack_loop_exit_label = 'L_OPT_STACK_LOOP_EXIT_' + label
+        stack_copy_loop_label = 'L_OPT_STACK_COPY_LOOP_' + label
+        stack_copy_loop_exit_label = 'L_OPT_STACK_COPY_LOOP_EXIT_' + label
+        closure_exit_label = 'L_OPT_CLOS_EXIT_' + label
+
+        # setting registers for 1st loop
+        code = '  PUSH(IMM(' + str(self.env_depth + 1) + '));\n'
+        code += '  CALL(MALLOC);\n'
+        code += '  DROP(1);\n'
+        code += '  MOV(R1, R0);\n'          # New env
+
+        if self.env_depth > 0:
+            code += '  MOV(R2, FPARG(0));\n'    # Old env
+            code += '  MOV(R3, IMM(1));\n'      # j
+            code += '  MOV(R4, IMM(0));\n'
+
+            # first loop - the environments copy
+            code += ' ' + env_copy_label + ':\n'
+            code += '  MOV(R0, INDD(R2,R4));\n'
+            code += '  MOV(INDD(R1,R3),R0);\n'  # maybe this needs to be split to 2 commands
+            code += '  INCR(R3);\n'
+            code += '  INCR(R4);\n'
+            code += '  CMP(R4, IMM(' + str(self.env_depth) + '));\n'
+            code += '  JUMP_LT(' + env_copy_label + ');\n'
+
+            # setting registers for 2nd loop, now R1 holds the new env
+            code += '  PUSH(FPARG(1));\n'   # Number of arguments
+            code += '  CALL(MALLOC);\n'
+            code += '  DROP(1);\n'
+            code += '  MOV(IND(R1),R0);\n'
+            code += '  MOV(R2,R0);\n'
+            code += '  MOV(R3,IMM(0));\n'  # i
+            code += '  MOV(R4,IMM(2));\n'  # j
+
+            # 2nd loop - current (param) stack args (vars) copy
+            code += ' ' + current_args_copy_label + ':\n'
+            code += '  CMP(R3,FPARG(1));\n'
+            code += '  JUMP_GE(' + build_closure_label + ');\n'
+            code += '  MOV(INDD(R2,R3),FPARG(R4));\n'
+            code += '  INCR(R3);\n'
+            code += '  INCR(R4);\n'
+            code += '  JUMP(' + current_args_copy_label + ');\n'
+
+        else:
+            code += '  MOV(R2, IMM(0));\n'
+            #    code += '  PUSH(IMM(0));\n'
+
+        code += ' ' + build_closure_label + ':\n'
+        # building the actual closure
+        code += '  PUSH(LABEL(' + closure_code_label + '));\n'
+        code += '  MOV(IND(R1), R2);\n'
+        code += '  PUSH(R1);\n'
+        code += '  CALL(MAKE_SOB_CLOSURE);\n'
+        code += '  DROP(2);\n'
+        code += '  JUMP(' + closure_exit_label + ');\n'
+
+        code += ' ' + closure_code_label + ':\n'
+        code += '  PUSH(FP);\n'
+        code += '  MOV(FP,SP);\n'
+
+        code += '  MOV(R0, IMM(2));\n'  # Move nil to R0
+        code += '  MOV(R1, FPARG(1));\n'# Number of arguments
+        code += '  INCR(R1);\n'  # Position of last argument
+        code += '  MOV(R4, FPARG(1));\n' # n in R4
+        code += '  MOV(R5, IMM(' + str(len(self.variables) + 1) + '));\n' # m in R5
+
+        code += ' ' + closure_stack_loop_label + ':\n'
+        code += '  CMP(R1, R5);\n'   # End condition
+        code += '  JUMP_EQ(' + closure_stack_loop_exit_label + ');\n'
+
+        code += '  PUSH(R0);\n'
+        code += '  PUSH(FPARG(R1));\n'         # Push the next item
+        code += '  CALL(MAKE_SOB_PAIR);\n'
+        code += '  DROP(2);\n'
+
+        code += '  DECR(R1);\n'
+        code += '  JUMP(' + closure_stack_loop_label + ');\n'
+
+        code += ' ' + closure_stack_loop_exit_label + ':\n'
+        code += '  POP(FP);\n'
+        code += '  MOV(R1, FP);\n'
+        code += '  MOV(R2, STARG(0));\n'   # Env
+        code += '  MOV(R3, STARG(-1));\n'  # Ret addr
+        code += '  MOV(STACK(R1), R0);\n'       # New arg list
+        code += '  INCR(R1);\n'
+        code += '  SUB(R4, R5);\n'  # n-m in R4
+        code += '  ADD(R4, FP);\n' # R4 points to the last non-opt argument, FP+n-m
+        code += '  INCR(R4);\n'
+
+        code += ' ' + stack_copy_loop_label + ':\n'
+        code += '  CMP(R5, IMM(1));\n'
+        code += '  JUMP_EQ(' + stack_copy_loop_exit_label + ');\n'
+        code += '  MOV(STACK(R1), STACK(R4));\n'
+        code += '  INCR(R1);\n'
+        code += '  INCR(R4);\n'
+        code += '  DECR(R5);\n'
+        code += '  JUMP(' + stack_copy_loop_label + ');\n'
+
+        code += ' ' + stack_copy_loop_exit_label + ':\n'
+        code += '  MOV(STACK(R1), ' + str(len(self.variables) + 1) + ');\n'   # Number of args
+        code += '  INCR(R1);\n'
+        code += '  MOV(STACK(R1), R2);\n'
+        code += '  INCR(R1);\n'
+        code += '  MOV(STACK(R1), R3);\n'
+        code += '  INCR(R1);\n'
+        code += '  MOV(SP, R1);\n'
+
+        code += '  PUSH(FP);\n'
+        code += '  MOV(FP,SP);\n'
+        #TODO WHATEVER THAT IS WRITTEN IN THE CLASS NOTES, CHECK VALIDITY OF ARGS ANS STUFF
+        code += self.body.code_gen()
+        code += '  POP(FP);\n'
+        code += '  RETURN;\n'
+
+        code += ' ' + closure_exit_label + ':\n'
+
+        return code
