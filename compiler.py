@@ -89,7 +89,6 @@ def compile_scheme_file(src, dest):
 
     d.write(header)
     d.write('  /* Constant code generation /*\n')
-    print(tag_parser.constants['const_code'])
     d.write(''.join(tag_parser.constants['const_code']))
 
     d.write('\n  /* Symbol code generation */\n')

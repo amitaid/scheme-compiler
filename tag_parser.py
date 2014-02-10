@@ -160,7 +160,7 @@ def is_const(sexpr):
            is_number(sexpr) or \
            is_string(sexpr) or \
            is_nil(sexpr) or \
-           is_void(sexpr)# or \
+           is_void(sexpr)  # or \
     #(is_pair(sexpr) and not is_symbol(sexpr.car))
 
 
@@ -502,7 +502,16 @@ class AbstractSchemeExpr:
         elif is_and(sexpr):
             return expand_and(sexpr)
         elif is_quote(sexpr):
-            return sexpr.cdr.car
+            print(str(sexpr))
+            if is_pair(sexpr.cdr.car):
+                sexpr.cdr.car = list_to_pair(
+                    list(map(AbstractSchemeExpr.expand, pair_to_list(sexpr.cdr.car))) + [Nil()])
+                sexpr.cdr.car = list_to_pair(list(
+                    map(lambda x: String(x.value) if isinstance(x, Symbol) else x, pair_to_list(sexpr.cdr.car))) + [
+                                                 Nil()])
+            else:
+                sexpr.cdr.car = AbstractSchemeExpr.expand(sexpr.cdr.car)
+            return sexpr
         elif is_quasiquoted(sexpr):
             return expand_quasiquote(sexpr.cdr.car)
         elif is_proper_list(sexpr):
@@ -522,7 +531,7 @@ class AbstractSchemeExpr:
         elif is_variable(sexpr):
             return Variable(sexpr)
         elif is_quote(sexpr):
-            return Constant(AbstractSchemeExpr.process(sexpr.cdr.car))
+            return Constant(sexpr.cdr.car)
         elif is_quasiquoted(sexpr):
             return Constant(AbstractSchemeExpr.process(sexpr.cdr.car))
 
@@ -542,7 +551,6 @@ class AbstractSchemeExpr:
         elif is_applic(sexpr):  # must always come last
             return build_applic(sexpr)
         else:
-            print(isinstance(sexpr, Symbol))
             print('format not supported: ' + str(sexpr))
             return Constant(Void())  # TODO in my opinion we should raise an exception here
 
@@ -618,7 +626,7 @@ def cg_pair(const):
         car = Constant(const.car)
     else:
         car = const.car
-    if is_const(const.cdr):
+    if is_const(const.cdr) or is_pair(const.cdr):
         cdr = Constant(const.cdr)
     else:
         cdr = const.cdr
