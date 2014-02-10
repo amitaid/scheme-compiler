@@ -7,8 +7,6 @@
  PLUS:
   PUSH(FP);
   MOV(FP,SP);
-  PUSH(R1);
-  PUSH(R2);
   MOV(R0, IMM(0));
   MOV(R1, FPARG(1));
   ADD(R1, IMM(1));
@@ -24,7 +22,5 @@
   DROP(1);
 
  PLUS_EXIT:
-  POP(R2);
-  POP(R1);
   POP(FP);
   RETURN;

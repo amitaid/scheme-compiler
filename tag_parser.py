@@ -45,13 +45,14 @@ def gen_builtin():
     global mem_ptr, symbol_table
     # +
     code = ''
-    code += '  PUSH(LABEL(PLUS));\n'
-    code += '  PUSH(IMM(0));\n'
-    code += '  CALL(MAKE_SOB_CLOSURE);\n'
-    code += '  DROP(2);\n'
-    code += '  MOV(R1, INDD(' + str(symbol_table['+']) + ',1));\n'
-    code += '  MOV(INDD(R1,1), IMM(' + str(mem_ptr) + '));\n'
-    mem_ptr += 3
+    if '+' in symbol_table:
+        code += '  PUSH(LABEL(PLUS));\n'
+        code += '  PUSH(IMM(0));\n'
+        code += '  CALL(MAKE_SOB_CLOSURE);\n'
+        code += '  DROP(2);\n'
+        code += '  MOV(R1, INDD(' + str(symbol_table['+']) + ',1));\n'
+        code += '  MOV(INDD(R1,1), IMM(' + str(mem_ptr) + '));\n'
+        mem_ptr += 3
     return code
 
 
@@ -542,7 +543,7 @@ class AbstractSchemeExpr:
     def debruijn(self, bounded=list(), params=list()):
         return self
 
-    def annotateTC(self, is_tp=false):
+    def annotateTC(self, is_tp=False):
         return self
 
     def semantic_analysis(self):
@@ -758,7 +759,7 @@ class IfThenElse(AbstractSchemeExpr):
                           self.then_body.debruijn(bounded, params),
                           self.else_body.debruijn(bounded, params))
 
-    def annotateTC(self, is_tp=false):
+    def annotateTC(self, is_tp=False):
         return IfThenElse(self.predicate.annotateTC(False),
                           self.then_body.annotateTC(is_tp),
                           self.else_body.annotateTC(is_tp))
@@ -799,7 +800,8 @@ class Applic(AbstractSchemeExpr):
         return Applic(self.func.debruijn(bounded, params),
                       [x.debruijn(bounded, params) for x in self.args])
 
-    def annotateTC(self, is_tp=false):
+    def annotateTC(self, is_tp=False):
+        print(str(self), is_tp)
         if is_tp:
             return ApplicTP(self.func.annotateTC(False),
                             [x.annotateTC(False) for x in self.args])
@@ -837,7 +839,6 @@ class Applic(AbstractSchemeExpr):
         code += '  DROP(1);\n'
         code += '  POP(R1);\n'
         code += '  DROP(R1);\n'
-        # code += '  RETURN;\n' #TODO MAYBE THIS LINE IS NOT NEEDED
         return code
 
 
@@ -846,44 +847,63 @@ class ApplicTP(Applic):
         super(ApplicTP, self).__init__(func, args)
 
     def __str__(self):
-        return super(ApplicTP, self).__str__()
-        # + 'TP'
+        return super(ApplicTP, self).__str__() + 'TP'
+        #
 
     def analyze_env(self, env_count=0, arg_count=0):
         self.func.analyze_env(env_count, arg_count),
         for x in self.args:
             x.analyze_env(env_count, arg_count)
 
-            #def code_gen(self):
-            #    pass
-            #label = gen_label()
-            #applic_tc_exit_label = 'L_APPLIC_EXIT_' + label
-            #code = ''
-            #
-            #for arg in reversed(self.args):
-            #    code += arg.code_gen()
-            #    code += '  PUSH(R0);\''
-            #code += '  PUSH(IMM(' + str(len(self.args)) + '));\n'
-            #code += self.func.code_gen()
-            #
-            #code += '  MOV(R1,R0);\n'
-            #code += '  PUSH(R0);\n'
-            #code += '  CALL(IS_SOB_CLOSURE);\n'
-            #code += '  DROP(1);\n'
-            #code += '  CMP(R0,IMM(1));'
-            #code += '  JUMP_EQ(' + applic_tc_exit_label + ');\n'
-            #
-            ##TODO ERROR
-            #
-            #code += ' ' + applic_tc_exit_label + ':\n'
-            #code += '  MOV(R0,R1);\n'
-            #code += '  PUSH(INDD(R0,IMM(1)));\n'  # here the diffenece from applic starts
-            #code += '  PUSH(FPARG(-1));\n'
-            #code += '  MOV(R1,FPARG(-2));\n'
-            #code += '  MOV(FP,R1);\n'
-            #code += '  JUMP(INDD(R0,2));\n'
-            ##TODO RETURN?
-            #return code
+    def code_gen(self):
+        label = gen_label()
+        applic_tc_prep_label = 'L_APPLIC_TP_PREP_' + label
+        applic_tc_loop_label = 'L_APPLIC_TP_LOOP_' + label
+        applic_tc_exit_label = 'L_APPLIC_TP_EXIT_' + label
+
+        code = ''
+
+        for arg in reversed(self.args):
+            code += arg.code_gen()
+            code += '  PUSH(R0);\n'
+        code += '  PUSH(IMM(' + str(len(self.args)) + '));\n'
+        code += self.func.code_gen()
+
+        code += '  MOV(R1,R0);\n'
+        code += '  PUSH(R0);\n'
+        code += '  CALL(IS_SOB_CLOSURE);\n'
+        code += '  DROP(1);\n'
+        code += '  CMP(R0,IMM(1));'
+        code += '  JUMP_EQ(' + applic_tc_prep_label + ');\n'
+
+        #TODO ERROR
+
+        code += ' ' + applic_tc_prep_label + ':\n'
+        code += '  MOV(R0,R1);\n'
+        code += '  PUSH(INDD(R0, 1));\n'  # here the diffenece from applic starts
+        code += '  PUSH(FPARG(-1));\n'    # Olf Return addr
+        code += '  MOV(R1,FPARG(-2));\n'  # Old FP
+        code += '  MOV(R5,FPARG(1));\n'  # Store n in R5
+        code += '  MOV(R2, IMM(' + str(len(self.args) + 3) + '));\n'  # Store m in R2
+        code += '  MOV(R3,FP);\n'  # Upper pointer
+        code += '  MOV(FP,R1);\n'  # FP moves to the old FP
+        code += '  MOV(R4,FP);\n'  # Lower pointer
+
+        code += ' ' + applic_tc_loop_label + ':\n'
+        code += '  CMP(R2, IMM(0));\n'
+        code += '  JUMP_EQ(' + applic_tc_exit_label + ');\n'
+        code += '  MOV(STACK(R4),STACK(R3));'
+        code += '  INCR(R3);\n'
+        code += '  INCR(R4);\n'
+        code += '  DECR(R2);\n'
+        code += '  JUMP(' + applic_tc_loop_label + ');\n'
+
+        code += ' ' + applic_tc_exit_label + ':\n'
+        code += '  SUB(SP, R5);\n'
+        code += '  SUB(SP, 4);\n'
+        code += '  JUMPA(INDD(R0,2));\n'
+
+        return code
 
 
 class Or(AbstractSchemeExpr):
@@ -896,7 +916,7 @@ class Or(AbstractSchemeExpr):
     def debruijn(self, bounded=list(), params=list()):
         return Or([x.debruijn(bounded, params) for x in self.elements])
 
-    def annotateTC(self, is_tp=false):
+    def annotateTC(self, is_tp=False):
         return Or([x.annotateTC(False) for x in self.elements[:-1]] \
                   + [self.elements[-1].annotateTC(is_tp)])
 
@@ -929,7 +949,7 @@ class Def(AbstractSchemeExpr):
         return Def(self.var.debruijn(bounded, params),
                    self.value.debruijn(bounded, params))
 
-    def annotateTC(self, is_tp=false):
+    def annotateTC(self, is_tp=False):
         return Def(self.var,
                    self.value.annotateTC(False))
 
@@ -966,7 +986,7 @@ class LambdaSimple(AbstractLambda):
         return LambdaSimple(self.variables,
                             self.body.debruijn([params] + bounded, self.variables))
 
-    def annotateTC(self, is_tp=false):
+    def annotateTC(self, is_tp=False):
         return LambdaSimple(self.variables,
                             self.body.annotateTC(True))
 
@@ -1061,7 +1081,7 @@ class LambdaVar(AbstractLambda):
         return LambdaVar(self.var_list,
                          self.body.debruijn([params] + bounded, [self.var_list]))
 
-    def annotateTC(self, is_tp=false):
+    def annotateTC(self, is_tp=False):
         return LambdaVar(self.var_list, self.body.annotateTC(True))
 
     def analyze_env(self, env_count=0, arg_count=0):
@@ -1196,7 +1216,7 @@ class LambdaOpt(AbstractLambda):
                          self.body.debruijn([params] + bounded,
                                             self.variables + [self.var_list]))
 
-    def annotateTC(self, is_tp=false):
+    def annotateTC(self, is_tp=False):
         return LambdaOpt(self.variables, self.var_list, self.body.annotateTC(True))
 
     def analyze_env(self, env_count=0, arg_count=0):

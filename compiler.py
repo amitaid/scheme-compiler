@@ -48,12 +48,19 @@ int main()
   CALL(MALLOC);
   DROP(1);
 
+  /* Initial stack */
+  PUSH(IMM(0));
+  PUSH(IMM(0));
+  PUSH(IMM(0));
+  PUSH(IMM(0));
+  MOV(FP,SP);
 """
 
 #TODO: Add basic functions and includes.
 
 write_sob_code = """  PUSH(R0);
   CALL(WRITE_SOB);
+  DROP(1);
   CALL(NEWLINE);
 
 """
