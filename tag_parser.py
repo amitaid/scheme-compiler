@@ -620,6 +620,14 @@ def cg_fraction(const):
     return code
 
 
+def cg_char(const):
+    code = '  /* Const ' + str(const) + ' */\n'
+    code += '  PUSH(IMM(' + str(ord(const.value)) + '));\n'
+    code += '  CALL(MAKE_SOB_CHAR);\n'
+    code += '  DROP(1);\n\n'
+    return code
+
+
 def cg_pair(const):
     code = '  /* Const ' + str(const) + ' */\n'
     if is_const(const.car):
@@ -679,6 +687,8 @@ def add_const(const):
             update_consts(const, cg_string(const), 2 + len(const.value))
         elif is_vector(const):
             update_consts(const, cg_vector(const), 2 + len(const.value))
+        elif is_char(const):
+            update_consts(const, cg_char(const), 2)
 
 
 ### Variable ###

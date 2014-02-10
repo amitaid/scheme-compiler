@@ -225,7 +225,7 @@ char = ps. \
     parser(visible_char). \
     disjs(3). \
     caten(). \
-    pack(lambda m: sexprs.Char('#\\' + m[1])). \
+    pack(lambda m: sexprs.Char(m[1])). \
     done()
 
 ######### Nil ##########

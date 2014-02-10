@@ -69,7 +69,7 @@ class Char(AbstractSexpr):
         self.value = ch
 
     def __str__(self):
-        return str(self.value)
+        return '#\\' + str(self.value)
 
     def __eq__(self, other):
         return isinstance(other, Char) and self.value == other.value
