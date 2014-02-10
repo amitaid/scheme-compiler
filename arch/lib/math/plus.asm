@@ -5,14 +5,18 @@
  */
 
  PLUS:
+  PUSH(R1);
+  PUSH(R2);
   MOV(R0, IMM(0));
-  MOV(R1, FPARG(1));
-  ADD(R1, IMM(2));
+  MOV(R1, STARG(1));
+  ADD(R1, IMM(1));
  PLUS_LOOP:
+  MOV(R2, STARG(R1));
+  ADD(R0, INDD(R2,1));
+  DECR(R1);
   CMP(R1, IMM(1));
-  JUMP_EQ(PLUS_EXIT);
-  ADD(R0, FPARG(R1));
-  SUB(R1, IMM(1));
-  JUMP(PLUS_LOOP);
+  JUMP_NE(PLUS_LOOP);
  PLUS_EXIT:
+  POP(R2);
+  POP(R1);
   RETURN;

@@ -7,8 +7,7 @@ from sexprs import *
 
 # todo -1 must be replaced with the appropiate code for the primitive procedures
 # todo must take care of variables whose name is a keyword
-symbol_table = {'DEFINE': -1, 'LAMBDA': -1, 'λ': -1, 'IF': -1, 'AND': -1, 'OR': -1, 'COND': -1, '+': -1,
-                '-': -1}
+symbol_table = {}
 
 
 def sym_tab_cg():
@@ -35,8 +34,8 @@ def make_symbol_link(symbol_string):
     code += "  MOV(INDD(R0,1), IMM(-1));\n"
     code += "  MOV(INDD(R0,2),T_SYMBOL);\n"
     code += "  MOV(INDD(R0,3), " + str(mem_ptr + 4) + ");\n"  # Pointer to bucket"
-    code += "  MOV(INDD(R0,4), IMM(" + str(constants[String(symbol_string).value]) + "));\n"
-    code += "  MOV(INDD(R0,5), IMM(3));\n"
+    code += "  MOV(INDD(R0,4), IMM(" + str(constants[String(symbol_string)]) + "));\n"
+    code += "  MOV(INDD(R0,5), IMM(-1));\n"
     symbol_table[symbol_string] = mem_ptr + 2
     mem_ptr += 6
     return code
@@ -49,7 +48,9 @@ def gen_builtin():
     code += '  PUSH(LABEL(PLUS));\n'
     code += '  PUSH(IMM(0));\n'
     code += '  CALL(MAKE_SOB_CLOSURE);\n'
-    symbol_table['+'] = mem_ptr
+    code += '  DROP(2);\n'
+    code += '  MOV(R1, INDD(' + str(symbol_table['+']) + ',1));\n'
+    code += '  MOV(INDD(R1,1), IMM(' + str(mem_ptr) + '));\n'
     mem_ptr += 3
     return code
 
