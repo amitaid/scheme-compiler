@@ -34,6 +34,8 @@
 #include "lib/scheme/write_sob_string.asm"
 #include "lib/scheme/write_sob_vector.asm"
 #include "lib/scheme/write_sob.asm"
+#include "lib/scheme/append.asm"
+
 
 {
  WRITE_SOB_SYMBOL:
