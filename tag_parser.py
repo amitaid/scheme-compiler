@@ -801,7 +801,6 @@ class Applic(AbstractSchemeExpr):
                       [x.debruijn(bounded, params) for x in self.args])
 
     def annotateTC(self, is_tp=False):
-        print(str(self), is_tp)
         if is_tp:
             return ApplicTP(self.func.annotateTC(False),
                             [x.annotateTC(False) for x in self.args])
@@ -847,8 +846,7 @@ class ApplicTP(Applic):
         super(ApplicTP, self).__init__(func, args)
 
     def __str__(self):
-        return super(ApplicTP, self).__str__() + 'TP'
-        #
+        return super(ApplicTP, self).__str__() # + 'TP'
 
     def analyze_env(self, env_count=0, arg_count=0):
         self.func.analyze_env(env_count, arg_count),
