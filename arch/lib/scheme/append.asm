@@ -17,7 +17,7 @@
 
  APPEND_LOOP:
   CMP(R1,R2);
-  JUMP_LE(APPEND_EXIT);
+  JUMP_GE(APPEND_EXIT);
 
   /* inner loop for finding the last link*/
  FIND_LAST_LINK_LOOP:
