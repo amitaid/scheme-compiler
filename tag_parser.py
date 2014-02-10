@@ -13,10 +13,11 @@ builtin = {'+': 'PLUS', '-': 'MINUS', '*': 'MULT', '/': 'DIVIDE'}
 
 
 def sym_tab_cg():
+    global mem_ptr, symbol_table
     first_link = True
     code = ''
     for sym in builtin.keys():
-        Constant(String(sym))
+        Constant(String(sym))       # Generate constants so all symbols have strings in const table
         symbol_table[sym] = -1
 
     for sym in symbol_table.keys():

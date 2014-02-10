@@ -54,6 +54,7 @@ int main()
   PUSH(IMM(0));
   PUSH(IMM(0));
   MOV(FP,SP);
+
 """
 
 #TODO: Add basic functions and includes.
@@ -83,13 +84,17 @@ def compile_scheme_file(src, dest):
         sexpr, text = tag_parser.AbstractSchemeExpr.parse(text)
         expressions.append(sexpr.semantic_analysis())
 
+    sym_table = tag_parser.sym_tab_cg()     # Need to generate symbol tables before writing constants
+    builtin = tag_parser.gen_builtin()
+
     d.write(header)
     d.write('  /* Constant code generation /*\n')
+    print(tag_parser.constants['const_code'])
     d.write(''.join(tag_parser.constants['const_code']))
 
     d.write('\n  /* Symbol code generation */\n')
-    d.write(tag_parser.sym_tab_cg())
-    d.write(tag_parser.gen_builtin())
+    d.write(sym_table)
+    d.write(builtin)
 
     d.write('\n  /* Program code */\n')
     for expr in expressions:
