@@ -29,8 +29,10 @@
   JUMP(PLUS_LOOP);
 
  PLUS_FRAC:
-  MOV(R2, INDD(R2,1)); // Fraction numerator
   MOV(R3, INDD(R2,2)); // Fraction denumerator
+  MOV(R2, INDD(R2,1)); // Fraction numerator
+  MOV(R2, INDD(R2,1));
+  MOV(R3, INDD(R3,1));
   CMP(R1,R3);
   JUMP_EQ(PLUS_FRAC_SAME_DENUM);
   MUL(R2,R1);       // Mechane meshutaf
