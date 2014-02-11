@@ -69,7 +69,13 @@ unsigned_int = ps. \
     plus(). \
     caten(). \
     pack(lambda m: ''.join(m[1])). \
-    disj(). \
+    parser(hex_prefix). \
+    maybe(). \
+    parser(zero). \
+    plus(). \
+    caten(). \
+    pack(lambda m: '0'). \
+    disjs(3). \
     done()
 
 unsigned_int_nz = ps. \
