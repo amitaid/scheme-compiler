@@ -20,3 +20,4 @@
 #include "lib/math/minus.asm"
 #include "lib/math/mult.asm"
 #include "lib/math/divide.asm"
+#include "lib/math/greater.asm"
