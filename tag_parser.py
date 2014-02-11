@@ -9,7 +9,7 @@ from sexprs import *
 # todo must take care of variables whose name is a keyword
 symbol_table = {}
 
-builtin = {'+': 'PLUS', '-': 'MINUS', '*': 'MULT', '/': 'DIVIDE', 'APPEND': 'APPEND'}
+builtin = {'+': 'PLUS', '-': 'MINUS', '*': 'MULT', '/': 'DIVIDE', '>': 'GREATER', 'APPEND': 'APPEND'}
 
 
 def sym_tab_cg():
