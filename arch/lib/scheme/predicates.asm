@@ -7,20 +7,6 @@
  * Programmer: Amitai Degani, Tal Zelig, 2014
  */
 
-//              AUXILARY FUNCTION - add info
-
-
- UPDATE_BOOL_POINTER:
-  CMP(R0,IMM(0));
-  JUMP(PUT_TRUE);
- PUT_TRUE:
-  MOV(R0(IMM(3));  // puts the pointer to sob_false in R0
-  JUMP(UPDATE_EXIT);
- PUT_TRUE:
-  MOV(R0(IMM(5));  // puts the pointer to sob_true in R0
- UPDATE_EXIT:
-  RETURN;
-
 
  /*   null?   */
 
@@ -40,6 +26,8 @@
   ADD(R0, IMM(3));
   POP(FP);
   RETURN;
+
+
 
  /*   number?   */
 
@@ -68,6 +56,8 @@
   ADD(R0, IMM(3));
   POP(FP);
   RETURN;
+
+
 
  /*   pair?   */
 
@@ -110,6 +100,7 @@
   RETURN;
 
 
+
    /*   boolean?   */
 
  IS_BOOLEAN:
@@ -128,6 +119,8 @@
   ADD(R0, IMM(3));
   POP(FP);
   RETURN;
+
+
 
      /*   char?   */
 
@@ -148,6 +141,8 @@
   POP(FP);
   RETURN;
 
+
+
        /*   integer?   */
 
  IS_INTEGER:
@@ -167,6 +162,8 @@
   POP(FP);
   RETURN;
 
+
+
        /*   string?   */
 
  IS_STRING:
@@ -185,6 +182,8 @@
   ADD(R0, IMM(3));
   POP(FP);
   RETURN;
+
+
 
          /*   string?   */
 
@@ -206,6 +205,9 @@
   RETURN;
 
   // end of the trivial ones
+
+
+
            /*   zero?   */
 
  IS_ZERO:
