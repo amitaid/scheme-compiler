@@ -14,7 +14,7 @@ builtin = {'+': 'PLUS', '-': 'MINUS', '*': 'MULT', '/': 'DIVIDE',
            'NULL?': 'IS_NULL', 'NUMBER?': 'IS_NUMBER', 'ZERO?': 'IS_ZERO',
            'PAIR?': 'IS_PAIR', 'PROCEDURE?': 'IS_PROCEDURE', 'BOOLEAN?': 'IS_BOOLEAN',
            'CHAR?': 'IS_CHAR', 'STRING?': 'IS_STRING', 'INTEGER?': 'IS_INTEGER',
-           'CONS': 'CONS', 'CAR': 'CAR', 'CDR': 'CDR', 'VECTOR': 'VECTOR_CONSTRUCTOR'}
+           'CONS': 'CONS', 'CAR': 'CAR', 'CDR': 'CDR', 'VECTOR': 'VECTOR_CONSTRUCTOR', 'VECTOR-LENGTH': 'VECTOR_LENGTH'}
 
 
 def sym_tab_cg():
