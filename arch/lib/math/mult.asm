@@ -5,13 +5,42 @@
  */
 
  MULT:
-  MOV(R0, IMM(1));
-  MOV(R1, FPARG(0));
+  PUSH(FP);
+  MOV(FP,SP);
+  MOV(R0, IMM(1)); // Result numerator
+  MOV(R1, IMM(1)); // Result denumerator
+  MOV(R5, FPARG(1)); // Argument number
+  ADD(R5, IMM(2));
+
  MULT_LOOP:
-  CMP(R1, IMM(0));
+  DECR(R5);
+  CMP(R5,1);
   JUMP_EQ(MULT_EXIT);
-  MUL(R0, FPARG(R1));
-  SUB(R1, IMM(1));
+  MOV(R2, FPARG(R5));
+  CMP(IND(R2), T_FRACTION);
+  JUMP_EQ(MULT_FRAC);
+  CMP(IND(R2), T_INTEGER);
+  JUMP_EQ(MULT_INT);
+
+ MULT_INT:
+  MOV(R2, INDD(R2,1)); // Number is int, only deal with numerator
+  MUL(R0,R2);
   JUMP(MULT_LOOP);
+
+ MULT_FRAC:
+  MOV(R3, INDD(R2,2)); // Fraction denumerator
+  MOV(R2, INDD(R2,1)); // Fraction numerator
+  MOV(R2, INDD(R2,1));
+  MOV(R3, INDD(R3,1));
+  MUL(R1,R3);
+  MUL(R0,R2);
+  JUMP(MULT_LOOP);
+
  MULT_EXIT:
+  PUSH(R1);
+  PUSH(R0);
+  CALL(MAKE_SOB_NUMBER);
+  DROP(2);
+
+  POP(FP);
   RETURN;
