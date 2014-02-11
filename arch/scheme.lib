@@ -38,6 +38,10 @@
 #include "lib/scheme/append.asm"
 #include "lib/scheme/apply.asm"
 #include "lib/scheme/predicates.asm"
+#include "lib/scheme/cons.asm"
+#include "lib/scheme/car.asm"
+#include "lib/scheme/cdr.asm"
+
 
 {
  WRITE_SOB_SYMBOL:
