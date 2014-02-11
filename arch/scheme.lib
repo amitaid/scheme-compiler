@@ -37,6 +37,7 @@
 #include "lib/scheme/write_sob.asm"
 #include "lib/scheme/append.asm"
 #include "lib/scheme/apply.asm"
+#include "lib/scheme/predicates.asm"
 
 {
  WRITE_SOB_SYMBOL:
