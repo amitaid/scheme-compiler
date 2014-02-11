@@ -237,3 +237,6 @@
   ADD(R0, IMM(3));
   POP(FP);
   RETURN;
+
+/* eq? */
+/* symbol? */
