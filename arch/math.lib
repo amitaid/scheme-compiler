@@ -21,3 +21,6 @@
 #include "lib/math/mult.asm"
 #include "lib/math/divide.asm"
 #include "lib/math/greater.asm"
+#include "lib/math/smaller.asm"
+#include "lib/math/equal.asm"
+
