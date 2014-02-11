@@ -1,9 +1,6 @@
 /* predicates.asm
-
- * NULL? : IS_NULL, NUMBER? : IS_NUMBER
-
- *  SOB_False = ADDR(3)    SOB_True = ADDR(5)
-
+ * holds: null?, number?, pair?, procedure?, boolean?, integer?, char?, string?, zero?, vector?
+ * SOB_False = ADDR(3)    SOB_True = ADDR(5)
  * Programmer: Amitai Degani, Tal Zelig, 2014
  */
 
@@ -185,19 +182,19 @@
 
 
 
-         /*   string?   */
+         /*   vector?   */
 
- IS_STRING:
+ IS_VECTOR:
   PUSH(FP);
   MOV(FP,SP);
   CMP(FPARG(1),IMM(1));     // checks that there is only one arg
-  JUMP_EQ(IS_STRING_ARGS_CORRECT);
+  JUMP_EQ(IS_VECTOR_ARGS_CORRECT);
 
   //ERROR COMES HERE
 
- IS_STRING_ARGS_CORRECT:
+ IS_VECTOR_ARGS_CORRECT:
   PUSH(FPARG(2));
-  CALL(IS_SOB_STRING);
+  CALL(IS_SOB_VECTOR);
   DROP(1);
   MUL(R0, IMM(2));
   ADD(R0, IMM(3));
