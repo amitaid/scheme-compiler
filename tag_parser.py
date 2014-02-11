@@ -10,8 +10,10 @@ from sexprs import *
 symbol_table = {}
 
 builtin = {'+': 'PLUS', '-': 'MINUS', '*': 'MULT', '/': 'DIVIDE',
-           '>': 'GREATER', '<': 'SMALLER', '=': 'EQUAL',
-           'APPEND': 'APPEND'}
+           '>': 'GREATER', '<': 'SMALLER', '=': 'EQUAL', 'APPEND': 'APPEND',
+           'NULL?': 'IS_NULL', 'NUMBER?': 'IS_NUMBER', 'ZERO?': 'IS_ZERO',
+           'PAIR?': 'IS_PAIR', 'PROCEDURE?': 'IS_PROCEDURE', 'BOOLEAN?': 'IS_BOOLEAN',
+           'CHAR?': 'IS_CHAR', 'STRING?': 'IS_STRING', 'INTEGER?': 'IS_INTEGER'}
 
 
 def sym_tab_cg():
@@ -19,16 +21,16 @@ def sym_tab_cg():
     first_link = True
     code = ''
     for sym in builtin.keys():
-        Constant(String(sym))       # Generate constants so all symbols have strings in const table
+        Constant(String(sym))  # Generate constants so all symbols have strings in const table
         symbol_table[sym] = -1
 
     for sym in symbol_table.keys():
         code += make_symbol_link(sym)
         if first_link:
-            code += "  MOV(IND(IMM(7)), R0);\n" # First link is in 7
+            code += "  MOV(IND(IMM(7)), R0);\n"  # First link is in 7
             first_link = False
         else:
-            code += "  MOV(INDD(R1,1), R0);\n" # Update previous link's next pointer
+            code += "  MOV(INDD(R1,1), R0);\n"  # Update previous link's next pointer
         code += "  MOV(R1, R0);\n"
 
     return code
@@ -504,13 +506,11 @@ class AbstractSchemeExpr:
         elif is_and(sexpr):
             return expand_and(sexpr)
         elif is_quote(sexpr):
-            print(str(sexpr))
             if is_pair(sexpr.cdr.car):
                 sexpr.cdr.car = list_to_pair(
                     list(map(AbstractSchemeExpr.expand, pair_to_list(sexpr.cdr.car))) + [Nil()])
                 sexpr.cdr.car = list_to_pair(list(
-                    map(lambda x: String(x.value) if isinstance(x, Symbol) else x, pair_to_list(sexpr.cdr.car))) + [
-                                                 Nil()])
+                    map(lambda x: String(x.value) if isinstance(x, Symbol) else x, pair_to_list(sexpr.cdr.car))))
             else:
                 sexpr.cdr.car = AbstractSchemeExpr.expand(sexpr.cdr.car)
             return sexpr
@@ -801,9 +801,9 @@ class IfThenElse(AbstractSchemeExpr):
         false_label = 'L_ELSE_' + label
         exit_label = 'L_IF_EXIT_' + label
         code = self.predicate.code_gen() + '\n'
-        code += '  CMP(IND(R0), T_BOOL);\n'       # If predicate isn't T_BOOL, it's true
+        code += '  CMP(IND(R0), T_BOOL);\n'  # If predicate isn't T_BOOL, it's true
         code += '  JUMP_NE(' + true_label + ');\n'
-        code += '  CMP(INDD(R0,1), INDD(3,1));\n' # If predicate is T_BOOL, compare values
+        code += '  CMP(INDD(R0,1), INDD(3,1));\n'  # If predicate is T_BOOL, compare values
         code += '  JUMP_EQ(' + false_label + ');\n'
         code += ' ' + true_label + ":\n"
         code += self.then_body.code_gen()
@@ -872,7 +872,7 @@ class ApplicTP(Applic):
         super(ApplicTP, self).__init__(func, args)
 
     def __str__(self):
-        return super(ApplicTP, self).__str__() # + 'TP'
+        return super(ApplicTP, self).__str__()  # + 'TP'
 
     def analyze_env(self, env_count=0, arg_count=0):
         self.func.analyze_env(env_count, arg_count),
@@ -905,7 +905,7 @@ class ApplicTP(Applic):
         code += ' ' + applic_tc_prep_label + ':\n'
         code += '  MOV(R0,R1);\n'
         code += '  PUSH(INDD(R0, 1));\n'  # here the diffenece from applic starts
-        code += '  PUSH(FPARG(-1));\n'    # Olf Return addr
+        code += '  PUSH(FPARG(-1));\n'  # Olf Return addr
         code += '  MOV(R1,FPARG(-2));\n'  # Old FP
         code += '  MOV(R5,FPARG(1));\n'  # Store n in R5
         code += '  MOV(R2, IMM(' + str(len(self.args) + 3) + '));\n'  # Store m in R2
@@ -1004,7 +1004,7 @@ class LambdaSimple(AbstractLambda):
 
     def __str__(self):
         return '(lambda (' + ' '.join([str(x) for x in self.variables]) + ') ' + \
-               str(self.body) + ')' #{' + str(self.env_depth) + '}'
+               str(self.body) + ')'  #{' + str(self.env_depth) + '}'
 
     def debruijn(self, bounded=list(), params=list()):
         return LambdaSimple(self.variables,
@@ -1031,11 +1031,11 @@ class LambdaSimple(AbstractLambda):
         code = '  PUSH(IMM(' + str(self.env_depth + 1) + '));\n'
         code += '  CALL(MALLOC);\n'
         code += '  DROP(1);\n'
-        code += '  MOV(R1, R0);\n'          # New env
+        code += '  MOV(R1, R0);\n'  # New env
 
         if self.env_depth > 0:
-            code += '  MOV(R2, FPARG(0));\n'    # Old env
-            code += '  MOV(R3, IMM(1));\n'      # j
+            code += '  MOV(R2, FPARG(0));\n'  # Old env
+            code += '  MOV(R3, IMM(1));\n'  # j
             code += '  MOV(R4, IMM(0));\n'
 
             # first loop - the environments copy
@@ -1048,7 +1048,7 @@ class LambdaSimple(AbstractLambda):
             code += '  JUMP_LT(' + env_copy_label + ');\n'
 
             # setting registers for 2nd loop, now R1 holds the new env
-            code += '  PUSH(FPARG(1));\n'   # Number of arguments
+            code += '  PUSH(FPARG(1));\n'  # Number of arguments
             code += '  CALL(MALLOC);\n'
             code += '  DROP(1);\n'
             code += '  MOV(IND(R1),R0);\n'
@@ -1127,11 +1127,11 @@ class LambdaVar(AbstractLambda):
         code = '  PUSH(IMM(' + str(self.env_depth + 1) + '));\n'
         code += '  CALL(MALLOC);\n'
         code += '  DROP(1);\n'
-        code += '  MOV(R1, R0);\n'          # New env
+        code += '  MOV(R1, R0);\n'  # New env
 
         if self.env_depth > 0:
-            code += '  MOV(R2, FPARG(0));\n'    # Old env
-            code += '  MOV(R3, IMM(1));\n'      # j
+            code += '  MOV(R2, FPARG(0));\n'  # Old env
+            code += '  MOV(R3, IMM(1));\n'  # j
             code += '  MOV(R4, IMM(0));\n'
 
             # first loop - the environments copy
@@ -1144,7 +1144,7 @@ class LambdaVar(AbstractLambda):
             code += '  JUMP_LT(' + env_copy_label + ');\n'
 
             # setting registers for 2nd loop, now R1 holds the new env
-            code += '  PUSH(FPARG(1));\n'   # Number of arguments
+            code += '  PUSH(FPARG(1));\n'  # Number of arguments
             code += '  CALL(MALLOC);\n'
             code += '  DROP(1);\n'
             code += '  MOV(IND(R1),R0);\n'
@@ -1179,15 +1179,15 @@ class LambdaVar(AbstractLambda):
         code += '  MOV(FP,SP);\n'
 
         code += '  MOV(R0, IMM(2));\n'  # Move nil to R0
-        code += '  MOV(R1, FPARG(1));\n'# Number of arguments
+        code += '  MOV(R1, FPARG(1));\n'  # Number of arguments
         code += '  ADD(R1, IMM(1));\n'  # Position of last argument
 
         code += ' ' + closure_stack_loop_label + ':\n'
-        code += '  CMP(R1,IMM(1));\n'   # End condition
+        code += '  CMP(R1,IMM(1));\n'  # End condition
         code += '  JUMP_EQ(' + closure_stack_loop_exit_label + ');\n'
 
         code += '  PUSH(R0);\n'
-        code += '  PUSH(FPARG(R1));\n'         # Push the next item
+        code += '  PUSH(FPARG(R1));\n'  # Push the next item
         code += '  CALL(MAKE_SOB_PAIR);\n'
         code += '  DROP(2);\n'
 
@@ -1197,11 +1197,11 @@ class LambdaVar(AbstractLambda):
         code += ' ' + closure_stack_loop_exit_label + ':\n'
         code += '  POP(FP);\n'
         code += '  MOV(R1, FP);\n'
-        code += '  MOV(R2, STARG(0));\n'   # Env
+        code += '  MOV(R2, STARG(0));\n'  # Env
         code += '  MOV(R3, STARG(-1));\n'  # Ret addr
-        code += '  MOV(STACK(R1), R0);\n'       # New arg list
+        code += '  MOV(STACK(R1), R0);\n'  # New arg list
         code += '  INCR(R1);\n'
-        code += '  MOV(STACK(R1), IMM(1));\n'   # Number of args
+        code += '  MOV(STACK(R1), IMM(1));\n'  # Number of args
         code += '  INCR(R1);\n'
         code += '  MOV(STACK(R1), R2);\n'
         code += '  INCR(R1);\n'
@@ -1262,11 +1262,11 @@ class LambdaOpt(AbstractLambda):
         code = '  PUSH(IMM(' + str(self.env_depth + 1) + '));\n'
         code += '  CALL(MALLOC);\n'
         code += '  DROP(1);\n'
-        code += '  MOV(R1, R0);\n'          # New env
+        code += '  MOV(R1, R0);\n'  # New env
 
         if self.env_depth > 0:
-            code += '  MOV(R2, FPARG(0));\n'    # Old env
-            code += '  MOV(R3, IMM(1));\n'      # j
+            code += '  MOV(R2, FPARG(0));\n'  # Old env
+            code += '  MOV(R3, IMM(1));\n'  # j
             code += '  MOV(R4, IMM(0));\n'
 
             # first loop - the environments copy
@@ -1279,7 +1279,7 @@ class LambdaOpt(AbstractLambda):
             code += '  JUMP_LT(' + env_copy_label + ');\n'
 
             # setting registers for 2nd loop, now R1 holds the new env
-            code += '  PUSH(FPARG(1));\n'   # Number of arguments
+            code += '  PUSH(FPARG(1));\n'  # Number of arguments
             code += '  CALL(MALLOC);\n'
             code += '  DROP(1);\n'
             code += '  MOV(IND(R1),R0);\n'
@@ -1314,17 +1314,17 @@ class LambdaOpt(AbstractLambda):
         code += '  MOV(FP,SP);\n'
 
         code += '  MOV(R0, IMM(2));\n'  # Move nil to R0
-        code += '  MOV(R1, FPARG(1));\n'# Number of arguments
+        code += '  MOV(R1, FPARG(1));\n'  # Number of arguments
         code += '  INCR(R1);\n'  # Position of last argument
-        code += '  MOV(R4, FPARG(1));\n' # n in R4
-        code += '  MOV(R5, IMM(' + str(len(self.variables) + 1) + '));\n' # m in R5
+        code += '  MOV(R4, FPARG(1));\n'  # n in R4
+        code += '  MOV(R5, IMM(' + str(len(self.variables) + 1) + '));\n'  # m in R5
 
         code += ' ' + closure_stack_loop_label + ':\n'
-        code += '  CMP(R1, R5);\n'   # End condition
+        code += '  CMP(R1, R5);\n'  # End condition
         code += '  JUMP_EQ(' + closure_stack_loop_exit_label + ');\n'
 
         code += '  PUSH(R0);\n'
-        code += '  PUSH(FPARG(R1));\n'         # Push the next item
+        code += '  PUSH(FPARG(R1));\n'  # Push the next item
         code += '  CALL(MAKE_SOB_PAIR);\n'
         code += '  DROP(2);\n'
 
@@ -1334,12 +1334,12 @@ class LambdaOpt(AbstractLambda):
         code += ' ' + closure_stack_loop_exit_label + ':\n'
         code += '  POP(FP);\n'
         code += '  MOV(R1, FP);\n'
-        code += '  MOV(R2, STARG(0));\n'   # Env
+        code += '  MOV(R2, STARG(0));\n'  # Env
         code += '  MOV(R3, STARG(-1));\n'  # Ret addr
-        code += '  MOV(STACK(R1), R0);\n'       # New arg list
+        code += '  MOV(STACK(R1), R0);\n'  # New arg list
         code += '  INCR(R1);\n'
         code += '  SUB(R4, R5);\n'  # n-m in R4
-        code += '  ADD(R4, FP);\n' # R4 points to the last non-opt argument, FP+n-m
+        code += '  ADD(R4, FP);\n'  # R4 points to the last non-opt argument, FP+n-m
         code += '  INCR(R4);\n'
 
         code += ' ' + stack_copy_loop_label + ':\n'
@@ -1352,7 +1352,7 @@ class LambdaOpt(AbstractLambda):
         code += '  JUMP(' + stack_copy_loop_label + ');\n'
 
         code += ' ' + stack_copy_loop_exit_label + ':\n'
-        code += '  MOV(STACK(R1), ' + str(len(self.variables) + 1) + ');\n'   # Number of args
+        code += '  MOV(STACK(R1), ' + str(len(self.variables) + 1) + ');\n'  # Number of args
         code += '  INCR(R1);\n'
         code += '  MOV(STACK(R1), R2);\n'
         code += '  INCR(R1);\n'
