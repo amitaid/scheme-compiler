@@ -44,6 +44,16 @@
 #include "lib/scheme/cdr.asm"
 #include "lib/scheme/vector.asm"
 #include "lib/scheme/vector_length.asm"
+#include "lib/scheme/vector_ref.asm"
+#include "lib/scheme/make_vector.asm"
+#include "lib/scheme/string.asm"
+#include "lib/scheme/string_length.asm"
+#include "lib/scheme/string_ref.asm"
+#include "lib/scheme/make_string.asm"
+#include "lib/scheme/int2char.asm"
+#include "lib/scheme/char2int.asm"
+
+
 
 {
  WRITE_SOB_SYMBOL:

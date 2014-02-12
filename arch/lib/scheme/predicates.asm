@@ -184,7 +184,7 @@
 
          /*   vector?   */
 
- IS_VECTOR:
+IS_VECTOR:
   PUSH(FP);
   MOV(FP,SP);
   CMP(FPARG(1),IMM(1));     // checks that there is only one arg
@@ -237,6 +237,3 @@
   ADD(R0, IMM(3));
   POP(FP);
   RETURN;
-
-/* eq? */
-/* symbol? */

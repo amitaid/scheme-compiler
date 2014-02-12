@@ -6,15 +6,19 @@ from sexprs import *
 #symbol table
 
 # todo -1 must be replaced with the appropiate code for the primitive procedures
-# todo must take care of variables whose name is a keyword
+# todo must take care of variables whose name is a keyword.
 symbol_table = {}
 
-builtin = {'+': 'PLUS', '-': 'MINUS', '*': 'MULT', '/': 'DIVIDE',
+builtin = {'+': 'PLUS', '-': 'MINUS', '*': 'MULT', '/': 'DIVIDE', 'APPLY': 'APPLY',
            '>': 'GREATER', '<': 'SMALLER', '=': 'EQUAL', 'APPEND': 'APPEND',
            'NULL?': 'IS_NULL', 'NUMBER?': 'IS_NUMBER', 'ZERO?': 'IS_ZERO',
            'PAIR?': 'IS_PAIR', 'PROCEDURE?': 'IS_PROCEDURE', 'BOOLEAN?': 'IS_BOOLEAN',
-           'CHAR?': 'IS_CHAR', 'STRING?': 'IS_STRING', 'INTEGER?': 'IS_INTEGER',
-           'CONS': 'CONS', 'CAR': 'CAR', 'CDR': 'CDR', 'VECTOR': 'VECTOR_CONSTRUCTOR'}
+           'CHAR?': 'IS_CHAR', 'STRING?': 'IS_STRING', 'INTEGER?': 'IS_INTEGER', 'VECTOR?': 'IS_VECTOR',
+           'CONS': 'CONS', 'CAR': 'CAR', 'CDR': 'CDR', 'VECTOR': 'VECTOR_CONSTRUCTOR', 'VECTOR-LENGTH': 'VECTOR_LENGTH',
+           'VECTOR-REF': 'VECTOR_REF', 'MAKE-VECTOR': 'MAKE_VECTOR', 'STRING': 'STRING_CONSTRUCTOR',
+           'STRING-LENGTH': 'STRING_LENGTH', 'STRING-REF': 'STRING_REF', 'MAKE-STRING': 'MAKE_STRING',
+           'INTEGER->CHAR': 'INT_2_CHAR', 'CHAR->INTEGER': 'CHAR_2_INT'
+}  #TODO SUPPORT LIST
 
 
 def sym_tab_cg():
@@ -166,6 +170,7 @@ def is_const(sexpr):
            is_string(sexpr) or \
            is_nil(sexpr) or \
            is_void(sexpr)  # or \
+    #       is_symbol(sexpr)  # or \
     #(is_pair(sexpr) and not is_symbol(sexpr.car))
 
 
@@ -511,7 +516,8 @@ class AbstractSchemeExpr:
                 sexpr.cdr.car = list_to_pair(
                     list(map(AbstractSchemeExpr.expand, pair_to_list(sexpr.cdr.car))) + [Nil()])
                 sexpr.cdr.car = list_to_pair(list(
-                    map(lambda x: String(x.value) if isinstance(x, Symbol) else x, pair_to_list(sexpr.cdr.car))))
+                    map(lambda x: String(x.value) if isinstance(x, Symbol) else x,
+                        pair_to_list(sexpr.cdr.car))))
             else:
                 sexpr.cdr.car = AbstractSchemeExpr.expand(sexpr.cdr.car)
             return sexpr
@@ -671,6 +677,10 @@ def cg_vector(const):
     return code
 
 
+def cg_symbol(const):
+    pass  # TODO
+
+
 def update_consts(const, code, mem_size):
     global constants, mem_ptr
     constants['const_code'].append(code)
@@ -692,6 +702,8 @@ def add_const(const):
             update_consts(const, cg_vector(const), 2 + len(const.value))
         elif is_char(const):
             update_consts(const, cg_char(const), 2)
+            #elif is_symbol(const):
+            #    update_consts(const, cg_symbol(const), 2)
 
 
 ### Variable ###
