@@ -512,7 +512,7 @@ class AbstractSchemeExpr:
                 sexpr.cdr.car = list_to_pair(
                     list(map(AbstractSchemeExpr.expand, pair_to_list(sexpr.cdr.car))) + [Nil()])
                 sexpr.cdr.car = list_to_pair(list(
-                    map(lambda x: Symbol(x.value) if isinstance(x, Symbol) else x,
+                    map(lambda x: String(x.value) if isinstance(x, Symbol) else x,
                         pair_to_list(sexpr.cdr.car))))
             else:
                 sexpr.cdr.car = AbstractSchemeExpr.expand(sexpr.cdr.car)
