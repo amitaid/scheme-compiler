@@ -52,12 +52,11 @@
   MOV(R1,SP);
   SUB(R1,R2); // now r1 points to the most bottom element of the list
   MOV(R3,SP);
-  SUB(R3,R2); // now arg 3 points to the top of the elements
-  //DECR(R3,R2)
+  DECR(R3); // now arg 3 points to the top of the elements
 
  APPLY_REARRANGE_STACK_LOOP:
   CMP(R3,R1);
-  JUMP_GT(APPLY_REARRANGE_STACK_LOOP_EXIT);
+  JUMP_GE(APPLY_REARRANGE_STACK_LOOP_EXIT);
   MOV(R4,STACK(R3));
   MOV(STACK(R3),STACK(R1));
   MOV(STACK(R1),R4);
@@ -69,10 +68,10 @@
   MOV(R1,FPARG(1));
 
  APPLY_NON_LIST_ARGS_PUSH_LOOP:
-  CMP(R3,IMM(3));
-  JUMP_GE(APPLY_NON_LIST_ARGS_PUSH_LOOP_EXIT);
-  PUSH(FPARG(R3));  // at the first time, fparg(r2) points to the before last element.
-  DECR(R3);
+  CMP(R1,IMM(3));
+  JUMP_LT(APPLY_NON_LIST_ARGS_PUSH_LOOP_EXIT);
+  PUSH(FPARG(R1));  // at the first time, fparg(r1) points to the before last element.
+  DECR(R1);
   JUMP(APPLY_NON_LIST_ARGS_PUSH_LOOP);
 
  APPLY_NON_LIST_ARGS_PUSH_LOOP_EXIT:
