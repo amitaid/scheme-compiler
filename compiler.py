@@ -57,7 +57,28 @@ int main()
 
 """
 
-#TODO: Add basic functions and includes.
+premade_text = """
+(define list (lambda x x))
+
+"""
+# (define take-cars
+#     (lambda lists
+#         (if (null? lists)
+#             lists
+#             (cons (car (car lists)) (apply take-cars (cdr lists))))))
+#
+# (define take-cdrs
+#     (lambda lists
+#         (if (null? lists)
+#             lists
+#             (cons (cdr (car lists)) (apply take-cdrs (cdr lists))))))
+#
+# (define map2
+#     (lambda (func . lists)
+#         (cons (apply func (take-cars lists)) (apply map2 (cons func (take-cdrs lists))))))
+
+
+
 
 write_sob_code = """  PUSH(R0);
   CALL(WRITE_SOB);
@@ -75,10 +96,16 @@ footer = """
 
 
 def compile_scheme_file(src, dest):
+    global premade_text
     s = open(src, 'r')
     d = open(dest, 'w')
     text = s.read().strip()
+    premade = []
     expressions = []
+
+    while premade_text:
+        sexpr, premade_text = tag_parser.AbstractSchemeExpr.parse(premade_text)
+        premade.append(sexpr.semantic_analysis())
 
     while text:
         sexpr, text = tag_parser.AbstractSchemeExpr.parse(text)
@@ -88,14 +115,20 @@ def compile_scheme_file(src, dest):
     builtin = tag_parser.gen_builtin()
 
     d.write(header)
-    d.write('  /* Constant code generation /*\n')
+    d.write('  // Constant code generation\n')
     d.write(''.join(tag_parser.constants['const_code']))
 
-    d.write('\n  /* Symbol code generation */\n')
+    d.write('\n  // Symbol code generation\n')
     d.write(sym_table)
     d.write(builtin)
 
-    d.write('\n  /* Program code */\n')
+    d.write('\n // Premade functions code\n')
+    for expr in premade:
+        code = expr.code_gen()
+        if code:
+            d.write(code)
+
+    d.write('\n  // Program code\n')
     for expr in expressions:
         print(expr)
         code = expr.code_gen()
