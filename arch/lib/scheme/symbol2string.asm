@@ -1,0 +1,25 @@
+/* symbol2string.asm
+ *
+ * Programmer: Mayer Goldberg, 2010
+ */
+
+ SYM_2_STR:
+  PUSH(FP);
+  MOV(FP, SP);
+  CMP(FPARG(1),IMM(1));
+  JUMP_EQ(SYM_2_STR_ARG_NUM_CORRECT):
+
+  // ERROR - ARGS NUM NOT CORRECT
+
+ SYM_2_STR_ARG_NUM_CORRECT:
+  MOV(R0,FPARG(2));
+  CMP(INDD(R0),T_SYMBOL);
+  JUMP_EQ(SYM_2_STR_ARG_TYPE_CORRECT):
+
+  // ERROR - TYPE NOT CORRECT
+
+  SYM_2_STR_ARG_TYPE_CORRECT:
+  MOV(R0,INDD(R0,2);
+  POP(FP);
+  RETURN;
+
