@@ -36,8 +36,8 @@ def sym_tab_cg():
             code += "  MOV(IND(IMM(7)), R0);\n"  # First link is in 7
             first_link = False
         else:
-            code += "  MOV(INDD(R13,1), R0);\n"  # Update previous link's next pointer
-        code += "  MOV(R13, R0);\n"  # Last symbol link
+            code += "  MOV(INDD(R1,1), R0);\n"  # Update previous link's next pointer
+        code += "  MOV(R1, R0);\n"
 
     return code
 
