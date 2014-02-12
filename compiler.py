@@ -61,6 +61,17 @@ int main()
 premade_text = """
 (define list (lambda x x))
 
+(define Yag
+  (lambda fs
+    (let ((ms (map
+		(lambda (fi)
+		  (lambda ms
+		    (apply fi (map (lambda (mi)
+				     (lambda args
+				       (apply (apply mi ms) args))) ms))))
+		fs)))
+      (apply (car ms) ms))))
+
 """
 # (define take-cars
 #     (lambda lists
