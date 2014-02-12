@@ -5,10 +5,12 @@
  */
 
  APPLY:
+  POP(R6);
+  PUSH(R6);
   PUSH(FP);
   MOV(FP,SP);
   POP(R0);
-  //PUSH(R0);
+  PUSH(R0);
   //PUSH(R1);
   //PUSH(R2);  // this will hold the number of args in the properlist
   //PUSH(R3);
@@ -102,12 +104,13 @@
   JUMP(APPLY_COPY_DOWN_LOOP);
 
  APPLY_COPY_DOWN_LOOP_EXIT:
-  INCR(R4);
+  //INCR(R4);
   MOV(SP,R4);
   MOV(FP,R5);
   //DECR(R1);
   //PUSH(R1);  // now pushing the number of args
   PUSH(INDD(R0,1));  // push the environment
+  PUSH(R6);
   JUMPA(INDD(R0,2));
   //DROP(1);    // drops the old env
   //POP(R1);    // R1 holds the amount of args on the stack
