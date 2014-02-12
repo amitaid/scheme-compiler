@@ -165,7 +165,8 @@ def is_const(sexpr):
            is_number(sexpr) or \
            is_string(sexpr) or \
            is_nil(sexpr) or \
-           is_void(sexpr)  # or \
+           is_void(sexpr) or \
+           is_symbol(sexpr)  # or \
     #(is_pair(sexpr) and not is_symbol(sexpr.car))
 
 
@@ -511,7 +512,8 @@ class AbstractSchemeExpr:
                 sexpr.cdr.car = list_to_pair(
                     list(map(AbstractSchemeExpr.expand, pair_to_list(sexpr.cdr.car))) + [Nil()])
                 sexpr.cdr.car = list_to_pair(list(
-                    map(lambda x: String(x.value) if isinstance(x, Symbol) else x, pair_to_list(sexpr.cdr.car))))
+                    map(lambda x: Symbol(x.value) if isinstance(x, Symbol) else x,
+                        pair_to_list(sexpr.cdr.car))))
             else:
                 sexpr.cdr.car = AbstractSchemeExpr.expand(sexpr.cdr.car)
             return sexpr
@@ -671,6 +673,10 @@ def cg_vector(const):
     return code
 
 
+def cg_symbol(const):
+    pass  # TODO
+
+
 def update_consts(const, code, mem_size):
     global constants, mem_ptr
     constants['const_code'].append(code)
@@ -692,6 +698,8 @@ def add_const(const):
             update_consts(const, cg_vector(const), 2 + len(const.value))
         elif is_char(const):
             update_consts(const, cg_char(const), 2)
+        elif is_symbol(const):
+            update_consts(const, cg_symbol(const), 2)
 
 
 ### Variable ###
