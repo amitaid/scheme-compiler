@@ -9,6 +9,7 @@
   PUSH(R1);
   PUSH(R2);
   PUSH(R3);
+  MOV(R1,IMM(2));
   CMP(FPARG(1),IMM(2));        // checks that we have less then 3 args in stack
   JUMP_LE(MAKE_VECTOR_ARGS_COUNT_LESS_THAN_3);
 
