@@ -24,18 +24,21 @@
   PUSH(R1);
   PUSH(R2);
   PUSH(R3);
+  PUSH(R4);
 
   PUSH(IND(R3));        // Push the string pointed to
   PUSH(R2);             // Push our string
   CALL(STRCMP);         // Compare
   DROP(2);
 
+  POP(R4);
   POP(R3);
   POP(R2);
   POP(R1);
 
   CMP(R0, IMM(1));
   JUMP_EQ(MAKE_SYMBOL_FOUND);
+  MOV(R4, R1);
   MOV(R1, INDD(R1,1));  // Next link
   JUMP(MAKE_SYMBOL_SEARCH_LOOP);
 
@@ -44,9 +47,11 @@
   JUMP(MAKE_SOB_SYMBOL_EXIT);
 
  MAKE_SYMBOL_NOT_FOUND:
+  PUSH(R4);
   PUSH(IMM(6));             // New bucket sextet
   CALL(MALLOC);
   DROP(1);
+  POP(R4);
   MOV(IND(R0), R0);
   ADD(IND(R0), IMM(4));      // Pointer to the bucket
   MOV(INDD(R0,1), IMM(-1));  // Next link
@@ -56,7 +61,11 @@
   MOV(INDD(R0,5), IMM(-1)); // No value pointed to yet
 
   CMP(IND(7), IMM(-1));
-  JUMP_NE(MAKE_SOB_SYMBOL_EXIT);
+  JUMP_EQ(FIRST_LINK);
+  MOV(INDD(R4,1), R0);      // Update the previous link
+  JUMP(MAKE_SOB_SYMBOL_EXIT);
+
+ FIRST_LINK:
   MOV(IND(7), R0);
 
  MAKE_SOB_SYMBOL_EXIT:
