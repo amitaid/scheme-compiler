@@ -17,7 +17,7 @@ builtin = {'+': 'PLUS', '-': 'MINUS', '*': 'MULT', '/': 'DIVIDE',
            'CONS': 'CONS', 'CAR': 'CAR', 'CDR': 'CDR', 'VECTOR': 'VECTOR_CONSTRUCTOR', 'VECTOR-LENGTH': 'VECTOR_LENGTH',
            'VECTOR-REF': 'VECTOR_REF', 'MAKE-VECTOR': 'MAKE_VECTOR', 'STRING': 'STRING_CONSTRUCTOR',
            'STRING-LENGTH': 'STRING_LENGTH', 'STRING-REF': 'STRING_REF', 'MAKE-STRING': 'MAKE_STRING'
-}
+}  #TODO SUPPORT LIST
 
 
 def sym_tab_cg():
