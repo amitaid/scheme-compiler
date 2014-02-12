@@ -20,7 +20,20 @@
   JUMP_GE(APPLY_FIRST_ARG_CHECK);
 
   // NOT ENOUGH ARGS ERROR HERE
-PPLY_LAST_ARG_IS_PROPER_LIST_LOOP:
+
+ APPLY_FIRST_ARG_CHECK:
+  MOV(R1,FPARG(2));
+  CMP(IND(R1),T_CLOSURE);  // checks that the first arg is a closure
+  JUMP_EQ(APPLY_LAST_ARG_CHECK);
+
+  // FIRST ARG NOT A PROC ERROR HERE
+
+ APPLY_LAST_ARG_CHECK:
+  MOV(R1,FPARG(1));
+  INCR(R1);
+  MOV(R1,FPARG(R1));  // R1 now holds the last arg, the next loop checks if it is a proper list
+
+ APPLY_LAST_ARG_IS_PROPER_LIST_LOOP:
   CMP(IND(R1),T_NIL);                  //  checks if nil, if yes, jumps out, it is proper list
   JUMP_EQ(APPLY_ARGS_CORRECT);
   CMP(IND(R1),T_PAIR);                  // else, check if a pair, if yes, continues the loop
