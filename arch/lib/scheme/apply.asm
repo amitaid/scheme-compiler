@@ -52,7 +52,8 @@
   MOV(R1,SP);
   SUB(R1,R2); // now r1 points to the most bottom element of the list
   MOV(R3,SP);
-  DECR(R3,R2); // now arg 3 points to the top of the elements
+  SUB(R3,R2); // now arg 3 points to the top of the elements
+  //DECR(R3,R2)
 
  APPLY_REARRANGE_STACK_LOOP:
   CMP(R3,R1);
