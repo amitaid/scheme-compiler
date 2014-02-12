@@ -15,16 +15,25 @@
   //JUMP_EQ(MAKE_SYMBOL_NOT_FOUND);
 
 
-
  MAKE_SYMBOL_SEARCH_LOOP:
   CMP(R1, IMM(-1));     // Last link in the chain
   JUMP_EQ(MAKE_SYMBOL_NOT_FOUND);
 
   MOV(R3, INDD(R1,3));  // Move the symbol's link to R3
+
+  PUSH(R1);
+  PUSH(R2);
+  PUSH(R3);
+
   PUSH(IND(R3));        // Push the string pointed to
   PUSH(R2);             // Push our string
   CALL(STRCMP);         // Compare
   DROP(2);
+
+  POP(R3);
+  POP(R2);
+  POP(R1);
+
   CMP(R0, IMM(1));
   JUMP_EQ(MAKE_SYMBOL_FOUND);
   MOV(R1, INDD(R1,1));  // Next link
@@ -49,9 +58,9 @@
   CMP(IND(7), IMM(-1));
   JUMP_NE(MAKE_SOB_SYMBOL_EXIT);
   MOV(IND(7), R0);
-  ADD(R0, IMM(2));      // Adjust to the symbol
 
  MAKE_SOB_SYMBOL_EXIT:
+  ADD(R0, IMM(2));      // Adjust to the symbol
   POP(FP);
   RETURN;
 
