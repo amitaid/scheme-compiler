@@ -513,9 +513,15 @@ class AbstractSchemeExpr:
         elif is_and(sexpr):
             return expand_and(sexpr)
         elif is_quote(sexpr):
-            if is_pair(sexpr.cdr.car):
+            if is_proper_list(sexpr.cdr.car):
                 sexpr.cdr.car = list_to_pair(
                     list(map(AbstractSchemeExpr.expand, pair_to_list(sexpr.cdr.car))) + [Nil()])
+                sexpr.cdr.car = list_to_pair(list(
+                    map(lambda x: String(x.value) if isinstance(x, Symbol) else x,
+                        pair_to_list(sexpr.cdr.car))) + [Nil()])
+            elif is_improper_list(sexpr.cdr.car):
+                sexpr.cdr.car = list_to_pair(
+                    list(map(AbstractSchemeExpr.expand, pair_to_list(sexpr.cdr.car))))
                 sexpr.cdr.car = list_to_pair(list(
                     map(lambda x: String(x.value) if isinstance(x, Symbol) else x,
                         pair_to_list(sexpr.cdr.car))))
