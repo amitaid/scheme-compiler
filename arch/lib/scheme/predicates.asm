@@ -201,5 +201,24 @@ IS_VECTOR:
   POP(FP);
   RETURN;
 
+       /*   symbol?   */
+
+ IS_SYMBOL:
+  PUSH(FP);
+  MOV(FP,SP);
+  CMP(FPARG(1),IMM(1));     // checks that there is only one arg
+  JUMP_EQ(IS_SYMBOL_ARGS_CORRECT);
+
+  //ERROR COMES HERE
+
+ IS_SYMBOL_ARGS_CORRECT:
+  PUSH(FPARG(2));
+  CALL(IS_SOB_SYMBOL);
+  DROP(1);
+  MUL(R0, IMM(2));
+  ADD(R0, IMM(3));
+  POP(FP);
+  RETURN;
+
   // end of the trivial ones
 
