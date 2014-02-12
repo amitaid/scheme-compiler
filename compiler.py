@@ -23,12 +23,12 @@ int main()
 
   JUMP(CONTINUE);
 
+#include "arch/scheme.lib"
 #include "arch/char.lib"
 #include "arch/io.lib"
 #include "arch/math.lib"
 #include "arch/string.lib"
 #include "arch/system.lib"
-#include "arch/scheme.lib"
 
 
 #define SOB_FALSE 0
