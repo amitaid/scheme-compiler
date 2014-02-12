@@ -13,7 +13,7 @@ builtin = {'+': 'PLUS', '-': 'MINUS', '*': 'MULT', '/': 'DIVIDE',
            '>': 'GREATER', '<': 'SMALLER', '=': 'EQUAL', 'APPEND': 'APPEND',
            'NULL?': 'IS_NULL', 'NUMBER?': 'IS_NUMBER', 'ZERO?': 'IS_ZERO',
            'PAIR?': 'IS_PAIR', 'PROCEDURE?': 'IS_PROCEDURE', 'BOOLEAN?': 'IS_BOOLEAN',
-           'CHAR?': 'IS_CHAR', 'STRING?': 'IS_STRING', 'INTEGER?': 'IS_INTEGER',
+           'CHAR?': 'IS_CHAR', 'STRING?': 'IS_STRING', 'INTEGER?': 'IS_INTEGER', 'VECTOR?': 'IS_VECTOR',
            'CONS': 'CONS', 'CAR': 'CAR', 'CDR': 'CDR', 'VECTOR': 'VECTOR_CONSTRUCTOR', 'VECTOR-LENGTH': 'VECTOR_LENGTH'}
 
 
@@ -165,8 +165,8 @@ def is_const(sexpr):
            is_number(sexpr) or \
            is_string(sexpr) or \
            is_nil(sexpr) or \
-           is_void(sexpr) or \
-           is_symbol(sexpr)  # or \
+           is_void(sexpr)  # or \
+    #       is_symbol(sexpr)  # or \
     #(is_pair(sexpr) and not is_symbol(sexpr.car))
 
 
@@ -698,8 +698,8 @@ def add_const(const):
             update_consts(const, cg_vector(const), 2 + len(const.value))
         elif is_char(const):
             update_consts(const, cg_char(const), 2)
-        elif is_symbol(const):
-            update_consts(const, cg_symbol(const), 2)
+            #elif is_symbol(const):
+            #    update_consts(const, cg_symbol(const), 2)
 
 
 ### Variable ###
