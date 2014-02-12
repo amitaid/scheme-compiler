@@ -6,6 +6,7 @@
 
 #include "lib/string/strlen.asm"
 #include "lib/string/strcat.asm"
+#include "lib/string/strcmp.asm"
 #include "lib/string/strcpy.asm"
 #include "lib/string/string_to_lc.asm"
 #include "lib/string/string_to_uc.asm"
