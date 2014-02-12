@@ -24,6 +24,7 @@
 #include "lib/scheme/is_sob_fraction.asm"
 #include "lib/scheme/is_sob_closure.asm"
 #include "lib/scheme/is_sob_pair.asm"
+#include "lib/scheme/is_sob_vector.asm"
 #include "lib/scheme/write_sob_void.asm"
 #include "lib/scheme/write_sob_nil.asm"
 #include "lib/scheme/write_sob_bool.asm"
@@ -41,7 +42,8 @@
 #include "lib/scheme/cons.asm"
 #include "lib/scheme/car.asm"
 #include "lib/scheme/cdr.asm"
-
+#include "lib/scheme/vector.asm"
+#include "lib/scheme/vector_length.asm"
 
 {
  WRITE_SOB_SYMBOL:
