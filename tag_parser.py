@@ -6,7 +6,7 @@ from sexprs import *
 #symbol table
 
 # todo -1 must be replaced with the appropiate code for the primitive procedures
-# todo must take care of variables whose name is a keyword
+# todo must take care of variables whose name is a keyword.
 symbol_table = {}
 
 builtin = {'+': 'PLUS', '-': 'MINUS', '*': 'MULT', '/': 'DIVIDE', 'APPLY': 'APPLY',
