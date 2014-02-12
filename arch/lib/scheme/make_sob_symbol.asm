@@ -9,8 +9,12 @@
   PUSH(FP);
   MOV(FP, SP);
 
-  MOV(R1, IND(7));      // Symbol table link
   MOV(R2, FPARG(0));    // String to search for
+  MOV(R1, IND(7));      // Symbol table location
+  //CMP(IND(R1), IMM(-1));
+  //JUMP_EQ(MAKE_SYMBOL_NOT_FOUND);
+
+
 
  MAKE_SYMBOL_SEARCH_LOOP:
   CMP(R1, IMM(-1));     // Last link in the chain
@@ -28,7 +32,6 @@
 
  MAKE_SYMBOL_FOUND:
   MOV(R0, R1);          // Move the correct link
-  ADD(R0, IMM(2));      // Adjust to the symbol
   JUMP(MAKE_SOB_SYMBOL_EXIT);
 
  MAKE_SYMBOL_NOT_FOUND:
@@ -42,6 +45,10 @@
   MOV(INDD(R0,3), IND(R0)); // Pointer to the bucket
   MOV(INDD(R0,4), R2);      // Symbol name, our string
   MOV(INDD(R0,5), IMM(-1)); // No value pointed to yet
+
+  CMP(IND(7), IMM(-1));
+  JUMP_NE(MAKE_SOB_SYMBOL_EXIT);
+  MOV(IND(7), R0);
   ADD(R0, IMM(2));      // Adjust to the symbol
 
  MAKE_SOB_SYMBOL_EXIT:

@@ -47,6 +47,7 @@ int main()
   PUSH(IMM(1));  /* Creates the symbol table, ADDR(7) */
   CALL(MALLOC);
   DROP(1);
+  MOV(IND(R0), IMM(-1)); // Symbol list initial value
 
   /* Initial stack */
   PUSH(IMM(0));
