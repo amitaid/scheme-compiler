@@ -36,8 +36,8 @@ def sym_tab_cg():
             code += "  MOV(IND(IMM(7)), R0);\n"  # First link is in 7
             first_link = False
         else:
-            code += "  MOV(INDD(R1,1), R0);\n"  # Update previous link's next pointer
-        code += "  MOV(R1, R0);\n"
+            code += "  MOV(INDD(R13,1), R0);\n"  # Update previous link's next pointer
+        code += "  MOV(R13, R0);\n"  # Last symbol link
 
     return code
 
@@ -679,7 +679,17 @@ def cg_vector(const):
 
 
 def cg_symbol(const):
-    pass  # TODO
+    pass
+    # code = '  /* Const ' + str(const) + ' */\n'
+    # if const.value not in symbol_table:
+    #     symbol_table[const.value] = -1
+    #     Constant(String(const.value))
+    #     symbol_table[const.value] = mem_ptr
+    #     make_symbol_link(const.value)
+    #     code += "  MOV(INDD(R13,1), R0);\n"  # Update previous link's next pointer
+    #     code += "  MOV(R13, R0);\n"          # Last symbol link
+    # code += "  MOV(R0, IMM(" + str(symbol_table[const.value]+2) + "));\n"
+    # return code
 
 
 def update_consts(const, code, mem_size):
@@ -703,8 +713,8 @@ def add_const(const):
             update_consts(const, cg_vector(const), 2 + len(const.value))
         elif is_char(const):
             update_consts(const, cg_char(const), 2)
-            #elif is_symbol(const):
-            #    update_consts(const, cg_symbol(const), 2)
+            # elif is_symbol(const):
+            #     update_consts(const, cg_symbol(const), 0)
 
 
 ### Variable ###
