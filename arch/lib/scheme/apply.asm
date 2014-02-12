@@ -5,12 +5,10 @@
  */
 
  APPLY:
-  POP(R6);
-  PUSH(R6);
   PUSH(FP);
   MOV(FP,SP);
   POP(R0);
-  PUSH(R0);
+  //PUSH(R0);
   //PUSH(R1);
   //PUSH(R2);  // this will hold the number of args in the properlist
   //PUSH(R3);
@@ -22,20 +20,7 @@
   JUMP_GE(APPLY_FIRST_ARG_CHECK);
 
   // NOT ENOUGH ARGS ERROR HERE
-
- APPLY_FIRST_ARG_CHECK:
-  MOV(R1,FPARG(2));
-  CMP(IND(R1),T_CLOSURE);  // checks that the first arg is a closure
-  JUMP_EQ(APPLY_LAST_ARG_CHECK);
-
-  // FIRST ARG NOT A PROC ERROR HERE
-
- APPLY_LAST_ARG_CHECK:
-  MOV(R1,FPARG(1));
-  INCR(R1);
-  MOV(R1,FPARG(R1));  // R1 now holds the last arg, the next loop checks if it is a proper list
-
- APPLY_LAST_ARG_IS_PROPER_LIST_LOOP:
+PPLY_LAST_ARG_IS_PROPER_LIST_LOOP:
   CMP(IND(R1),T_NIL);                  //  checks if nil, if yes, jumps out, it is proper list
   JUMP_EQ(APPLY_ARGS_CORRECT);
   CMP(IND(R1),T_PAIR);                  // else, check if a pair, if yes, continues the loop
@@ -104,13 +89,12 @@
   JUMP(APPLY_COPY_DOWN_LOOP);
 
  APPLY_COPY_DOWN_LOOP_EXIT:
-  //INCR(R4);
+  INCR(R4);
   MOV(SP,R4);
   MOV(FP,R5);
   //DECR(R1);
   //PUSH(R1);  // now pushing the number of args
   PUSH(INDD(R0,1));  // push the environment
-  PUSH(R6);
   JUMPA(INDD(R0,2));
   //DROP(1);    // drops the old env
   //POP(R1);    // R1 holds the amount of args on the stack
