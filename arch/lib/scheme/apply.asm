@@ -14,11 +14,11 @@
 
   MOV(R2,IMM(0));
   CMP(FPARG(1),IMM(2));   // checks the number of args is more than 2 (proc, list, and args in between)
-  JUMP_LE(APPLY_FIRST_ARG_CHECK);
+  JUMP_GE(APPLY_FIRST_ARG_CHECK);
 
   // NOT ENOUGH ARGS ERROR HERE
 
- APPLY_FIRST_ARG_CHECK
+ APPLY_FIRST_ARG_CHECK:
   MOV(R1,FPARG(2));
   CMP(IND(R1),T_CLOSURE);  // checks that the first arg is a closure
   JUMP_EQ(APPLY_LAST_ARG_CHECK);
@@ -31,7 +31,7 @@
   MOV(R1,FPARG(R1));  // R1 now holds the last arg, the next loop checks if it is a proper list
 
  APPLY_LAST_ARG_IS_PROPER_LIST_LOOP:
-  CMP(IND(R1),IMM(2));                  // checks if nil, if yes, jumps out, it is proper list
+  CMP(IND(R1),T_NIL);                  //  checks if nil, if yes, jumps out, it is proper list
   JUMP_EQ(APPLY_ARGS_CORRECT);
   CMP(IND(R1),T_PAIR);                  // else, check if a pair, if yes, continues the loop
   JUMP_EQ(APPLY_CURR_LINK_CORRECT);

@@ -9,14 +9,15 @@ from sexprs import *
 # todo must take care of variables whose name is a keyword
 symbol_table = {}
 
-builtin = {'+': 'PLUS', '-': 'MINUS', '*': 'MULT', '/': 'DIVIDE',
+builtin = {'+': 'PLUS', '-': 'MINUS', '*': 'MULT', '/': 'DIVIDE', 'APPLY': 'APPLY',
            '>': 'GREATER', '<': 'SMALLER', '=': 'EQUAL', 'APPEND': 'APPEND',
            'NULL?': 'IS_NULL', 'NUMBER?': 'IS_NUMBER', 'ZERO?': 'IS_ZERO',
            'PAIR?': 'IS_PAIR', 'PROCEDURE?': 'IS_PROCEDURE', 'BOOLEAN?': 'IS_BOOLEAN',
            'CHAR?': 'IS_CHAR', 'STRING?': 'IS_STRING', 'INTEGER?': 'IS_INTEGER', 'VECTOR?': 'IS_VECTOR',
            'CONS': 'CONS', 'CAR': 'CAR', 'CDR': 'CDR', 'VECTOR': 'VECTOR_CONSTRUCTOR', 'VECTOR-LENGTH': 'VECTOR_LENGTH',
            'VECTOR-REF': 'VECTOR_REF', 'MAKE-VECTOR': 'MAKE_VECTOR', 'STRING': 'STRING_CONSTRUCTOR',
-           'STRING-LENGTH': 'STRING_LENGTH', 'STRING-REF': 'STRING_REF', 'MAKE-STRING': 'MAKE_STRING'
+           'STRING-LENGTH': 'STRING_LENGTH', 'STRING-REF': 'STRING_REF', 'MAKE-STRING': 'MAKE_STRING',
+           'INTEGER->CHAR': 'INT_2_CHAR', 'CHAR->INTEGER': 'CHAR_2_INT'
 }  #TODO SUPPORT LIST
 
 
