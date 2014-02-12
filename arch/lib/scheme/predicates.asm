@@ -203,37 +203,3 @@ IS_VECTOR:
 
   // end of the trivial ones
 
-
-
-           /*   zero?   */
-
- IS_ZERO:
-  PUSH(FP);
-  MOV(FP,SP);
-  CMP(FPARG(1),IMM(1));     // checks that there is only one arg
-  JUMP_EQ(IS_ZERO_ARGS_CORRECT);
-
-  //ERROR COMES HERE
-
- IS_ZERO_ARGS_CORRECT:
-  PUSH(FPARG(2));
-  CALL(IS_SOB_INTEGER);
-  DROP(1);
-
-  CMP(R0,IMM(0));  // if not number, jumps to exit;
-  JUMP_EQ(IS_ZERO_EXIT);
-
-  CMP(INDD(R0,1),IMM(0));  // checks if the number holds zero
-  JUMP_EQ(IS_ZERO_PUT_TRUE); // jumps to label if true
-
-  MOV(R0,IMM(0));     // puts zero in R0
-  JUMP(IS_ZERO_EXIT); // and jumps to exit
-
- IS_ZERO_PUT_TRUE:    // here we come if number is zero
-  MOV(R0,IMM(1));    // puts one is R0, and doesnt jump
-
- IS_ZERO_EXIT:
-  MUL(R0, IMM(2));
-  ADD(R0, IMM(3));
-  POP(FP);
-  RETURN;
