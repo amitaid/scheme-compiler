@@ -21,10 +21,20 @@
 
   // error - zero args
 
+ MAKE_VECTOR_FIRST_ARG_CORRECT:
+  MOV(R1,FPARG(2));
+  CMP(IND(R1),T_INTEGER);        // checks that the first arg is integer
+  JUMP_EQ(MAKE_VECTOR_ARGS_CORRECT);
+
+  // error - first arg is not an integer
+
  MAKE_VECTOR_ARGS_CORRECT:
   CMP(FPARG(1),IMM(2));        // checks if we have second arg, if no, we jump to the actual creation
   JUMP_NE(MAKE_VECTOR_CREATION);
   MOV(R1,FPARG(3));           // if yes then it is put in R1
+
+
+
 
  MAKE_VECTOR_CREATION:
   MOV(R2,IMM(0));
