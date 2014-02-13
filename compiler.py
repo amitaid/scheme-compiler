@@ -72,17 +72,18 @@ premade_text = """
 		fs)))
       (apply (car ms) ms))))
 
-(define (simple-map func lst)
-	(if (null? lst)
-		lst
-		(cons (func (car lst)) (simple-map func (cdr lst)))))
+(define simple-map
+    (lambda (func lst)
+	    (if (null? lst)
+		    lst
+		    (cons (func (car lst)) (simple-map func (cdr lst))))))
 
-(define map (lambda (func lst . rest)
-	(if (null? lst)
-		lst
-		(cons (apply func (cons (car lst) (simple-map car rest)))
-			  (apply map (cons func (cons (cdr lst)
-                                    (simple-map cdr rest))))))))
+(define map
+    (lambda (func lst . rest)
+	    (if (null? lst)
+		    lst
+		    (cons (apply func (cons (car lst) (simple-map car rest)))
+			    (apply map (cons func (cons (cdr lst) (simple-map cdr rest))))))))
 
 """
 # (define take-cars
