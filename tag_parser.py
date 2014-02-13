@@ -640,7 +640,7 @@ def cg_char(const):
 
 def cg_pair(const):
     code = '  /* Const ' + str(const) + ' */\n'
-    if is_const(const.car):
+    if is_const(const.car) or is_pair(const.car):
         car = Constant(const.car)
     else:
         car = const.car
