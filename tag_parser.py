@@ -1,12 +1,5 @@
 from sexprs import *
 
-#key_words = ['DEFINE', 'LAMBDA', 'λ', 'IF', 'AND', 'OR', 'COND']
-#primitive_ops = ['+', '-',]
-
-#symbol table
-
-# todo -1 must be replaced with the appropiate code for the primitive procedures
-# todo must take care of variables whose name is a keyword.
 symbol_table = {}
 
 builtin = {'+': 'PLUS', '-': 'MINUS', '*': 'MULT', '/': 'DIVIDE', 'APPLY': 'APPLY',
@@ -20,7 +13,7 @@ builtin = {'+': 'PLUS', '-': 'MINUS', '*': 'MULT', '/': 'DIVIDE', 'APPLY': 'APPL
            'STRING-LENGTH': 'STRING_LENGTH', 'STRING-REF': 'STRING_REF', 'MAKE-STRING': 'MAKE_STRING',
            'INTEGER->CHAR': 'INT_2_CHAR', 'CHAR->INTEGER': 'CHAR_2_INT', 'STRING->SYMBOL': 'MAKE_SOB_SYMBOL',
            'SYMBOL->STRING': 'SYM_2_STR', 'EQ?': 'EQ'
-}  #TODO SUPPORT LIST
+}
 
 
 def sym_tab_cg():
