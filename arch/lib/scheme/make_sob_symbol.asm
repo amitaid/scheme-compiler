@@ -9,11 +9,6 @@
   PUSH(FP);
   MOV(FP, SP);
 
-  PUSH(R1);
-  PUSH(R2);
-  PUSH(R3);
-  PUSH(R4);
-
   MOV(R2, FPARG(2));    // String to search for
   MOV(R1, IND(7));      // Symbol table location
 
@@ -64,11 +59,6 @@
 
  MAKE_SOB_SYMBOL_EXIT:
   ADD(R0, IMM(2));      // Adjust to the symbol
-
-  POP(R4);
-  POP(R3);
-  POP(R2);
-  POP(R1);
 
   POP(FP);
   RETURN;

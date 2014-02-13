@@ -6,13 +6,16 @@
  */
 
  STRCMP:
+  PUSH(FP);
+  MOV(FP, SP);
+
   PUSH(R1);
   PUSH(R2);
   PUSH(R3);
 
   MOV(R0, IMM(0));
-  MOV(R1, STARG(0));
-  MOV(R2, STARG(1));
+  MOV(R1, FPARG(0));
+  MOV(R2, FPARG(1));
   CMP(IND(R1), T_STRING);
   //ERROR
 
@@ -40,4 +43,5 @@
   POP(R3);
   POP(R2);
   POP(R1);
+  POP(FP);
   RETURN;
