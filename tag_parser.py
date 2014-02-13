@@ -922,55 +922,55 @@ class ApplicTP(Applic):
         for x in self.args:
             x.analyze_env(env_count, arg_count)
 
-            def code_gen(self):
-                label = gen_label()
-                applic_tc_prep_label = 'L_APPLIC_TP_PREP_' + label
-                applic_tc_loop_label = 'L_APPLIC_TP_LOOP_' + label
-                applic_tc_exit_label = 'L_APPLIC_TP_EXIT_' + label
+    def code_gen(self):
+        label = gen_label()
+        applic_tc_prep_label = 'L_APPLIC_TP_PREP_' + label
+        applic_tc_loop_label = 'L_APPLIC_TP_LOOP_' + label
+        applic_tc_exit_label = 'L_APPLIC_TP_EXIT_' + label
 
-                code = ''
+        code = ''
 
-                for arg in reversed(self.args):
-                    code += arg.code_gen()
-                    code += '  PUSH(R0);\n'
-                code += '  PUSH(IMM(' + str(len(self.args)) + '));\n'
-                code += self.func.code_gen()
+        for arg in reversed(self.args):
+            code += arg.code_gen()
+            code += '  PUSH(R0);\n'
+        code += '  PUSH(IMM(' + str(len(self.args)) + '));\n'
+        code += self.func.code_gen()
 
-                code += '  MOV(R1,R0);\n'
-                code += '  PUSH(R0);\n'
-                code += '  CALL(IS_SOB_CLOSURE);\n'
-                code += '  DROP(1);\n'
-                code += '  CMP(R0,IMM(1));'
-                code += '  JUMP_EQ(' + applic_tc_prep_label + ');\n'
+        code += '  MOV(R1,R0);\n'
+        code += '  PUSH(R0);\n'
+        code += '  CALL(IS_SOB_CLOSURE);\n'
+        code += '  DROP(1);\n'
+        code += '  CMP(R0,IMM(1));'
+        code += '  JUMP_EQ(' + applic_tc_prep_label + ');\n'
 
-                #TODO ERROR
+        #TODO ERROR
 
-                code += ' ' + applic_tc_prep_label + ':\n'
-                code += '  MOV(R0,R1);\n'
-                code += '  PUSH(INDD(R0, 1));\n'  # here the diffenece from applic starts
-                code += '  PUSH(FPARG(-1));\n'  # Olf Return addr
-                code += '  MOV(R1,FPARG(-2));\n'  # Old FP
-                code += '  MOV(R5,FPARG(1));\n'  # Store n in R5
-                code += '  MOV(R2, IMM(' + str(len(self.args) + 3) + '));\n'  # Store m in R2
-                code += '  MOV(R3,FP);\n'  # Upper pointer
-                code += '  MOV(FP,R1);\n'  # FP moves to the old FP
-                code += '  MOV(R4,FP);\n'  # Lower pointer
+        code += ' ' + applic_tc_prep_label + ':\n'
+        code += '  MOV(R0,R1);\n'
+        code += '  PUSH(INDD(R0, 1));\n'  # here the diffenece from applic starts
+        code += '  PUSH(FPARG(-1));\n'  # Olf Return addr
+        code += '  MOV(R1,FPARG(-2));\n'  # Old FP
+        code += '  MOV(R5,FPARG(1));\n'  # Store n in R5
+        code += '  MOV(R2, IMM(' + str(len(self.args) + 3) + '));\n'  # Store m in R2
+        code += '  MOV(R3,FP);\n'  # Upper pointer
+        code += '  MOV(FP,R1);\n'  # FP moves to the old FP
+        code += '  MOV(R4,FP);\n'  # Lower pointer
 
-                code += ' ' + applic_tc_loop_label + ':\n'
-                code += '  CMP(R2, IMM(0));\n'
-                code += '  JUMP_EQ(' + applic_tc_exit_label + ');\n'
-                code += '  MOV(STACK(R4),STACK(R3));'
-                code += '  INCR(R3);\n'
-                code += '  INCR(R4);\n'
-                code += '  DECR(R2);\n'
-                code += '  JUMP(' + applic_tc_loop_label + ');\n'
+        code += ' ' + applic_tc_loop_label + ':\n'
+        code += '  CMP(R2, IMM(0));\n'
+        code += '  JUMP_EQ(' + applic_tc_exit_label + ');\n'
+        code += '  MOV(STACK(R4),STACK(R3));'
+        code += '  INCR(R3);\n'
+        code += '  INCR(R4);\n'
+        code += '  DECR(R2);\n'
+        code += '  JUMP(' + applic_tc_loop_label + ');\n'
 
-                code += ' ' + applic_tc_exit_label + ':\n'
-                code += '  SUB(SP, R5);\n'
-                code += '  SUB(SP, 4);\n'
-                code += '  JUMPA(INDD(R0,2));\n'
+        code += ' ' + applic_tc_exit_label + ':\n'
+        code += '  SUB(SP, R5);\n'
+        code += '  SUB(SP, 4);\n'
+        code += '  JUMPA(INDD(R0,2));\n'
 
-                return code
+        return code
 
 
 class Or(AbstractSchemeExpr):
