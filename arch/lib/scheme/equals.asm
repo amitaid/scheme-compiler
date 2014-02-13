@@ -7,6 +7,8 @@
   PUSH(FP);
   MOV(FP,SP);
 
+  PUSH(R1);
+
   CMP(FPARG(1), IMM(2));
   JUMP_EQ(EQ_ARGS_AMOUNT_OK);
   // ERROR
@@ -65,14 +67,17 @@ EQ_ARGS_AMOUNT_OK:
   JUMP_EQ(EQ_TRUE);
   JUMP(EQ_FALSE);
 
-
-
  EQ_TRUE:
   MOV(R0, IMM(5));
   JUMP(EQ_EXIT);
+
  EQ_FALSE:
   MOV(R0, IMM(3));
+
  EQ_EXIT:
+
+  POP(R1);
+
   POP(FP);
   RETURN;
 

@@ -6,7 +6,9 @@
  VECTOR_REF:
   PUSH(FP);
   MOV(FP,SP);
+
   PUSH(R1);
+
   CMP(FPARG(1),IMM(2));        // checks that we have 2 args in stack
   JUMP_EQ(VECTOR_REF_ARGS_CORRECT);
 
@@ -36,6 +38,8 @@
   MOV(R1,INDD(R1,1));  // move the value of the integer to R1.
   ADD(R1,IMM(2));      // adds 2 because the first element is in the 3rd cell (1,2 are type and length)
   MOV(R0,INDD(R0,R1));
+
   POP(R1);
+
   POP(FP);
   RETURN;

@@ -6,6 +6,10 @@
  */
 
  STRCMP:
+  PUSH(R1);
+  PUSH(R2);
+  PUSH(R3);
+
   MOV(R0, IMM(0));
   MOV(R1, STARG(0));
   MOV(R2, STARG(1));
@@ -32,4 +36,8 @@
  STRCMP_SUCCESS:
   MOV(R0, IMM(1));
  STRCMP_FAIL:
+
+  POP(R3);
+  POP(R2);
+  POP(R1);
   RETURN;

@@ -7,9 +7,11 @@
  STRING_CONSTRUCTOR:
   PUSH(FP);
   MOV(FP,SP);
+
   PUSH(R1);
   PUSH(R2);
   PUSH(R3);
+
   MOV(R1,IMM(2));
   MOV(R2,FPARG(1));  // holds the number of args in the stack
   INCR(R2);
@@ -36,8 +38,10 @@
   CALL(MAKE_SOB_STRING);
   ADD(R1,1);
   DROP(R1);
+
   POP(R3);
   POP(R2);
   POP(R1);
+
   POP(FP);
   RETURN;

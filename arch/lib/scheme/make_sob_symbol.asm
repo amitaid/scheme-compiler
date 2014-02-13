@@ -2,12 +2,17 @@
  * Takes a pointer to a string object and returns a pointer
  * of a symbol object, whether in an existing bucket or a new bucket.
  *
- * Programmer: Mayer Goldberg, 2010
+ * Programmer: Amitai Degani, Tal Zelig, 2014
  */
 
  MAKE_SOB_SYMBOL:
   PUSH(FP);
   MOV(FP, SP);
+
+  PUSH(R1);
+  PUSH(R2);
+  PUSH(R3);
+  PUSH(R4);
 
   MOV(R2, FPARG(2));    // String to search for
   MOV(R1, IND(7));      // Symbol table location
@@ -18,20 +23,10 @@
 
   MOV(R3, INDD(R1,3));  // Move the symbol's link to R3
 
-  PUSH(R1);
-  PUSH(R2);
-  PUSH(R3);
-  PUSH(R4);
-
   PUSH(IND(R3));        // Push the string pointed to
   PUSH(R2);             // Push our string
   CALL(STRCMP);         // Compare
   DROP(2);
-
-  POP(R4);
-  POP(R3);
-  POP(R2);
-  POP(R1);
 
   CMP(R0, IMM(1));
   JUMP_EQ(MAKE_SYMBOL_FOUND);
@@ -69,6 +64,12 @@
 
  MAKE_SOB_SYMBOL_EXIT:
   ADD(R0, IMM(2));      // Adjust to the symbol
+
+  POP(R4);
+  POP(R3);
+  POP(R2);
+  POP(R1);
+
   POP(FP);
   RETURN;
 

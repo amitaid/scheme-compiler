@@ -885,14 +885,14 @@ class Applic(AbstractSchemeExpr):
 
     def code_gen(self):
         label = gen_label()
-        code = ''
+        code = ' // Applic starts here ' + label + '\n'
 
         for arg in reversed(self.args):
             code += arg.code_gen()
             code += '  PUSH(R0);\n'
         code += '  PUSH(IMM(' + str(len(self.args)) + '));\n'
         code += self.func.code_gen()
-        code += '  MOV(R1,R0);\n'
+        code += '  PUSH(R0);\n'
         code += '  PUSH(R0);\n'
         code += '  CALL(IS_SOB_CLOSURE);\n'
         code += '  DROP(1);\n'
@@ -902,7 +902,7 @@ class Applic(AbstractSchemeExpr):
         #TODO ERROR
 
         code += ' L_APPLIC_EXIT_' + label + ':\n'
-        code += '  MOV(R0,R1);\n'
+        code += '  POP(R0);\n'
         code += '  PUSH(INDD(R0,1));\n'
         code += '  CALLA(INDD(R0,2));\n'
         code += '  DROP(1);\n'
@@ -1083,7 +1083,8 @@ class LambdaSimple(AbstractLambda):
         closure_exit_label = 'L_CLOS_EXIT_' + label
 
         # setting registers for 1st loop
-        code = '  PUSH(IMM(' + str(self.env_depth + 1) + '));\n'
+        code = ' // Lambda Simple starts here ' + label + '\n'
+        code += '  PUSH(IMM(' + str(self.env_depth + 1) + '));\n'
         code += '  CALL(MALLOC);\n'
         code += '  DROP(1);\n'
         code += '  MOV(R1, R0);\n'  # New env
