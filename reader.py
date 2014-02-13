@@ -231,7 +231,7 @@ char = ps. \
     parser(visible_char). \
     disjs(3). \
     caten(). \
-    pack(lambda m: sexprs.Char(m[1])). \
+    pack(lambda m: sexprs.Char(int(m[1], 0))). \
     done()
 
 ######### Nil ##########

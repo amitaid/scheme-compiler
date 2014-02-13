@@ -619,7 +619,7 @@ def cg_fraction(const):
 
 def cg_char(const):
     code = '  /* Const ' + str(const) + ' */\n'
-    code += '  PUSH(IMM(' + str(ord(const.value)) + '));\n'
+    code += '  PUSH(IMM(' + str(const.value) + '));\n'
     code += '  CALL(MAKE_SOB_CHAR);\n'
     code += '  DROP(1);\n\n'
     return code
