@@ -58,6 +58,9 @@
 #include "lib/scheme/char2int.asm"
 #include "lib/scheme/symbol2string.asm"
 #include "lib/scheme/equals.asm"
+#include "lib/scheme/list2vector.asm"
+#include "lib/scheme/vector2list.asm"
+#include "lib/scheme/remainder.asm"
 
 
 
