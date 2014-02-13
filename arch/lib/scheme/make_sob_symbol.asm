@@ -11,9 +11,6 @@
 
   MOV(R2, FPARG(0));    // String to search for
   MOV(R1, IND(7));      // Symbol table location
-  //CMP(IND(R1), IMM(-1));
-  //JUMP_EQ(MAKE_SYMBOL_NOT_FOUND);
-
 
  MAKE_SYMBOL_SEARCH_LOOP:
   CMP(R1, IMM(-1));     // Last link in the chain

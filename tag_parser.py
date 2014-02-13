@@ -691,6 +691,8 @@ def cg_string(const):
 def cg_vector(const):
     code = '  /* Const ' + str(const) + ' */\n'
     for item in const.value:
+        if not isinstance(item, Constant):
+            item = Constant(item)
         code += item.code_gen()
         code += '  PUSH(R0);\n'
     code += '  PUSH(IMM(' + str(len(const.value)) + '));\n'
