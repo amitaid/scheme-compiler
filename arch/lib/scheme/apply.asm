@@ -11,11 +11,6 @@
   MOV(FP,SP);
   POP(R0);
   PUSH(R0);
-  //PUSH(R1);
-  //PUSH(R2);  // this will hold the number of args in the properlist
-  //PUSH(R3);
-  //PUSH(R4);
-  //PUSH(R5);
 
   MOV(R2,IMM(0));
   CMP(FPARG(1),IMM(2));   // checks the number of args is more than 2 (proc, list, and args in between)
@@ -61,7 +56,7 @@
 
  APPLY_REARRANGE_STACK_LOOP:
   CMP(R3,R1);
-  JUMP_GE(APPLY_REARRANGE_STACK_LOOP_EXIT);
+  JUMP_LT(APPLY_REARRANGE_STACK_LOOP_EXIT);
   MOV(R4,STACK(R3));
   MOV(STACK(R3),STACK(R1));
   MOV(STACK(R1),R4);
@@ -87,11 +82,9 @@
 
   MOV(R4,R0);   // R4 holds the old fp now
   MOV(R5,R0);
-  //ADD(R4,IMM(1));
   MOV(R0,FPARG(2));
   INCR(R1);    // R1 holds the amount needed to be copied down
   MOV(R3,SP);
-  //SUB(R3,5);  // ADDING THE NUMBER OF BACKED UP REGISTERS
   SUB(R3,R1);  // R3 now points to the lowest arg to copy
 
  APPLY_COPY_DOWN_LOOP:
@@ -104,22 +97,9 @@
   JUMP(APPLY_COPY_DOWN_LOOP);
 
  APPLY_COPY_DOWN_LOOP_EXIT:
-  //INCR(R4);
   MOV(SP,R4);
   MOV(FP,R5);
-  //DECR(R1);
-  //PUSH(R1);  // now pushing the number of args
+
   PUSH(INDD(R0,1));  // push the environment
   PUSH(R6);
   JUMPA(INDD(R0,2));
-  //DROP(1);    // drops the old env
-  //POP(R1);    // R1 holds the amount of args on the stack
-  //DROP(R1);   // drops the total amount of pushed args
-
-  //POP(R5);
-  //POP(R4);
-  //POP(R3);
-  //POP(R2);
-  //POP(R1);
-  //POP(FP);
-  //RETURN;
