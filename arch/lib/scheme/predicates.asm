@@ -220,5 +220,22 @@ IS_VECTOR:
   POP(FP);
   RETURN;
 
-  // end of the trivial ones
+
+      /*   zero?   */
+
+ IS_ZERO_PRED:
+  PUSH(FP);
+  MOV(FP,SP);
+
+  MOV(R0, FPARG(2));
+  PUSH(INDD(R0,1));
+  CALL(IS_ZERO);
+  DROP(1);
+
+  MUL(R0, IMM(2));
+  ADD(R0, IMM(3));
+  POP(FP);
+  RETURN;
+
+
 
