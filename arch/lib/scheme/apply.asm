@@ -5,35 +5,31 @@
  */
 
  APPLY:
-  POP(R6);
-  PUSH(R6);
   PUSH(FP);
   MOV(FP,SP);
-  POP(R0);
-  PUSH(R0);
 
-  MOV(R2,IMM(0));
+  MOV(R2, IMM(0));
   CMP(FPARG(1),IMM(2));   // checks the number of args is more than 2 (proc, list, and args in between)
   JUMP_GE(APPLY_FIRST_ARG_CHECK);
 
   // NOT ENOUGH ARGS ERROR HERE
 
  APPLY_FIRST_ARG_CHECK:
-  MOV(R1,FPARG(2));
-  CMP(IND(R1),T_CLOSURE);  // checks that the first arg is a closure
+  MOV(R1, FPARG(2));
+  CMP(IND(R1), T_CLOSURE);  // checks that the first arg is a closure
   JUMP_EQ(APPLY_LAST_ARG_CHECK);
 
   // FIRST ARG NOT A PROC ERROR HERE
 
  APPLY_LAST_ARG_CHECK:
-  MOV(R1,FPARG(1));
+  MOV(R1, FPARG(1));
   INCR(R1);
-  MOV(R1,FPARG(R1));  // R1 now holds the last arg, the next loop checks if it is a proper list
+  MOV(R1, FPARG(R1));  // R1 now holds the last arg, the next loop checks if it is a proper list
 
  APPLY_LAST_ARG_IS_PROPER_LIST_LOOP:
-  CMP(IND(R1),T_NIL);                  //  checks if nil, if yes, jumps out, it is proper list
+  CMP(IND(R1), T_NIL);                  //  checks if nil, if yes, jumps out, it is proper list
   JUMP_EQ(APPLY_ARGS_CORRECT);
-  CMP(IND(R1),T_PAIR);                  // else, check if a pair, if yes, continues the loop
+  CMP(IND(R1), T_PAIR);                  // else, check if a pair, if yes, continues the loop
   JUMP_EQ(APPLY_CURR_LINK_CORRECT);
 
   // ERROR last arg not a proper list
@@ -75,31 +71,20 @@
   JUMP(APPLY_NON_LIST_ARGS_PUSH_LOOP);
 
  APPLY_NON_LIST_ARGS_PUSH_LOOP_EXIT:
+
   MOV(R1,FPARG(1));
   SUB(R1,IMM(2)); // because we dont count the list, and not the procedure
   ADD(R1,R2);     // now R1 holds the amount of args we pushed to the stack
   PUSH(R1);       // now the num and the args are on the top of the stack
 
-  MOV(R4,R0);   // R4 holds the old fp now
-  MOV(R5,R0);
   MOV(R0,FPARG(2));
-  INCR(R1);    // R1 holds the amount needed to be copied down
-  MOV(R3,SP);
-  SUB(R3,R1);  // R3 now points to the lowest arg to copy
+  PUSH(INDD(R0,1));
+  CALLA(INDD(R0,2));
+  DROP(1);
+  POP(R1);
+  DROP(R1);
 
- APPLY_COPY_DOWN_LOOP:
-  CMP(R3,SP);
-  JUMP_EQ(APPLY_COPY_DOWN_LOOP_EXIT);
-  MOV(R2,STACK(R3));
-  MOV(STACK(R4),R2);
-  INCR(R3);
-  INCR(R4);
-  JUMP(APPLY_COPY_DOWN_LOOP);
+  POP(FP);
+  RETURN;
 
- APPLY_COPY_DOWN_LOOP_EXIT:
-  MOV(SP,R4);
-  MOV(FP,R5);
 
-  PUSH(INDD(R0,1));  // push the environment
-  PUSH(R6);
-  JUMPA(INDD(R0,2));
