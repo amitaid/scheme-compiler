@@ -68,10 +68,10 @@ EQ_ARGS_AMOUNT_OK:
 
 
  EQ_TRUE:
-  MOV(IMM(5));
+  MOV(R0, IMM(5));
   JUMP(EQ_EXIT);
  EQ_FALSE:
-  MOV(IMM(3));
+  MOV(R0, IMM(3));
  EQ_EXIT:
   POP(FP);
   RETURN;
