@@ -66,7 +66,6 @@ class Boolean(AbstractSexpr):
 
 class Char(AbstractSexpr):
     def __init__(self, ch):
-        print(ch)
         self.value = ch
 
     def __str__(self):

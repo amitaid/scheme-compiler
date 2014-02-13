@@ -204,7 +204,7 @@ named_char = ps. \
     parser(pcWordCI('page')). \
     parser(pcWordCI('lambda')). \
     disjs(5). \
-    pack(lambda m: str(named_chars_dict[''.join(m).lower()])). \
+    pack(lambda m: int(named_chars_dict[''.join(m).lower()])). \
     done()
 
 hex_char = ps. \
@@ -219,10 +219,13 @@ hex_char = ps. \
     maybe(). \
     pack(lambda m: ''.join(m[1]) if m[0] else ''). \
     catens(3). \
-    pack(lambda m: ''.join(m[1:])). \
+    pack(lambda m: int(''.join(m[1:]), 16)). \
     done()
 
-visible_char = const(lambda m: m > ' ')
+visible_char = ps. \
+    parser(const(lambda m: m > ' ')). \
+    pack(lambda m: ord(m[0])). \
+    done()
 
 char = ps. \
     parser(pcWord('#\\')). \
@@ -231,7 +234,7 @@ char = ps. \
     parser(visible_char). \
     disjs(3). \
     caten(). \
-    pack(lambda m: sexprs.Char(int(m[1], 0))). \
+    pack(lambda m: sexprs.Char(m[1])). \
     done()
 
 ######### Nil ##########
