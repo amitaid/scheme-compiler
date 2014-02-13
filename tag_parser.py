@@ -17,7 +17,8 @@ builtin = {'+': 'PLUS', '-': 'MINUS', '*': 'MULT', '/': 'DIVIDE', 'APPLY': 'APPL
 
 
 def sym_tab_cg():
-    global symbol_table
+    global mem_ptr, symbol_table
+    first_link = True
     code = ''
     for sym in builtin.keys():
         Constant(String(sym))  # Generate constants so all symbols have strings in const table
@@ -25,15 +26,27 @@ def sym_tab_cg():
 
     for sym in symbol_table.keys():
         code += make_symbol_link(sym)
+        if first_link:
+            code += "  MOV(IND(IMM(7)), R0);\n"  # First link is in 7
+            first_link = False
+        else:
+            code += "  MOV(INDD(R1,1), R0);\n"  # Update previous link's next pointer
+        code += "  MOV(R1, R0);\n"
 
     return code
 
 
 def make_symbol_link(symbol_string):
     global mem_ptr, symbol_table, constants
-    code = "  PUSH(IMM(" + str(constants[String(symbol_string)]) + "));\n"
-    code += "  CALL(MAKE_SOB_SYMBOL);\n"
+    code = "  PUSH(IMM(6));\n"
+    code += "  CALL(MALLOC);\n"
     code += "  DROP(1);\n"
+    code += "  MOV(IND(R0), " + str(mem_ptr + 4) + ");\n"  # Pointer to bucket
+    code += "  MOV(INDD(R0,1), IMM(-1));\n"
+    code += "  MOV(INDD(R0,2),T_SYMBOL);\n"
+    code += "  MOV(INDD(R0,3), " + str(mem_ptr + 4) + ");\n"  # Pointer to bucket"
+    code += "  MOV(INDD(R0,4), IMM(" + str(constants[String(symbol_string)]) + "));\n"
+    code += "  MOV(INDD(R0,5), IMM(-1));\n"
     symbol_table[symbol_string] = mem_ptr + 2
     mem_ptr += 6
     return code

@@ -8,31 +8,61 @@
   PUSH(FP);
   MOV(FP,SP);
 
-  MOV(R0, FPARG(2));   // R0 holds the pointer to the answer
-  PUSH(R0);
-  //MOV(R0,IND(R0));     // R0 now holds the first link
-  MOV(R1, IMM(3));     // R1 holds the index of the current arg to iterate
+  MOV(R1, IMM(2)); // Result holder
+  MOV(R5, IMM(2));
   MOV(R2, FPARG(1));
-  ADD(R2,IMM(2));
+  CMP(R2, IMM(0));
+  JUMP_LE(APPEND_EXIT);
 
- APPEND_LOOP:
-  CMP(R1,R2);
-  JUMP_GE(APPEND_EXIT);
+  ADD(R2, IMM(1));  // Last argument pointer
+  MOV(R3, IMM(2));  // First argument pointer
 
-  /* inner loop for finding the last link*/
- FIND_LAST_LINK_LOOP:
-  CMP(INDD(R0,2),IMM(2));               // checks that it is last link
-  JUMP_EQ(FIND_LAST_LINK_LOOP_EXIT);   // if yes, jumps to the exit
-  MOV(R0,INDD(R0,2));                  // else, jumps to the next link
-  JUMP(FIND_LAST_LINK_LOOP);
+ APPEND_EXTERNAL_LOOP:
+  CMP(R2, R3);
+  JUMP_LE(APPEND_EXTERNAL_LOOP_EXIT);
+  MOV(R4, FPARG(R3));
 
- FIND_LAST_LINK_LOOP_EXIT:
-  MOV(INDD(R0,2),FPARG(R1));
-  INCR(R1);
-  JUMP(APPEND_LOOP);
+ APPEND_INNER_LOOP:
+  CMP(R4, IMM(2));
+  JUMP_EQ(APPEND_INNER_LOOP_EXIT);
+
+  // Error, check for pairs
+
+  PUSH(IMM(2));
+  PUSH(INDD(R4, 1));
+  CALL(MAKE_SOB_PAIR);
+  DROP(2);      // R0 NOW HOLDS THE LAST PAIR IN THE LIST
+
+  CMP(R1, IMM(2));
+  JUMP_NE(NOT_FIRST_PAIR);
+  MOV(R1, R0);
+  MOV(R5, R0);
+  JUMP(FIRST_PAIR);
+
+ NOT_FIRST_PAIR:
+  MOV(INDD(R5,2), R0);
+  MOV(R5, R0);
+
+ FIRST_PAIR:
+  MOV(R4, INDD(R4,2)); //Next pair
+  JUMP(APPEND_INNER_LOOP);
+
+ APPEND_INNER_LOOP_EXIT:
+  INCR(R3);
+  JUMP(APPEND_EXTERNAL_LOOP);
+
+
+ APPEND_EXTERNAL_LOOP_EXIT:
+  CMP(R5, IMM(2));
+  JUMP_NE(APPEND_LAST_ARG);
+  MOV(R1, FPARG(R3));
+  JUMP(APPEND_EXIT);
+
+ APPEND_LAST_ARG:
+  MOV(INDD(R5,2), FPARG(R3));
 
  APPEND_EXIT:
-  POP(R0);
+  MOV(R0, R1);
 
   POP(FP);
   RETURN;
