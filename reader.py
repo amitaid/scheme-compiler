@@ -204,7 +204,7 @@ named_char = ps. \
     parser(pcWordCI('page')). \
     parser(pcWordCI('lambda')). \
     disjs(5). \
-    pack(lambda m: named_chars_dict[''.join(m).lower()]). \
+    pack(lambda m: str(named_chars_dict[''.join(m).lower()])). \
     done()
 
 hex_char = ps. \
