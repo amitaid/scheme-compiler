@@ -372,18 +372,24 @@ def expand_cond(sexpr):
 
 
 def expand_and(sexpr):
-    first = AbstractSchemeExpr.expand(sexpr.cdr.car)
-    if is_pair(sexpr.cdr.cdr):
-        sexpr.cdr = sexpr.cdr.cdr
+    if is_nil(sexpr.cdr):
         return Pair(Symbol('IF'),
-                    Pair(first,
-                         Pair(AbstractSchemeExpr.expand(sexpr),
-                              Pair(Boolean('#f'), Nil()))))
+                    Pair(Boolean('#t'),
+                         Pair(Boolean('#t'),
+                              Pair(Boolean('#t'), Nil()))))
     else:
-        return Pair(Symbol('IF'),
-                    Pair(first,
-                         Pair(first,
-                              Pair(Boolean('#f'), Nil()))))
+        first = AbstractSchemeExpr.expand(sexpr.cdr.car)
+        if is_pair(sexpr.cdr.cdr):
+            sexpr.cdr = sexpr.cdr.cdr
+            return Pair(Symbol('IF'),
+                        Pair(first,
+                             Pair(AbstractSchemeExpr.expand(sexpr),
+                                  Pair(Boolean('#f'), Nil()))))
+        else:
+            return Pair(Symbol('IF'),
+                        Pair(first,
+                             Pair(first,
+                                  Pair(Boolean('#f'), Nil()))))
 
 
 def expand_mit_define(sexpr):
