@@ -57,6 +57,7 @@
 #include "lib/scheme/int2char.asm"
 #include "lib/scheme/char2int.asm"
 #include "lib/scheme/symbol2string.asm"
+#include "lib/scheme/equals.asm"
 
 
 
