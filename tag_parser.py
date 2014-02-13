@@ -18,20 +18,21 @@ builtin = {'+': 'PLUS', '-': 'MINUS', '*': 'MULT', '/': 'DIVIDE', 'APPLY': 'APPL
 
 def sym_tab_cg():
     global mem_ptr, symbol_table
-    first_link = True
+    #first_link = True
     code = ''
     for sym in builtin.keys():
         Constant(String(sym))  # Generate constants so all symbols have strings in const table
         symbol_table[sym] = -1
 
     for sym in symbol_table.keys():
-        code += make_symbol_link(sym)
-        if first_link:
-            code += "  MOV(IND(IMM(7)), R0);\n"  # First link is in 7
-            first_link = False
-        else:
-            code += "  MOV(INDD(R1,1), R0);\n"  # Update previous link's next pointer
-        code += "  MOV(R1, R0);\n"
+        if symbol_table[sym] == -1:
+            code += make_symbol_link(sym)
+            #if first_link:
+            #    code += "  MOV(IND(IMM(7)), R0);\n"  # First link is in 7
+            #    first_link = False
+            #else:
+            #    code += "  MOV(INDD(R1,1), R0);\n"  # Update previous link's next pointer
+            #code += "  MOV(R1, R0);\n"
 
     return code
 
@@ -43,12 +44,26 @@ def make_symbol_link(symbol_string):
     code += "  DROP(1);\n"
     code += "  MOV(IND(R0), " + str(mem_ptr + 4) + ");\n"  # Pointer to bucket
     code += "  MOV(INDD(R0,1), IMM(-1));\n"
-    code += "  MOV(INDD(R0,2),T_SYMBOL);\n"
+    code += "  MOV(INDD(R0,2), T_SYMBOL);\n"
     code += "  MOV(INDD(R0,3), " + str(mem_ptr + 4) + ");\n"  # Pointer to bucket"
     code += "  MOV(INDD(R0,4), IMM(" + str(constants[String(symbol_string)]) + "));\n"
-    code += "  MOV(INDD(R0,5), IMM(-1));\n"
+    code += "  MOV(INDD(R0,5), IMM(-1));\n\n"
     symbol_table[symbol_string] = mem_ptr + 2
     mem_ptr += 6
+    return code
+
+
+def link_symbols():
+    global symbol_table
+    code = "  /* Begin symbol linking */\n"
+    first_link = True
+    for sym in symbol_table:
+        if first_link:
+            code += "  MOV(IND(IMM(7)), " + str(symbol_table[sym] - 2) + ");\n"  # First link is in 7
+            first_link = False
+        else:
+            code += "  MOV(INDD(R1,1), " + str(symbol_table[sym] - 2) + ");\n"  # Update previous link's next pointer
+        code += "  MOV(R1, " + str(symbol_table[sym] - 2) + ");\n"
     return code
 
 
@@ -516,15 +531,15 @@ class AbstractSchemeExpr:
             if is_proper_list(sexpr.cdr.car):
                 sexpr.cdr.car = list_to_pair(
                     list(map(AbstractSchemeExpr.expand, pair_to_list(sexpr.cdr.car))) + [Nil()])
-                sexpr.cdr.car = list_to_pair(list(
-                    map(lambda x: String(x.value) if isinstance(x, Symbol) else x,
-                        pair_to_list(sexpr.cdr.car))) + [Nil()])
+                #sexpr.cdr.car = list_to_pair(list(
+                #    map(lambda x: String(x.value) if isinstance(x, Symbol) else x,
+                #        pair_to_list(sexpr.cdr.car))) + [Nil()])
             elif is_improper_list(sexpr.cdr.car):
                 sexpr.cdr.car = list_to_pair(
                     list(map(AbstractSchemeExpr.expand, pair_to_list(sexpr.cdr.car))))
-                sexpr.cdr.car = list_to_pair(list(
-                    map(lambda x: String(x.value) if isinstance(x, Symbol) else x,
-                        pair_to_list(sexpr.cdr.car))))
+                #sexpr.cdr.car = list_to_pair(list(
+                #    map(lambda x: String(x.value) if isinstance(x, Symbol) else x,
+                #        pair_to_list(sexpr.cdr.car))))
             else:
                 sexpr.cdr.car = AbstractSchemeExpr.expand(sexpr.cdr.car)
             return sexpr
@@ -646,11 +661,11 @@ def cg_char(const):
 
 def cg_pair(const):
     code = '  /* Const ' + str(const) + ' */\n'
-    if is_const(const.car) or is_pair(const.car):
+    if is_const(const.car) or is_pair(const.car) or is_symbol(const.car):
         car = Constant(const.car)
     else:
         car = const.car
-    if is_const(const.cdr) or is_pair(const.cdr):
+    if is_const(const.cdr) or is_pair(const.cdr) or is_symbol(const.cdr):
         cdr = Constant(const.cdr)
     else:
         cdr = const.cdr
@@ -685,17 +700,10 @@ def cg_vector(const):
 
 
 def cg_symbol(const):
-    pass
-    # code = '  /* Const ' + str(const) + ' */\n'
-    # if const.value not in symbol_table:
-    #     symbol_table[const.value] = -1
-    #     Constant(String(const.value))
-    #     symbol_table[const.value] = mem_ptr
-    #     make_symbol_link(const.value)
-    #     code += "  MOV(INDD(R13,1), R0);\n"  # Update previous link's next pointer
-    #     code += "  MOV(R13, R0);\n"          # Last symbol link
-    # code += "  MOV(R0, IMM(" + str(symbol_table[const.value]+2) + "));\n"
-    # return code
+    global mem_ptr
+    code = '  /* Const symbol ' + str(const) + ' */\n'
+    code += make_symbol_link(const.value)
+    return code
 
 
 def update_consts(const, code, mem_size):
@@ -706,6 +714,7 @@ def update_consts(const, code, mem_size):
 
 
 def add_const(const):
+    global constants
     if const not in constants:
         if is_integer(const):
             update_consts(const, cg_integer(const), 2)
@@ -719,8 +728,11 @@ def add_const(const):
             update_consts(const, cg_vector(const), 2 + len(const.value))
         elif is_char(const):
             update_consts(const, cg_char(const), 2)
-            # elif is_symbol(const):
-            #     update_consts(const, cg_symbol(const), 0)
+        elif is_symbol(const):
+            Constant(String(const.value))
+            mem = mem_ptr
+            update_consts(const, cg_symbol(const), 0)
+            constants[const] = mem + 2
 
 
 ### Variable ###

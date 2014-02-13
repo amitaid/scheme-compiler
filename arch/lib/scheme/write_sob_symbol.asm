@@ -12,5 +12,6 @@
   MOV(R0, IND(R0));
   PUSH(R0);
   CALL(WRITE_SOB_STRING);
+  DROP(1);
 
   RETURN;

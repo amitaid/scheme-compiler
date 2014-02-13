@@ -8,7 +8,7 @@ header = """#include <stdio.h>
 #include "arch/cisc.h"
 
 /* change to 0 for no debug info to be printed: */
-#define DO_SHOW 0
+#define DO_SHOW 1
 
 /* for debugging only, use SHOW("<some message>, <arg> */
 #if DO_SHOW
@@ -138,6 +138,7 @@ def compile_scheme_file(src, dest):
 
     sym_table = tag_parser.sym_tab_cg()     # Need to generate symbol tables before writing constants
     builtin = tag_parser.gen_builtin()
+    linking_code = tag_parser.link_symbols()
 
     d.write(header)
     d.write('  // Constant code generation\n')
@@ -146,6 +147,7 @@ def compile_scheme_file(src, dest):
     d.write('\n  // Symbol code generation\n')
     d.write(sym_table)
     d.write(builtin)
+    d.write(linking_code)
 
     d.write('\n // Premade functions code\n')
     for expr in premade:
