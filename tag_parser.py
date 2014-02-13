@@ -608,7 +608,7 @@ class Constant(AbstractSchemeExpr):
         #return Constant(self.value.debruijn(bounded, params))
 
     def code_gen(self):
-        return '  MOV(R0, ' + str(constants[self.value]) + ');\n'
+        return '  MOV(R0, IMM(' + str(constants[self.value]) + '));\n'
 
 
 def cg_integer(const):
@@ -962,11 +962,17 @@ class Or(AbstractSchemeExpr):
         return '(' + ' '.join(['or'] + [str(x) for x in self.elements]) + ')'
 
     def debruijn(self, bounded=list(), params=list()):
-        return Or([x.debruijn(bounded, params) for x in self.elements])
+        if self.elements:
+            return Or([x.debruijn(bounded, params) for x in self.elements])
+        else:
+            return self
 
     def annotateTC(self, is_tp=False):
-        return Or([x.annotateTC(False) for x in self.elements[:-1]] \
-                  + [self.elements[-1].annotateTC(is_tp)])
+        if self.elements:
+            return Or([x.annotateTC(False) for x in self.elements[:-1]] \
+                      + [self.elements[-1].annotateTC(is_tp)])
+        else:
+            return self
 
     def analyze_env(self, env_count=0, arg_count=0):
         for x in self.elements:
@@ -976,11 +982,16 @@ class Or(AbstractSchemeExpr):
         label = gen_label()
         exit_label = 'L_OR_EXIT_' + label
         code = ''
-        for element in self.elements[:-1]:
-            code += element.code_gen()
-            code += '  CMP(IND(R0), IND(3));\n'
-            code += '  JUMP_NE(' + exit_label + ');\n'
-        code += self.elements[-1].code_gen()
+        if self.elements:
+            for element in self.elements[:-1]:
+                code += element.code_gen()
+                code += '  CMP(IND(R0), IND(3));\n'
+                code += '  JUMP_NE(' + exit_label + ');\n'
+                code += '  CMP(INDD(R0,1), INDD(3,1));\n'
+                code += '  JUMP_NE(' + exit_label + ');\n'
+            code += self.elements[-1].code_gen()
+        else:
+            code += '  MOV(R0, IMM(3));\n'
         code += ' ' + exit_label + ':\n'
         return code
 
