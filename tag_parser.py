@@ -1278,6 +1278,9 @@ class LambdaOpt(AbstractLambda):
         closure_code_label = 'L_OPT_CLOS_CODE_' + label
         closure_stack_loop_label = 'L_OPT_STACK_LOOP_' + label
         closure_stack_loop_exit_label = 'L_OPT_STACK_LOOP_EXIT_' + label
+        stack_copy_enough_args = 'L_OPT_ENOUGH_ARGS_ON_STACK_' + label
+        stack_push_up_loop = 'L_OPT_STACK_PUSH_UP_LOOP_' + label
+        stack_push_up_loop_exit = 'L_OPT_STACK_PUSH_UP_LOOP_EXIT_' + label
         stack_copy_loop_label = 'L_OPT_STACK_COPY_LOOP_' + label
         stack_copy_loop_exit_label = 'L_OPT_STACK_COPY_LOOP_EXIT_' + label
         closure_exit_label = 'L_OPT_CLOS_EXIT_' + label
@@ -1342,10 +1345,11 @@ class LambdaOpt(AbstractLambda):
         code += '  INCR(R1);\n'  # Position of last argument
         code += '  MOV(R4, FPARG(1));\n'  # n in R4
         code += '  MOV(R5, IMM(' + str(len(self.variables) + 1) + '));\n'  # m in R5
+        code += '  MOV(R6, R4);\n'
 
         code += ' ' + closure_stack_loop_label + ':\n'
-        code += '  CMP(R1, R5);\n'  # End condition
-        code += '  JUMP_EQ(' + closure_stack_loop_exit_label + ');\n'
+        code += '  CMP(R6, R5);\n'  # End condition
+        code += '  JUMP_LT(' + closure_stack_loop_exit_label + ');\n'
 
         code += '  PUSH(R0);\n'
         code += '  PUSH(FPARG(R1));\n'  # Push the next item
@@ -1353,6 +1357,7 @@ class LambdaOpt(AbstractLambda):
         code += '  DROP(2);\n'
 
         code += '  DECR(R1);\n'
+        code += '  DECR(R6);\n'
         code += '  JUMP(' + closure_stack_loop_label + ');\n'
 
         code += ' ' + closure_stack_loop_exit_label + ':\n'
@@ -1360,6 +1365,26 @@ class LambdaOpt(AbstractLambda):
         code += '  MOV(R1, FP);\n'
         code += '  MOV(R2, STARG(0));\n'  # Env
         code += '  MOV(R3, STARG(-1));\n'  # Ret addr
+        code += '  MOV(R6, R5);\n'
+        code += '  SUB(R6, R4); // Compare number of arguments to one less than needed\n'
+        code += '  CMP(R6, IMM(0));\n'
+        code += '  JUMP_LE(' + stack_copy_enough_args + ');\n'
+
+        code += '  MOV(R7, FP);\n'
+        code += '  MOV(R8, SP);\n'
+        code += '  INCR(SP);\n'
+        code += '  MOV(R6, SP);\n'
+
+        code += ' ' + stack_push_up_loop + ':\n'
+        code += '  CMP(R8, R7);\n'
+        #code += '  JUMP_LT(' + stack_push_up_loop_exit + ');\n'
+        code += '  JUMP_LT(' + stack_push_up_loop_exit + ');\n'
+        code += '  MOV(STACK(R6), STACK(R8));\n'
+        code += '  DECR(R8);\n'
+        code += '  DECR(R6);\n'
+        code += '  JUMP(' + stack_push_up_loop + ');\n'
+
+        code += ' ' + stack_copy_enough_args + ':\n'
         code += '  MOV(STACK(R1), R0);\n'  # New arg list
         code += '  INCR(R1);\n'
         code += '  SUB(R4, R5);\n'  # n-m in R4
@@ -1374,6 +1399,11 @@ class LambdaOpt(AbstractLambda):
         code += '  INCR(R4);\n'
         code += '  DECR(R5);\n'
         code += '  JUMP(' + stack_copy_loop_label + ');\n'
+
+        code += ' ' + stack_push_up_loop_exit + ':\n'
+        code += '  MOV(STACK(FP),R0);\n'
+        #code += '  INCR(R1);\n'
+        code += '  ADD(R1,IMM(' + str(len(self.variables) + 1) + '));\n'
 
         code += ' ' + stack_copy_loop_exit_label + ':\n'
         code += '  MOV(STACK(R1), ' + str(len(self.variables) + 1) + ');\n'  # Number of args
