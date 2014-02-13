@@ -78,7 +78,7 @@ class Char(AbstractSexpr):
         return not self == other
 
     def __hash__(self):
-        return hash('%Char' + self.value)
+        return hash('%Char' + str(self.value))
 
     def get_value(self):
         return self.value
