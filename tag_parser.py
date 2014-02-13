@@ -582,8 +582,7 @@ class AbstractSchemeExpr:
         elif is_applic(sexpr):  # must always come last
             return build_applic(sexpr)
         else:
-            print('format not supported: ' + str(sexpr))
-            return Constant(Void())  # TODO in my opinion we should raise an exception here
+            raise SyntaxError
 
     def debruijn(self, bounded=list(), params=list()):
         return self

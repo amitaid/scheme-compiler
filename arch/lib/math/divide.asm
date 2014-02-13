@@ -31,6 +31,7 @@
   MOV(R3, IMM(1));  // denum is 1
   MOV(R2, INDD(R2,1)); // num is the number
   JUMP(DIVIDE_MUL_FIRST_TWICE);
+
  DIVIDE_FIRST_ARG_FRAC:
   MOV(R3, INDD(R2,2));  // denum
   MOV(R3, INDD(R3,1));
@@ -45,7 +46,7 @@
 
  DIVIDE_LOOP:
   DECR(R5);
-  CMP(R5,1);
+  CMP(R5,IMM(1));
   JUMP_EQ(DIVIDE_EXIT);
   MOV(R2, FPARG(R5));
   CMP(IND(R2), T_FRACTION);
@@ -55,6 +56,7 @@
 
  DIVIDE_INT:
   MOV(R2, INDD(R2,1)); // Number is int, only deal with numerator
+  MOV(R3, IMM(1));
   MUL(R0,R3);
   MUL(R1,R2);
   JUMP(DIVIDE_LOOP);

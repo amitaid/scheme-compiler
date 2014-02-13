@@ -8,7 +8,7 @@ header = """#include <stdio.h>
 #include "arch/cisc.h"
 
 /* change to 0 for no debug info to be printed: */
-#define DO_SHOW 1
+#define DO_SHOW 0
 
 /* for debugging only, use SHOW("<some message>, <arg> */
 #if DO_SHOW
