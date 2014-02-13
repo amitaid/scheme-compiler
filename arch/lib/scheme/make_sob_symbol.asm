@@ -9,7 +9,7 @@
   PUSH(FP);
   MOV(FP, SP);
 
-  MOV(R2, FPARG(0));    // String to search for
+  MOV(R2, FPARG(2));    // String to search for
   MOV(R1, IND(7));      // Symbol table location
 
  MAKE_SYMBOL_SEARCH_LOOP:
@@ -45,9 +45,11 @@
 
  MAKE_SYMBOL_NOT_FOUND:
   PUSH(R4);
+  PUSH(R2);
   PUSH(IMM(6));             // New bucket sextet
   CALL(MALLOC);
   DROP(1);
+  POP(R2);
   POP(R4);
   MOV(IND(R0), R0);
   ADD(IND(R0), IMM(4));      // Pointer to the bucket
