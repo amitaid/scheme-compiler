@@ -788,7 +788,7 @@ class VarParam(Variable):
         # + '(' + str(self.minor) + ')'
 
     def code_gen(self):
-        code = ' \* Param Var <' + str(self) + '> (' + str(self.minor) + ') code gen - the next 2 lines*/\n'
+        code = ' \* Param Var <' + str(self) + '> (' + str(self.minor) + ') code gen*/\n'
         code += '  MOV(R0, FPARG(' + str(self.minor + 2) + '));\n'
         return code
 
@@ -804,7 +804,9 @@ class VarBound(Variable):
         # + '(' + str(self.major) + ', ' + str(self.minor) + ')'
 
     def code_gen(self):
-        code = '  MOV(R0, FPARG(0));\n'
+        code = '\* Bounded Var <' + str(self) + '> (' + str(self.major) + ', ' + str(
+            self.minor) + ') code gen - the next 3 lines*/\n'
+        code += '  MOV(R0, FPARG(0));\n'
         code += '  MOV(R0, INDD(R0, ' + str(self.major) + '));\n'
         code += '  MOV(R0, INDD(R0, ' + str(self.minor) + '));\n'
         return code
