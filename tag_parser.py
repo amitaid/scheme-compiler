@@ -625,7 +625,7 @@ class Constant(AbstractSchemeExpr):
         #return Constant(self.value.debruijn(bounded, params))
 
     def code_gen(self):
-        code = ' /* constant <' + str(self) + '> starts here */'
+        code = ' /* constant <' + str(self) + '> starts here */\n'
         code += '  MOV(R0, IMM(' + str(constants[self.value]) + '));\n'
         return code
 
@@ -772,7 +772,7 @@ class VarFree(Variable):
         return self.symbol.get_value()
 
     def code_gen(self):
-        code = ' \* Free Var <' + str(self) + '>  code gen - the next 2 lines*\ '
+        code = ' \* Free Var <' + str(self) + '>  code gen - the next 2 lines*/\n'
         code += '  MOV(R0, INDD(' + str(symbol_table[self.symbol.value]) + ', 1));\n'
         code += '  MOV(R0, INDD(R0, 1));\n'
         return code
@@ -788,7 +788,9 @@ class VarParam(Variable):
         # + '(' + str(self.minor) + ')'
 
     def code_gen(self):
-        return '  MOV(R0, FPARG(' + str(self.minor + 2) + '));\n'
+        code = ' \* Param Var <' + str(self) + '> (' + str(self.minor) + ') code gen - the next 2 lines*/\n'
+        code += '  MOV(R0, FPARG(' + str(self.minor + 2) + '));\n'
+        return code
 
 
 class VarBound(Variable):
