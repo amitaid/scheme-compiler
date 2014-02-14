@@ -772,7 +772,7 @@ class VarFree(Variable):
         return self.symbol.get_value()
 
     def code_gen(self):
-        code = ' \* Free Var <' + str(self) + '>  code gen - the next 2 lines*/\n'
+        code = ' /* Free Var <' + str(self) + '>  code gen - the next 2 lines*/\n'
         code += '  MOV(R0, INDD(' + str(symbol_table[self.symbol.value]) + ', 1));\n'
         code += '  MOV(R0, INDD(R0, 1));\n'
         return code
