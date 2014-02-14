@@ -64,11 +64,15 @@ premade_text = """
 (define Yag
   (lambda fs
     (let ((ms (map
-		(lambda (fi)
-		  (lambda ms
-		    (apply fi (map (lambda (mi)
-				     (lambda args
-				       (apply (apply mi ms) args))) ms))))
+		        (lambda (fi)
+		            (lambda ms
+		                (apply fi (map (lambda (mi)
+				            (lambda args
+				                (apply (apply mi ms) args))
+				            )
+				        ms)
+				    )
+				))
 		fs)))
       (apply (car ms) ms))))
 

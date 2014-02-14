@@ -359,7 +359,7 @@ def expand_letrec(sexpr):
                                      Pair(body_and_les[i], Nil()))))
 
         lambdas = list_to_pair(lambdas + [Nil()])
-        return Pair(Symbol('Yag'), Pair(lambdas, Nil()))
+        return Pair(Symbol('YAG'), lambdas)
     else:
         return Pair(Pair(Symbol('LAMBDA'),
                          Pair(Nil(),
@@ -430,19 +430,19 @@ def expand_quasiquote(sexpr):
         a = AbstractSchemeExpr.expand(sexpr.car)
         b = AbstractSchemeExpr.expand(sexpr.cdr)
         if is_unquote_splicing(a):
-            return Pair(Symbol('quasiquote'),
+            return Pair(Symbol('quote'),
                         Pair(Symbol('APPEND'),
                              Pair(Pair(Symbol('unquote'), Pair(a.cdr.car, Nil())),
                                   Pair(Pair(Symbol('unquote'), Pair(expand_quasiquote(b), Nil())),
                                        Nil()))))
         elif is_unquote_splicing(b):
-            return Pair(Symbol('quasiquote'),
+            return Pair(Symbol('quote'),
                         Pair(Symbol('CONS'),
                              Pair(Pair(Symbol('unquote'), Pair(expand_quasiquote(a), Nil())),
                                   Pair(Pair(Symbol('unquote'), Pair(b.cdr.car, Nil())),
                                        Nil()))))
         else:
-            return Pair(Symbol('quasiquote'),
+            return Pair(Symbol('quote'),
                         Pair(Symbol('CONS'),
                              Pair(Pair(Symbol('unquote'), Pair(expand_quasiquote(a), Nil())),
                                   Pair(Pair(Symbol('unquote'), Pair(expand_quasiquote(b), Nil())),
@@ -534,15 +534,9 @@ class AbstractSchemeExpr:
             if is_proper_list(sexpr.cdr.car):
                 sexpr.cdr.car = list_to_pair(
                     list(map(AbstractSchemeExpr.expand, pair_to_list(sexpr.cdr.car))) + [Nil()])
-                #sexpr.cdr.car = list_to_pair(list(
-                #    map(lambda x: String(x.value) if isinstance(x, Symbol) else x,
-                #        pair_to_list(sexpr.cdr.car))) + [Nil()])
             elif is_improper_list(sexpr.cdr.car):
                 sexpr.cdr.car = list_to_pair(
                     list(map(AbstractSchemeExpr.expand, pair_to_list(sexpr.cdr.car))))
-                #sexpr.cdr.car = list_to_pair(list(
-                #    map(lambda x: String(x.value) if isinstance(x, Symbol) else x,
-                #        pair_to_list(sexpr.cdr.car))))
             else:
                 sexpr.cdr.car = AbstractSchemeExpr.expand(sexpr.cdr.car)
             return sexpr
@@ -951,14 +945,14 @@ class ApplicTP(Applic):
 
             code += ' ' + applic_tc_prep_label + ':\n'
             code += '  MOV(R0,R1);\n'
-            code += '  PUSH(INDD(R0, 1));\n'  # here the diffenece from applic starts
+            code += '  PUSH(INDD(R0, 1));\n'  # Closure env. here the difference from applic starts
             code += '  PUSH(FPARG(-1));\n'  # Old Return addr
             code += '  MOV(R1,FPARG(-2));\n'  # Old FP
             code += '  MOV(R5,FPARG(1));\n'  # Store n in R5
-            code += '  MOV(R2, IMM(' + str(len(self.args) + 3) + '));\n'  # Store m in R2
-            code += '  MOV(R3,FP);\n'  # Upper pointer
+            code += '  MOV(R2, IMM(' + str(len(self.args) + 3) + '));\n'  # Store m+3 in R2
+            code += '  MOV(R3,FP);\n'  # Upper frame pointer
             code += '  MOV(FP,R1);\n'  # FP moves to the old FP
-            code += '  MOV(R4,FP);\n'  # Lower pointer
+            code += '  MOV(R4,FP);\n'  # Lower frame pointer
 
             code += ' ' + applic_tc_loop_label + ':\n'
             code += '  CMP(R2, IMM(0));\n'
