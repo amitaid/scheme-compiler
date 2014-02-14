@@ -26,7 +26,7 @@ VECTOR_2_LIST_AMOUNT_OK:
 
 VECTOR_2_LIST_TYPE_OK:
     MOV(R1,INDD(R2,1));  // R1 IS THE ITERATION VARIABLE
-    ADD(R1,IMM(2));
+    ADD(R1,IMM(1));
     MOV(R0,IMM(2));  // R0 hold the answer
     //MOV(R3,IMM(2));  // r3 holds the ans
 
