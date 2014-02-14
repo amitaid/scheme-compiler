@@ -847,16 +847,22 @@ class IfThenElse(AbstractSchemeExpr):
         true_label = 'L_THEN_' + label
         false_label = 'L_ELSE_' + label
         exit_label = 'L_IF_EXIT_' + label
-        code = self.predicate.code_gen() + '\n'
+        code = '/* If statement ' + label + ' starts here with the generation of the  predicate */\n'
+        code += self.predicate.code_gen() + '\n'
+        code += '/* If statement ' + label + ' continues for the next 5 lines */\n'
         code += '  CMP(IND(R0), T_BOOL);\n'  # If predicate isn't T_BOOL, it's true
         code += '  JUMP_NE(' + true_label + ');\n'
         code += '  CMP(INDD(R0,1), INDD(3,1));\n'  # If predicate is T_BOOL, compare values
         code += '  JUMP_EQ(' + false_label + ');\n'
         code += ' ' + true_label + ":\n"
+        code += '/* If statement ' + label + ' Then clause starts here */\n'
         code += self.then_body.code_gen()
+        code += '/* If statement ' + label + ' Then clause ends here */\n'
         code += '  JUMP(' + exit_label + ');\n'
         code += ' ' + false_label + ":\n"
+        code += '/* If statement ' + label + ' Else clause starts here */\n'
         code += self.else_body.code_gen()
+        code += '/* If statement ' + label + ' Else clause ends here */\n'
         code += ' ' + exit_label + ":\n"
         return code
 
@@ -888,13 +894,16 @@ class Applic(AbstractSchemeExpr):
 
     def code_gen(self):
         label = gen_label()
-        code = ' // Applic starts here ' + label + '\n'
-
+        code = ' /* Applic ' + label + ' starts here */ \n'
         for arg in reversed(self.args):
+            code += ' /* Applic ' + label + ' arg (' + str(self.args.index(arg)) + ') starts here */ \n'
             code += arg.code_gen()
             code += '  PUSH(R0);\n'
+            code += ' /* Applic ' + label + ' arg (' + str(self.args.index(arg)) + ') ends here */ \n'
         code += '  PUSH(IMM(' + str(len(self.args)) + '));\n'
+        code += ' /* Applic ' + label + 'function code starts here */ \n'
         code += self.func.code_gen()
+        code += ' /* Applic ' + label + 'function code ends here */ \n'
         code += '  MOV(R1,R0);\n'
         code += '  PUSH(R0);\n'
         code += '  CALL(IS_SOB_CLOSURE);\n'
@@ -911,7 +920,7 @@ class Applic(AbstractSchemeExpr):
         code += '  DROP(1);\n'
         code += '  POP(R1);\n'
         code += '  DROP(R1);\n'
-        code += '/* APPLIC ENDS HERE' + label + ' */ \n'
+        code += '/* Applic ' + label + ' ends here  */ \n'
 
         return code
 
@@ -934,11 +943,14 @@ class ApplicTP(Applic):
             applic_tc_loop_label = 'L_APPLIC_TP_LOOP_' + label
             applic_tc_exit_label = 'L_APPLIC_TP_EXIT_' + label
 
-            code = '/* APPLIC TP STARTS HERE' + label + ' */ \n'
+            code = '/* Applic TP ' + label + ' STARTS HERE */ \n'
 
             for arg in reversed(self.args):
+                code += ' /* Applic TP ' + label + ' arg (' + str(self.args.index(arg)) + ') starts here */ \n'
                 code += arg.code_gen()
                 code += '  PUSH(R0);\n'
+                code += ' /* Applic TP ' + label + ' arg (' + str(self.args.index(arg)) + ') ends here */ \n'
+
             code += '  PUSH(IMM(' + str(len(self.args)) + '));\n'
             code += self.func.code_gen()
             code += '  MOV(R1,R0);\n'
@@ -973,10 +985,8 @@ class ApplicTP(Applic):
             code += ' ' + applic_tc_exit_label + ':\n'
             code += '  SUB(SP, R5);\n'
             code += '  SUB(SP, 4);\n'
-            code += '/* APPLIC TP ENDS HERE' + label + ' */ \n'
-
+            code += '/* Applic TP ' + label + ' ends here */ \n'
             code += '  JUMPA(INDD(R0,2));\n'
-
             return code
 
 
@@ -1089,13 +1099,14 @@ class LambdaSimple(AbstractLambda):
         closure_exit_label = 'L_CLOS_EXIT_' + label
 
         # setting registers for 1st loop
-        code = ' // Lambda Simple starts here ' + label + '\n'
+        code = ' /* Lambda Simple ' + label + ' starts here */\n'
         code += '  PUSH(IMM(' + str(self.env_depth + 1) + '));\n'
         code += '  CALL(MALLOC);\n'
         code += '  DROP(1);\n'
         code += '  MOV(R1, R0);\n'  # New env
 
         if self.env_depth > 0:
+            code += ' /* Lambda Simple ' + label + ' generates env of depth ' + str(self.env_depth + 1) + '  */\n'
             code += '  MOV(R2, FPARG(0));\n'  # Old env
             code += '  MOV(R3, IMM(1));\n'  # j
             code += '  MOV(R4, IMM(0));\n'
@@ -1103,7 +1114,7 @@ class LambdaSimple(AbstractLambda):
             # first loop - the environments copy
             code += ' ' + env_copy_label + ':\n'
             code += '  MOV(R0, INDD(R2,R4));\n'
-            code += '  MOV(INDD(R1,R3),R0);\n'  # maybe this needs to be split to 2 commands
+            code += '  MOV(INDD(R1,R3),R0);\n'
             code += '  INCR(R3);\n'
             code += '  INCR(R4);\n'
             code += '  CMP(R4, IMM(' + str(self.env_depth) + '));\n'
@@ -1128,6 +1139,7 @@ class LambdaSimple(AbstractLambda):
             code += '  JUMP(' + current_args_copy_label + ');\n'
 
         else:
+            code += ' /* Lambda Simple ' + label + ' creates the first env  */\n'
             code += '  MOV(R2, IMM(0));\n'
             #    code += '  PUSH(IMM(0));\n'
 
@@ -1143,8 +1155,10 @@ class LambdaSimple(AbstractLambda):
         code += ' ' + closure_code_label + ':\n'
         code += '  PUSH(FP);\n'
         code += '  MOV(FP,SP);\n'
+        code += ' /* Lambda Simple ' + label + ' body code starts  */\n'
         #TODO WHATEVER THAT IS WRITTEN IN THE CLASS NOTES, CHECK VALIDITY OF ARGS ANS STUFF
         code += self.body.code_gen()
+        code += ' /* Lambda Simple ' + label + ' body code ends  */\n'
         code += '  POP(FP);\n'
         code += '  RETURN;\n'
 
