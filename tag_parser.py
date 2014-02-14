@@ -430,22 +430,25 @@ def expand_quasiquote(sexpr):
         a = AbstractSchemeExpr.expand(sexpr.car)
         b = AbstractSchemeExpr.expand(sexpr.cdr)
         if is_unquote_splicing(a):
-            return Pair(Symbol('append'),
-                        Pair(a.cdr.car,
-                             Pair(expand_quasiquote(b),
-                                  Nil())))
+            return Pair(Symbol('quasiquote'),
+                        Pair(Symbol('APPEND'),
+                             Pair(Pair(Symbol('unquote'), Pair(a.cdr.car, Nil())),
+                                  Pair(Pair(Symbol('unquote'), Pair(expand_quasiquote(b), Nil())),
+                                       Nil()))))
         elif is_unquote_splicing(b):
-            return Pair(Symbol('cons'),
-                        Pair(expand_quasiquote(a),
-                             Pair(b.cdr.car,
-                                  Nil())))
+            return Pair(Symbol('quasiquote'),
+                        Pair(Symbol('CONS'),
+                             Pair(Pair(Symbol('unquote'), Pair(expand_quasiquote(a), Nil())),
+                                  Pair(Pair(Symbol('unquote'), Pair(b.cdr.car, Nil())),
+                                       Nil()))))
         else:
-            return Pair(Symbol('cons'),
-                        Pair(expand_quasiquote(a),
-                             Pair(expand_quasiquote(b),
-                                  Nil())))
+            return Pair(Symbol('quasiquote'),
+                        Pair(Symbol('CONS'),
+                             Pair(Pair(Symbol('unquote'), Pair(expand_quasiquote(a), Nil())),
+                                  Pair(Pair(Symbol('unquote'), Pair(expand_quasiquote(b), Nil())),
+                                       Nil()))))
     elif is_vector(sexpr):
-        return Pair(Symbol('list->vector'),
+        return Pair(Symbol('LIST->VECTOR'),
                     Pair(expand_quasiquote(list_to_pair(sexpr.get_value())),
                          Nil()))
     elif is_nil(sexpr) or is_symbol(sexpr):
