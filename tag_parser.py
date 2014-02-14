@@ -625,7 +625,9 @@ class Constant(AbstractSchemeExpr):
         #return Constant(self.value.debruijn(bounded, params))
 
     def code_gen(self):
-        return '  MOV(R0, IMM(' + str(constants[self.value]) + '));\n'
+        code = ' /* constant <' + str(self) + '> starts here */'
+        code += '  MOV(R0, IMM(' + str(constants[self.value]) + '));\n'
+        return code
 
 
 def cg_integer(const):
