@@ -884,8 +884,8 @@ class IfThenElse(AbstractSchemeExpr):
         code += self.then_body.code_gen()
         code += '/* If statement ' + label + ' Then clause ends here */\n'
         code += '  JUMP(' + exit_label + ');\n'
+        code += ' ' + false_label + ":\n"
         if not is_void(self.else_body):
-            code += ' ' + false_label + ":\n"
             code += '/* If statement ' + label + ' Else clause starts here */\n'
             code += self.else_body.code_gen()
             code += '/* If statement ' + label + ' Else clause ends here */\n'
