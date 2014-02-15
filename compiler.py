@@ -156,7 +156,7 @@ def compile_scheme_file(src, dest):
 
     d.write('\n  // Program code\n')
     for expr in expressions:
-        print(expr)
+        #print(expr)
         code = expr.code_gen()
         if code:
             d.write(code)
