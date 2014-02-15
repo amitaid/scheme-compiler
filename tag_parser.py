@@ -3,16 +3,16 @@ from sexprs import *
 symbol_table = {}
 
 builtin = {'+': 'PLUS', '-': 'MINUS', '*': 'MULT', '/': 'DIVIDE', 'APPLY': 'APPLY',
-           '>': 'GREATER', '<': 'SMALLER', '=': 'EQUAL', 'APPEND': 'APPEND',
-           'NULL?': 'IS_NULL', 'NUMBER?': 'IS_NUMBER', 'ZERO?': 'IS_ZERO_PRED',
-           'PAIR?': 'IS_PAIR', 'PROCEDURE?': 'IS_PROCEDURE', 'BOOLEAN?': 'IS_BOOLEAN',
-           'CHAR?': 'IS_CHAR', 'STRING?': 'IS_STRING', 'INTEGER?': 'IS_INTEGER', 'VECTOR?': 'IS_VECTOR',
-           'CONS': 'CONS', 'CAR': 'CAR', 'CDR': 'CDR', 'SYMBOL?': 'IS_SYMBOL', 'REMAINDER': 'REMAINDER',
-           'VECTOR': 'VECTOR_CONSTRUCTOR', 'VECTOR-LENGTH': 'VECTOR_LENGTH', 'LIST->VECTOR': 'LIST_2_VECTOR',
-           'VECTOR-REF': 'VECTOR_REF', 'MAKE-VECTOR': 'MAKE_VECTOR', 'STRING': 'STRING_CONSTRUCTOR',
-           'STRING-LENGTH': 'STRING_LENGTH', 'STRING-REF': 'STRING_REF', 'MAKE-STRING': 'MAKE_STRING',
-           'INTEGER->CHAR': 'INT_2_CHAR', 'CHAR->INTEGER': 'CHAR_2_INT', 'STRING->SYMBOL': 'MAKE_SOB_SYMBOL',
-           'SYMBOL->STRING': 'SYM_2_STR', 'EQ?': 'EQ', 'VECTOR->LIST': 'VECTOR_2_LIST'
+           # '>': 'GREATER', '<': 'SMALLER', '=': 'EQUAL', 'APPEND': 'APPEND',
+           # 'NULL?': 'IS_NULL', 'NUMBER?': 'IS_NUMBER', 'ZERO?': 'IS_ZERO_PRED',
+           # 'PAIR?': 'IS_PAIR', 'PROCEDURE?': 'IS_PROCEDURE', 'BOOLEAN?': 'IS_BOOLEAN',
+           # 'CHAR?': 'IS_CHAR', 'STRING?': 'IS_STRING', 'INTEGER?': 'IS_INTEGER', 'VECTOR?': 'IS_VECTOR',
+           # 'CONS': 'CONS', 'CAR': 'CAR', 'CDR': 'CDR', 'SYMBOL?': 'IS_SYMBOL', 'REMAINDER': 'REMAINDER',
+           # 'VECTOR': 'VECTOR_CONSTRUCTOR', 'VECTOR-LENGTH': 'VECTOR_LENGTH', 'LIST->VECTOR': 'LIST_2_VECTOR',
+           # 'VECTOR-REF': 'VECTOR_REF', 'MAKE-VECTOR': 'MAKE_VECTOR', 'STRING': 'STRING_CONSTRUCTOR',
+           # 'STRING-LENGTH': 'STRING_LENGTH', 'STRING-REF': 'STRING_REF', 'MAKE-STRING': 'MAKE_STRING',
+           # 'INTEGER->CHAR': 'INT_2_CHAR', 'CHAR->INTEGER': 'CHAR_2_INT', 'STRING->SYMBOL': 'MAKE_SOB_SYMBOL',
+           # 'SYMBOL->STRING': 'SYM_2_STR', 'EQ?': 'EQ', 'VECTOR->LIST': 'VECTOR_2_LIST'
 }
 
 
@@ -84,9 +84,9 @@ def gen_builtin():
 gen_sym_counter = 0
 
 
-def gen_sym():
+def gen_letrec_sym():
     global gen_sym_counter
-    new_gen_sym = '@' + str(gen_sym_counter)
+    new_gen_sym = 'letrec_var' + '@' + str(gen_sym_counter)
     gen_sym_counter += 1
     return Symbol(new_gen_sym)
 
@@ -350,7 +350,7 @@ def expand_letrec(sexpr):
             variables.append(varval.car)
             body_and_les.append(varval.cdr.car)
 
-        variables = list_to_pair([gen_sym()] + variables + [Nil()])
+        variables = list_to_pair([gen_letrec_sym()] + variables + [Nil()])
 
         lambdas = []
         for i in range(len(body_and_les)):
@@ -456,7 +456,7 @@ def expand_quasiquote(sexpr):
                     Pair(sexpr,
                          Nil()))
     else:
-        return AbstractSchemeExpr.expand(sexpr)
+        return sexpr
 
 
 def build_applic(sexpr):
@@ -788,7 +788,7 @@ class VarParam(Variable):
         # + '(' + str(self.minor) + ')'
 
     def code_gen(self):
-        code = ' \* Param Var <' + str(self) + '> (' + str(self.minor) + ') code gen*/\n'
+        code = ' /* Param Var <' + str(self) + '> (' + str(self.minor) + ') code gen*/\n'
         code += '  MOV(R0, FPARG(' + str(self.minor + 2) + '));\n'
         return code
 
@@ -804,8 +804,8 @@ class VarBound(Variable):
         # + '(' + str(self.major) + ', ' + str(self.minor) + ')'
 
     def code_gen(self):
-        code = '\* Bounded Var <' + str(self) + '> (' + str(self.major) + ', ' + str(
-            self.minor) + ') code gen - the next 3 lines*/\n'
+        code = ' /* Bound Var <' + str(self) + '> (' + str(self.major) + ', ' + str(
+            self.minor) + ') code gen - the next 3 lines */\n'
         code += '  MOV(R0, FPARG(0));\n'
         code += '  MOV(R0, INDD(R0, ' + str(self.major) + '));\n'
         code += '  MOV(R0, INDD(R0, ' + str(self.minor) + '));\n'
@@ -901,9 +901,9 @@ class Applic(AbstractSchemeExpr):
             code += '  PUSH(R0);\n'
             code += ' /* Applic ' + label + ' arg (' + str(self.args.index(arg)) + ') ends here */ \n'
         code += '  PUSH(IMM(' + str(len(self.args)) + '));\n'
-        code += ' /* Applic ' + label + 'function code starts here */ \n'
+        code += ' /* Applic ' + label + ' function code starts here */ \n'
         code += self.func.code_gen()
-        code += ' /* Applic ' + label + 'function code ends here */ \n'
+        code += ' /* Applic ' + label + ' function code ends here */ \n'
         code += '  MOV(R1,R0);\n'
         code += '  PUSH(R0);\n'
         code += '  CALL(IS_SOB_CLOSURE);\n'
