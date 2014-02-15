@@ -154,14 +154,3 @@ extern Machine *machine;
 #define SHOW(msg, x) {}
 #endif
 
-#define PRINT_REGISTERS(msg ,_reg0, _reg1, _reg2, _reg3, _reg4, _reg5, _reg6, _reg7, _reg8){\
- printf("R0: %ld ", _reg0); \
- printf(",R1: %ld ", _reg1); \
- printf(",R2: %ld ", _reg2); \
- printf(",R3: %ld ", _reg3); \
- printf(",R4: %ld ", _reg4); \
- printf(",R5: %ld ", _reg5); \
- printf(",R6: %ld ", _reg6); \
- printf(",R7: %ld ", _reg7); \
- printf(",R8: %ld ", _reg8); \
- printf(" -> %s \n", msg); }
