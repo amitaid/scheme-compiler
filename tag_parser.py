@@ -828,19 +828,31 @@ class IfThenElse(AbstractSchemeExpr):
         return res
 
     def debruijn(self, bounded=list(), params=list()):
-        return IfThenElse(self.predicate.debruijn(bounded, params),
-                          self.then_body.debruijn(bounded, params),
-                          self.else_body.debruijn(bounded, params))
+        if not is_void(self.else_body):
+            return IfThenElse(self.predicate.debruijn(bounded, params),
+                              self.then_body.debruijn(bounded, params),
+                              self.else_body.debruijn(bounded, params))
+        else:
+            return IfThenElse(self.predicate.debruijn(bounded, params),
+                              self.then_body.debruijn(bounded, params),
+                              self.else_body)
 
     def annotateTC(self, is_tp=False):
-        return IfThenElse(self.predicate.annotateTC(False),
-                          self.then_body.annotateTC(is_tp),
-                          self.else_body.annotateTC(is_tp))
+        if not is_void(self.else_body):
+            return IfThenElse(self.predicate.annotateTC(False),
+                              self.then_body.annotateTC(is_tp),
+                              self.else_body.annotateTC(is_tp))
+        else:
+            return IfThenElse(self.predicate.annotateTC(False),
+                              self.then_body.annotateTC(is_tp),
+                              self.else_body)
+
 
     def analyze_env(self, env_count=0, arg_count=0):
         self.predicate.analyze_env(env_count, arg_count)
         self.then_body.analyze_env(env_count, arg_count)
-        self.else_body.analyze_env(env_count, arg_count)
+        if not is_void(self.else_body):
+            self.else_body.analyze_env(env_count, arg_count)
 
     def code_gen(self):
         label = gen_label()
@@ -859,10 +871,11 @@ class IfThenElse(AbstractSchemeExpr):
         code += self.then_body.code_gen()
         code += '/* If statement ' + label + ' Then clause ends here */\n'
         code += '  JUMP(' + exit_label + ');\n'
-        code += ' ' + false_label + ":\n"
-        code += '/* If statement ' + label + ' Else clause starts here */\n'
-        code += self.else_body.code_gen()
-        code += '/* If statement ' + label + ' Else clause ends here */\n'
+        if not is_void(self.else_body):
+            code += ' ' + false_label + ":\n"
+            code += '/* If statement ' + label + ' Else clause starts here */\n'
+            code += self.else_body.code_gen()
+            code += '/* If statement ' + label + ' Else clause ends here */\n'
         code += ' ' + exit_label + ":\n"
         return code
 
