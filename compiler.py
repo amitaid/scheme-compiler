@@ -58,7 +58,9 @@ int main()
 
 """
 
-premade_text = """
+
+def gen_premade_text():
+    return """
 (define list (lambda x x))
 
 (define Yag
@@ -120,10 +122,10 @@ footer = """
 
 
 def compile_scheme_file(src, dest):
-    global premade_text
     s = open(src, 'r')
     d = open(dest, 'w')
     text = s.read().strip()
+    premade_text = gen_premade_text()
     premade = []
     expressions = []
     tag_parser.reset_data_structures()
