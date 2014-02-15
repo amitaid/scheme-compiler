@@ -161,7 +161,8 @@ def compile_scheme_file(src, dest):
         code = expr.code_gen()
         if code:
             d.write(code)
-        d.write(write_sob_code)
+        if not tag_parser.is_void(expr) and not isinstance(expr, tag_parser.Def):
+            d.write(write_sob_code)
     d.write(footer)
 
     # print(symbol_list)
