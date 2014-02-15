@@ -763,6 +763,9 @@ class Variable(AbstractSchemeExpr):
     def __ne__(self, other):
         return not self == other
 
+    def hash(self):
+        return hash(self.symbol)
+
     def debruijn(self, bounded=list(), params=list()):
         if self in params:
             return VarParam(self.symbol, params.index(self))
