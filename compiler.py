@@ -114,18 +114,19 @@ write_sob_code = """  PUSH(R0);
 footer = """
   STOP_MACHINE;
 
-  return(0);
+  return 0;
 }
 """
 
 
 def compile_scheme_file(src, dest):
-    global premade_text, sym_table, constants
+    global premade_text
     s = open(src, 'r')
     d = open(dest, 'w')
     text = s.read().strip()
     premade = []
     expressions = []
+    tag_parser.reset_data_structures()
 
     while premade_text:
         sexpr, premade_text = tag_parser.AbstractSchemeExpr.parse(premade_text)
@@ -171,7 +172,6 @@ def compile_scheme_file(src, dest):
 
     s.close()
     d.close()
-    sym_table, constants = {}, {}
 
 
 if __name__ == '__main__':

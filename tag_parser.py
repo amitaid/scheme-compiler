@@ -2,6 +2,26 @@ from sexprs import *
 
 symbol_table = {}
 
+constants = {sexprs.Void(): 1,
+             sexprs.Nil(): 2,
+             sexprs.Boolean('#f'): 3,
+             sexprs.Boolean('#t'): 5,
+             'const_code': []}
+mem_ptr = 8
+
+
+def reset_data_structures():
+    global symbol_table, constants, mem_ptr
+    symbol_table = {}
+
+    constants = {sexprs.Void(): 1,
+                 sexprs.Nil(): 2,
+                 sexprs.Boolean('#f'): 3,
+                 sexprs.Boolean('#t'): 5,
+                 'const_code': []}
+    mem_ptr = 8
+
+
 builtin = {'+': 'PLUS', '-': 'MINUS', '*': 'MULT', '/': 'DIVIDE', 'APPLY': 'APPLY',
            '>': 'GREATER', '<': 'SMALLER', '=': 'EQUAL', 'APPEND': 'APPEND',
            'NULL?': 'IS_NULL', 'NUMBER?': 'IS_NUMBER', 'ZERO?': 'IS_ZERO_PRED',
@@ -600,13 +620,6 @@ class AbstractSchemeExpr:
 
 
 ### Constant ###
-constants = {sexprs.Void(): 1,
-             sexprs.Nil(): 2,
-             sexprs.Boolean('#f'): 3,
-             sexprs.Boolean('#t'): 5,
-             'const_code': []}
-mem_ptr = 8
-
 
 class Constant(AbstractSchemeExpr):
     def __init__(self, value):
