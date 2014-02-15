@@ -76,6 +76,7 @@
   SUB(R1,IMM(2)); // because we dont count the list, and not the procedure
   ADD(R1,R2);     // now R1 holds the amount of args we pushed to the stack
   PUSH(R1);       // now the num and the args are on the top of the stack
+  //MOV(R13, R1);
 
   MOV(R0,FPARG(2));
   PUSH(INDD(R0,1));
@@ -83,6 +84,7 @@
   DROP(1);
   POP(R1);
   DROP(R1);
+  //DROP(R13);
 
   POP(FP);
   RETURN;

@@ -9,9 +9,9 @@
   PUSH(FP);
   MOV(FP, SP);
 
-  PUSH(R1);
-  PUSH(R2);
-  PUSH(R3);
+  //PUSH(R1);
+  //PUSH(R2);
+  //PUSH(R3);
 
   MOV(R0, IMM(0));
   MOV(R1, FPARG(0));
@@ -40,8 +40,8 @@
   MOV(R0, IMM(1));
  STRCMP_FAIL:
 
-  POP(R3);
-  POP(R2);
-  POP(R1);
+  //POP(R3);
+  //POP(R2);
+  //POP(R1);
   POP(FP);
   RETURN;

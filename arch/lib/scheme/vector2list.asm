@@ -7,10 +7,10 @@ VECTOR_2_LIST:
     PUSH(FP);
     MOV(FP, SP);
 
-    PUSH(R1);
-    PUSH(R2);
-    PUSH(R3);
-    PUSH(R4);
+    //PUSH(R1);
+    //PUSH(R2);
+    //PUSH(R3);
+    //PUSH(R4);
 
     CMP(FPARG(1), IMM(1));
     JUMP_EQ(VECTOR_2_LIST_AMOUNT_OK);
@@ -42,10 +42,10 @@ VECTOR_2_LIST_LOOP:
 
 VECTOR_2_LIST_LOOP_EXIT:
 
-    POP(R4);
-    POP(R3);
-    POP(R2);
-    POP(R1);
+    //POP(R4);
+    //POP(R3);
+    //POP(R2);
+    //POP(R1);
 
     POP(FP);
     RETURN;

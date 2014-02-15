@@ -8,8 +8,8 @@
   PUSH(FP);
   MOV(FP,SP);
 
-  PUSH(R1);
-  PUSH(R2);
+  //PUSH(R1);
+  //PUSH(R2);
 
   MOV(R1,IMM(2));
   MOV(R2,FPARG(1));
@@ -29,8 +29,8 @@ VECTOR_CONSTRUCTOR_ARG_LOOP_EXIT:
   ADD(R1,1);
   DROP(R1);
 
-  POP(R2);
-  POP(R1);
+  //POP(R2);
+  //POP(R1);
 
   POP(FP);
   RETURN;

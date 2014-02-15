@@ -7,7 +7,7 @@
   PUSH(FP);
   MOV(FP, SP);
 
-  PUSH(R1);
+  //PUSH(R1);
 
   CMP(FPARG(1), IMM(2));
   JUMP_EQ(REMAINDER_ARGS_AMOUNT_OK);
@@ -36,7 +36,7 @@
   CALL(MAKE_SOB_INTEGER);
   DROP(1);
 
-  POP(R1);
+  //POP(R1);
 
   POP(FP);
   RETURN;

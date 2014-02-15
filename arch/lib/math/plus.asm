@@ -8,11 +8,11 @@
   PUSH(FP);
   MOV(FP,SP);
 
-  PUSH(R1);
-  PUSH(R2);
-  PUSH(R3);
-  PUSH(R4);
-  PUSH(R5);
+  //PUSH(R1);
+  //PUSH(R2);
+  //PUSH(R3);
+  //PUSH(R4);
+  //PUSH(R5);
 
   MOV(R0, IMM(0)); // Result numerator
   MOV(R1, IMM(1)); // Result denumerator
@@ -55,11 +55,11 @@
   CALL(MAKE_SOB_NUMBER);
   DROP(2);
 
-  POP(R5);
-  POP(R4);
-  POP(R3);
-  POP(R2);
-  POP(R1);
+  //POP(R5);
+  //POP(R4);
+  //POP(R3);
+  //POP(R2);
+  //POP(R1);
 
   POP(FP);
   RETURN;

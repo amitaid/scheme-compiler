@@ -8,9 +8,9 @@
   PUSH(FP);
   MOV(FP,SP);
 
-  PUSH(R1);
-  PUSH(R2);
-  PUSH(R3);
+  //PUSH(R1);
+  //PUSH(R2);
+  //PUSH(R3);
 
   MOV(R1,IMM(2));
   MOV(R2,FPARG(1));  // holds the number of args in the stack

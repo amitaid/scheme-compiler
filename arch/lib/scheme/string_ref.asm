@@ -7,7 +7,7 @@
   PUSH(FP);
   MOV(FP,SP);
 
-  PUSH(R1);
+  //PUSH(R1);
 
   CMP(FPARG(1),IMM(2));        // checks that we have 2 args in stack
   JUMP_EQ(STRING_REF_ARGS_CORRECT);
@@ -42,7 +42,7 @@
   CALL(MAKE_SOB_CHAR);
   DROP(1);
 
-  POP(R1);
+  //POP(R1);
 
   POP(FP);
   RETURN;

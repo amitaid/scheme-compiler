@@ -6,9 +6,9 @@
  MAKE_VECTOR:
   PUSH(FP);
   MOV(FP,SP);
-  PUSH(R1);
-  PUSH(R2);
-  PUSH(R3);
+  //PUSH(R1);
+  //PUSH(R2);
+  //PUSH(R3);
   MOV(R1,IMM(2));
   CMP(FPARG(1),IMM(2));        // checks that we have less then 3 args in stack
   JUMP_LE(MAKE_VECTOR_ARGS_COUNT_LESS_THAN_3);
@@ -55,8 +55,8 @@
   INCR(R3);
   DROP(R3);
 
-  POP(R3);
-  POP(R2);
-  POP(R1);
+  //POP(R3);
+  //POP(R2);
+  //POP(R1);
   POP(FP);
   RETURN;

@@ -8,11 +8,11 @@
   PUSH(FP);
   MOV(FP,SP);
 
-  PUSH(R1);
-  PUSH(R2);
-  PUSH(R3);
-  PUSH(R4);
-  PUSH(R5);
+  //PUSH(R1);
+  //PUSH(R2);
+  //PUSH(R3);
+  //PUSH(R4);
+  //PUSH(R5);
 
   MOV(R1, IMM(2)); // Result holder
   MOV(R5, IMM(2));
@@ -70,11 +70,11 @@
  APPEND_EXIT:
   MOV(R0, R1);
 
-  POP(R5);
-  POP(R4);
-  POP(R3);
-  POP(R2);
-  POP(R1);
+  //POP(R5);
+  //POP(R4);
+  //POP(R3);
+  //POP(R2);
+  //POP(R1);
 
   POP(FP);
   RETURN;

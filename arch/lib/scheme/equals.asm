@@ -7,7 +7,7 @@
   PUSH(FP);
   MOV(FP,SP);
 
-  PUSH(R1);
+  //PUSH(R1);
 
   CMP(FPARG(1), IMM(2));
   JUMP_EQ(EQ_ARGS_AMOUNT_OK);
@@ -77,7 +77,7 @@ EQ_ARGS_AMOUNT_OK:
 
  EQ_EXIT:
 
-  POP(R1);
+  //POP(R1);
 
   POP(FP);
   RETURN;

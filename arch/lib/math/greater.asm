@@ -8,11 +8,11 @@
   PUSH(FP);
   MOV(FP,SP);
 
-  PUSH(R1);
-  PUSH(R2);
-  PUSH(R3);
-  PUSH(R4);
-  PUSH(R5);
+  //PUSH(R1);
+  //PUSH(R2);
+  //PUSH(R3);
+  //PUSH(R4);
+  //PUSH(R5);
 
   MOV(R1, FPARG(1)); // Argument number
   CMP(R1, IMM(0)); // No args, need to throw error
@@ -60,11 +60,11 @@
   MOV(R0, IMM(3));
  GREATER_EXIT:
 
-  POP(R5);
-  POP(R4);
-  POP(R3);
-  POP(R2);
-  POP(R1);
+  //POP(R5);
+  //POP(R4);
+  //POP(R3);
+  //POP(R2);
+  //POP(R1);
 
   POP(FP);
   RETURN;
