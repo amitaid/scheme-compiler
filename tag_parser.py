@@ -900,7 +900,7 @@ class Applic(AbstractSchemeExpr):
             code += arg.code_gen()
             code += '  PUSH(R0);\n'
             code += ' /* Applic ' + label + ' arg (' + str(self.args.index(arg)) + ') ends here */ \n'
-        code += '  PUSH(IMM(' + str(len(self.args)) + '));\n'
+        code += '  PUSH(IMM(' + str(len(self.args)) + ')) // application args: ' + str(len(self.args)) + ';\n'
         code += ' /* Applic ' + label + ' function code starts here */ \n'
         code += self.func.code_gen()
         code += ' /* Applic ' + label + ' function code ends here */ \n'
@@ -930,64 +930,128 @@ class ApplicTP(Applic):
         super(ApplicTP, self).__init__(func, args)
 
     def __str__(self):
-        return super(ApplicTP, self).__str__()  # + 'TP'
+        return super(ApplicTP, self).__str__() + 'TP'
 
     def analyze_env(self, env_count=0, arg_count=0):
         self.func.analyze_env(env_count, arg_count),
         for x in self.args:
             x.analyze_env(env_count, arg_count)
 
-        def code_gen(self):
-            label = gen_label()
-            applic_tc_prep_label = 'L_APPLIC_TP_PREP_' + label
-            applic_tc_loop_label = 'L_APPLIC_TP_LOOP_' + label
-            applic_tc_exit_label = 'L_APPLIC_TP_EXIT_' + label
+    def code_gen(self):
+        label = gen_label()
+        applic_tc_prep_label = 'L_APPLIC_TP_PREP_' + label
+        applic_tc_loop_label = 'L_APPLIC_TP_LOOP_' + label
+        applic_tc_exit_label = 'L_APPLIC_TP_EXIT_' + label
 
-            code = '/* Applic TP ' + label + ' STARTS HERE */ \n'
+        code = '/* Applic TP ' + label + ' STARTS HERE */ \n'
 
-            for arg in reversed(self.args):
-                code += ' /* Applic TP ' + label + ' arg (' + str(self.args.index(arg)) + ') starts here */ \n'
-                code += arg.code_gen()
-                code += '  PUSH(R0);\n'
-                code += ' /* Applic TP ' + label + ' arg (' + str(self.args.index(arg)) + ') ends here */ \n'
-
-            code += '  PUSH(IMM(' + str(len(self.args)) + '));\n'
-            code += self.func.code_gen()
-            code += '  MOV(R1,R0);\n'
+        for arg in reversed(self.args):
+            code += ' /* Applic TP ' + label + ' arg (' + str(self.args.index(arg)) + ') starts here */ \n'
+            code += arg.code_gen()
             code += '  PUSH(R0);\n'
-            code += '  CALL(IS_SOB_CLOSURE);\n'
-            code += '  DROP(1);\n'
-            code += '  CMP(R0,IMM(1));'
-            code += '  JUMP_EQ(' + applic_tc_prep_label + ');\n'
+            code += ' /* Applic TP ' + label + ' arg (' + str(self.args.index(arg)) + ') ends here */ \n'
 
-            #TODO ERROR
+        code += '  PUSH(IMM(' + str(len(self.args)) + ')) // tp application args: ' + str(len(self.args)) + ' ;\n'
+        code += self.func.code_gen()
+        code += '  MOV(R1,R0);\n'
+        code += '  PUSH(R0);\n'
+        code += '  CALL(IS_SOB_CLOSURE);\n'
+        code += '  DROP(1);\n'
+        code += '  CMP(R0,IMM(1));'
+        code += '  JUMP_EQ(' + applic_tc_prep_label + ');\n'
 
-            code += ' ' + applic_tc_prep_label + ':\n'
-            code += '  MOV(R0,R1);\n'
-            code += '  PUSH(INDD(R0, 1));\n'  # Closure env. here the difference from applic starts
-            code += '  PUSH(FPARG(-1));\n'  # Old Return addr
-            code += '  MOV(R1,FPARG(-2));\n'  # Old FP
-            code += '  MOV(R5,FPARG(1));\n'  # Store n in R5
-            code += '  MOV(R2, IMM(' + str(len(self.args) + 3) + '));\n'  # Store m+3 in R2
-            code += '  MOV(R3,FP);\n'  # Upper frame pointer
-            code += '  MOV(FP,R1);\n'  # FP moves to the old FP
-            code += '  MOV(R4,FP);\n'  # Lower frame pointer
+        #TODO ERROR
 
-            code += ' ' + applic_tc_loop_label + ':\n'
-            code += '  CMP(R2, IMM(0));\n'
-            code += '  JUMP_EQ(' + applic_tc_exit_label + ');\n'
-            code += '  MOV(STACK(R4),STACK(R3));'
-            code += '  INCR(R3);\n'
-            code += '  INCR(R4);\n'
-            code += '  DECR(R2);\n'
-            code += '  JUMP(' + applic_tc_loop_label + ');\n'
+        code += ' ' + applic_tc_prep_label + ':\n'
+        code += '  MOV(R0,R1);\n'
+        code += '  PUSH(INDD(R0, 1));\n'  # Closure env. here the difference from applic starts
+        code += '  PUSH(FPARG(-1));\n'  # Old Return addr
+        code += '  MOV(R1,FPARG(-2));\n'  # Old FP
+        code += '  MOV(R5,FPARG(1));\n'  # Store n in R5
+        code += '  MOV(R2, IMM(' + str(len(self.args) + 3) + '));\n'  # Store m+3 in R2
+        #code += '  MOV(R3,FP);\n'  # Upper frame pointer
 
-            code += ' ' + applic_tc_exit_label + ':\n'
-            code += '  SUB(SP, R5);\n'
-            code += '  SUB(SP, 4);\n'
-            code += '/* Applic TP ' + label + ' ends here */ \n'
-            code += '  JUMPA(INDD(R0,2));\n'
-            return code
+
+        #code += '  MOV(R4,FP);\n'  # Lower frame pointer
+
+        code += '  MOV(R3,FP);\n'  # R4 will hold the destination to copy, R3 now holds the fp
+        code += '  SUB(R3,IMM(4));\n'  # we sub by 4 to reach the args num of the calling function
+        code += '  MOV(R3,STACK(R3));\n'  # now R4 supposed to hold the number of args of the calling
+        code += '  ADD(R3,IMM(4));\n'  # r3 holds the shifting number
+        code += '  MOV(R4,FP);\n'  # R4 holds the frame pointer
+        #code += '  MOV(R4,IMM(4));' # old frame pointer 1, env 1, ret address 1, args num 1
+        code += '  SUB(R4,R3);\n'  # sub by the number of args
+        code += '  MOV(R3,FP);\n'  # Upper frame pointer
+        code += '  MOV(FP,R1);\n'  # FP moves to the old FP
+
+        code += ' ' + applic_tc_loop_label + ':\n'
+        code += '  CMP(R2, IMM(0));\n'
+        code += '  JUMP_EQ(' + applic_tc_exit_label + ');\n'
+        code += '  MOV(STACK(R4),STACK(R3));'
+        code += '  INCR(R3);\n'
+        code += '  INCR(R4);\n'
+        code += '  DECR(R2);\n'
+        code += '  JUMP(' + applic_tc_loop_label + ');\n'
+
+        code += ' ' + applic_tc_exit_label + ':\n'
+        code += '  SUB(SP, R5);\n'
+        code += '  SUB(SP, 4);\n'
+        code += '/* Applic TP ' + label + ' ends here */ \n'
+        code += '  JUMPA(INDD(R0,2));\n'
+        return code
+
+        # def code_gen(self):  #backup
+        #     label = gen_label()
+        #     applic_tc_prep_label = 'L_APPLIC_TP_PREP_' + label
+        #     applic_tc_loop_label = 'L_APPLIC_TP_LOOP_' + label
+        #     applic_tc_exit_label = 'L_APPLIC_TP_EXIT_' + label
+        #
+        #     code = '/* Applic TP ' + label + ' STARTS HERE */ \n'
+        #
+
+        #     for arg in reversed(self.args):
+        #         code += ' /* Applic TP ' + label + ' arg (' + str(self.args.index(arg)) + ') starts here */ \n'
+        #         code += arg.code_gen()
+        #         code += '  PUSH(R0);\n'
+        #         code += ' /* Applic TP ' + label + ' arg (' + str(self.args.index(arg)) + ') ends here */ \n'
+        #
+        #     code += '  PUSH(IMM(' + str(len(self.args)) + ')) // tp application args: ' + str(len(self.args)) + ' ;\n'
+        #     code += self.func.code_gen()
+        #     code += '  MOV(R1,R0);\n'
+        #     code += '  PUSH(R0);\n'
+        #     code += '  CALL(IS_SOB_CLOSURE);\n'
+        #     code += '  DROP(1);\n'
+        #     code += '  CMP(R0,IMM(1));'
+        #     code += '  JUMP_EQ(' + applic_tc_prep_label + ');\n'
+        #
+        #         #TODO ERROR
+        #
+        #     code += ' ' + applic_tc_prep_label + ':\n'
+        #     code += '  MOV(R0,R1);\n'
+        #     code += '  PUSH(INDD(R0, 1));\n'  # Closure env. here the difference from applic starts
+        #     code += '  PUSH(FPARG(-1));\n'  # Old Return addr
+        #     code += '  MOV(R1,FPARG(-2));\n'  # Old FP
+        #     code += '  MOV(R5,FPARG(1));\n'  # Store n in R5
+        #     code += '  MOV(R2, IMM(' + str(len(self.args) + 3) + '));\n'  # Store m+3 in R2
+        #     code += '  MOV(R3,FP);\n'  # Upper frame pointer
+        #     code += '  MOV(FP,R1);\n'  # FP moves to the old FP
+        #     code += '  MOV(R4,FP);\n'  # Lower frame pointer
+        #
+        #     code += ' ' + applic_tc_loop_label + ':\n'
+        #     code += '  CMP(R2, IMM(0));\n'
+        #     code += '  JUMP_EQ(' + applic_tc_exit_label + ');\n'
+        #     code += '  MOV(STACK(R4),STACK(R3));'
+        #     code += '  INCR(R3);\n'
+        #     code += '  INCR(R4);\n'
+        #     code += '  DECR(R2);\n'
+        #     code += '  JUMP(' + applic_tc_loop_label + ');\n'
+        #
+        #     code += ' ' + applic_tc_exit_label + ':\n'
+        #     code += '  SUB(SP, R5);\n'
+        #     code += '  SUB(SP, 4);\n'
+        #     code += '/* Applic TP ' + label + ' ends here */ \n'
+        #     code += '  JUMPA(INDD(R0,2));\n'
+        #     return code
 
 
 class Or(AbstractSchemeExpr):
