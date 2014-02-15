@@ -165,5 +165,5 @@ extern Machine *machine;
  printf(",R7: %ld ", _reg7); \
  printf(",R8: %ld ", _reg8); \
  printf(" -> %s \n", msg); \
- }
+
 }

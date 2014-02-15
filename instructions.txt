@@ -1,0 +1,23 @@
+To use our compiler, either:
+
+From python, run:
+
+	from compiler import *
+	compile_scheme_file('filename.scm', 'filename.asm')
+
+OR, from the shell, run:
+
+	python3 compiler.py filename.scm
+
+
+Then from the shell, run:
+
+	make filename
+
+This should create an executable named "filename".
+
+For example, to compile and run "source.scm":
+
+	python3 compiler.py source.scm
+	make source
+	source
