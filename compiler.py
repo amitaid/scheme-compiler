@@ -114,13 +114,13 @@ write_sob_code = """  PUSH(R0);
 footer = """
   STOP_MACHINE;
 
-  return 0;
+  return(0);
 }
 """
 
 
 def compile_scheme_file(src, dest):
-    global premade_text
+    global premade_text, sym_table, constants
     s = open(src, 'r')
     d = open(dest, 'w')
     text = s.read().strip()
@@ -171,6 +171,7 @@ def compile_scheme_file(src, dest):
 
     s.close()
     d.close()
+    sym_table, constants = {}, {}
 
 
 if __name__ == '__main__':

@@ -930,7 +930,7 @@ class ApplicTP(Applic):
         super(ApplicTP, self).__init__(func, args)
 
     def __str__(self):
-        return super(ApplicTP, self).__str__() + 'TP'
+        return super(ApplicTP, self).__str__()  # + 'TP'
 
     def analyze_env(self, env_count=0, arg_count=0):
         self.func.analyze_env(env_count, arg_count),
