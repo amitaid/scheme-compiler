@@ -62,32 +62,27 @@ premade_text = """
 (define list (lambda x x))
 
 (define Yag
-  (lambda fs
-    (let ((ms (map
-		        (lambda (fi)
-		            (lambda ms
-		                (apply fi (map (lambda (mi)
-				            (lambda args
-				                (apply (apply mi ms) args))
-				            )
-				        ms)
-				    )
-				))
-		fs)))
-      (apply (car ms) ms))))
+    (lambda fs
+        (let ((ms (map
+                   (lambda (fi)
+                        (lambda ms
+                            (apply fi (map (lambda (mi)
+                                (lambda args
+                                        (apply (apply mi ms) args))) ms)))) fs)))
+        (apply (car ms) ms))))
 
 (define simple-map
     (lambda (func lst)
-	    (if (null? lst)
-		    lst
-		    (cons (func (car lst)) (simple-map func (cdr lst))))))
+        (if (null? lst)
+            lst
+            (cons (func (car lst)) (simple-map func (cdr lst))))))
 
 (define map
     (lambda (func lst . rest)
-	    (if (null? lst)
-		    lst
-		    (cons (apply func (cons (car lst) (simple-map car rest)))
-			    (apply map (cons func (cons (cdr lst) (simple-map cdr rest))))))))
+        (if (null? lst)
+            lst
+            (cons (apply func (cons (car lst) (simple-map car rest)))
+                (apply map (cons func (cons (cdr lst) (simple-map cdr rest))))))))
 
 """
 # (define take-cars
