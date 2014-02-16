@@ -22,13 +22,13 @@
   // ANOTHER ERROR REGARDING THE TYPE CORRECTNESS HERE
 
  VECTOR_REF_TYPE_CORRECT:
-  CMP(FPARG(3), INDD(R0,1));      // checks if index is legal
+  MOV(R1, FPARG(3));
+  CMP(INDD(R1,1), INDD(R0,1));      // checks if index is legal
   JUMP_LT(VECTOR_REF_INDEX_CORRECT);
 
   // third error of index out of bounds here
 
  VECTOR_REF_INDEX_CORRECT:
-  MOV(R1,FPARG(3));        // move the integer arg to R1
   CMP(INDD(R1,0),T_INTEGER);
   JUMP_EQ(VECTOR_REF_INT_ARG_TYPE_CORRECT);
 
@@ -39,7 +39,7 @@
   ADD(R1,IMM(2));      // adds 2 because the first element is in the 3rd cell (1,2 are type and length)
   MOV(R0,INDD(R0,R1));
 
-  POP(R1);
+  //POP(R1);
 
   POP(FP);
   RETURN;
